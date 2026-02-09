@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Схема - Винороб{% endblock %}
+
+{% block content %}
+<div class="step-page">
+    <div class="card">
+        <h1 class="title">Схема</h1>
+        <p class="subtitle">Виберіть тип схеми виробництва</p>
+        
+        <div class="button-group">
+            <button class="btn btn-choice" onclick="selectChoice('scheme_type', 'Біла')">Біла</button>
+            <button class="btn btn-choice" onclick="selectChoice('scheme_type', 'Червона')">Червона</button>
+            <button class="btn btn-choice" onclick="selectChoice('scheme_type', 'Змішана')">Змішана</button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function selectChoice(step, choice) {
+    await saveChoice(step, choice);
+    window.location.href = '/create-scheme';
+}
+</script>
+{% endblock %}

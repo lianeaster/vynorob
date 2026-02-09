@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Кондиції вина - Винороб{% endblock %}
+
+{% block content %}
+<div class="step-page">
+    <div class="card">
+        <h1 class="title">Кондиції вина</h1>
+        <p class="subtitle">Введіть параметри готового вина</p>
+        
+        <form id="wineConditionsForm" class="form">
+            <div class="form-group">
+                <label for="sugar">МЧ цукру (г/дм³)</label>
+                <input type="number" id="sugar" name="sugar" step="0.1" required class="form-input">
+            </div>
+            
+            <div class="form-group">
+                <label for="acidity">МЧ кислоти (г/дм³)</label>
+                <input type="number" id="acidity" name="acidity" step="0.1" required class="form-input">
+            </div>
+            
+            <div class="form-group">
+                <label for="ph">pH</label>
+                <input type="number" id="ph" name="ph" step="0.01" min="0" max="14" required class="form-input">
+            </div>
+            
+            <div class="form-group">
+                <label for="alcohol">Спиртуозність (%)</label>
+                <input type="number" id="alcohol" name="alcohol" step="0.1" min="0" max="100" required class="form-input">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Далі</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('wineConditionsForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const data = {
+        sugar: parseFloat(document.getElementById('sugar').value),
+        acidity: parseFloat(document.getElementById('acidity').value),
+        ph: parseFloat(document.getElementById('ph').value),
+        alcohol: parseFloat(document.getElementById('alcohol').value)
+    };
+    
+    await saveChoice('wine_conditions', data);
+    window.location.href = '/choice';
+});
+</script>
+{% endblock %}

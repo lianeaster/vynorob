@@ -1,0 +1,249 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+}
+
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.title {
+    font-size: 2.5rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    color: #666;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.btn {
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #d0d0d0;
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(17, 153, 142, 0.4);
+}
+
+.btn-large {
+    padding: 20px 50px;
+    font-size: 1.3rem;
+}
+
+.btn-choice {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    padding: 20px 40px;
+    width: 100%;
+    margin: 10px 0;
+}
+
+.btn-choice:hover {
+    background: #667eea;
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.welcome-page,
+.step-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.form {
+    margin-top: 30px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 30px 0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.checkbox-label:hover {
+    background: #f5f5f5;
+    border-color: #667eea;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 15px;
+    cursor: pointer;
+}
+
+.checkbox-label span {
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.scheme-preview {
+    background: #f9f9f9;
+    border-radius: 10px;
+    padding: 30px;
+    margin: 30px 0;
+}
+
+.scheme-data {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.scheme-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.scheme-item:last-child {
+    border-bottom: none;
+}
+
+.scheme-section {
+    margin-top: 20px;
+}
+
+.scheme-section h3 {
+    color: #667eea;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+@media (max-width: 768px) {
+    .card {
+        padding: 30px 20px;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+    
+    .btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+    
+    .btn-large {
+        padding: 15px 40px;
+        font-size: 1.1rem;
+    }
+}

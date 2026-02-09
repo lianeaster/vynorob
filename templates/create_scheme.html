@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Створити схему - Винороб{% endblock %}
+
+{% block content %}
+<div class="step-page">
+    <div class="card">
+        <h1 class="title">Створити схему</h1>
+        <p class="subtitle">Перегляньте та збережіть технологічну схему</p>
+        
+        <div id="schemePreview" class="scheme-preview">
+            <!-- Will be populated by JavaScript -->
+        </div>
+        
+        <div class="button-group">
+            <button class="btn btn-secondary" onclick="window.location.href='/'">Почати заново</button>
+            <button class="btn btn-success" onclick="saveScheme(false)">Save</button>
+            <button class="btn btn-primary" onclick="saveScheme(true)">Save and Create</button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadSchemePreview() {
+    const response = await fetch('/api/get-session');
+    const data = await response.json();
+    
+    const preview = document.getElementById('schemePreview');
+    
+    let html = '<div class="scheme-data">';
+    
+    if (data.color) {
+        html += `<div class="scheme-item"><strong>Колір:</strong> ${data.color}</div>`;
+    }
+    
+    if (data.style) {
+        html += `<div class="scheme-item"><strong>Стиль:</strong> ${data.style}</div>`;
+    }
+    
+    if (data.style_co2) {
+        html += `<div class="scheme-item"><strong>Стиль за CO2:</strong> ${data.style_co2}</div>`;
+    }
+    
+    if (data.raw_material) {
+        html += '<div class="scheme-section"><h3>Кондиції сировини:</h3>';
+        html += `<div class="scheme-item">МЧ цукру: ${data.raw_material.sugar} г/дм³</div>`;
+        html += `<div class="scheme-item">МЧ кислоти: ${data.raw_material.acidity} г/дм³</div>`;
+        html += `<div class="scheme-item">pH: ${data.raw_material.ph}</div>`;
+        html += '</div>';
+    }
+    
+    if (data.wine_conditions) {
+        html += '<div class="scheme-section"><h3>Кондиції вина:</h3>';
+        html += `<div class="scheme-item">МЧ цукру: ${data.wine_conditions.sugar} г/дм³</div>`;
+        html += `<div class="scheme-item">МЧ кислоти: ${data.wine_conditions.acidity} г/дм³</div>`;
+        html += `<div class="scheme-item">pH: ${data.wine_conditions.ph}</div>`;
+        html += `<div class="scheme-item">Спиртуозність: ${data.wine_conditions.alcohol}%</div>`;
+        html += '</div>';
+    }
+    
+    if (data.wine_description && data.wine_description.length > 0) {
+        html += '<div class="scheme-section"><h3>Опис вина:</h3>';
+        html += `<div class="scheme-item">${data.wine_description.join(', ')}</div>`;
+        html += '</div>';
+    }
+    
+    if (data.scheme_type) {
+        html += `<div class="scheme-item"><strong>Тип схеми:</strong> ${data.scheme_type}</div>`;
+    }
+    
+    html += '</div>';
+    preview.innerHTML = html;
+}
+
+async function saveScheme(createNext) {
+    const response = await fetch('/api/save-wine', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            create_next: createNext
+        })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+        alert('Схему успішно збережено!');
+        
+        if (createNext) {
+            // TODO: Navigate to technology scheme drawing page
+            alert('Функція створення технологічної схеми буде додана пізніше');
+            window.location.href = '/';
+        } else {
+            window.location.href = '/';
+        }
+    } else {
+        alert('Помилка при збереженні схеми');
+    }
+}
+
+// Load preview on page load
+loadSchemePreview();
+</script>
+{% endblock %}

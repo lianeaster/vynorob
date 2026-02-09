@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Колір вина - Винороб{% endblock %}
+
+{% block content %}
+<div class="step-page">
+    <div class="card">
+        <h1 class="title">Колір</h1>
+        <p class="subtitle">Виберіть колір вина</p>
+        
+        <div class="button-group">
+            <button class="btn btn-choice" onclick="selectChoice('color', 'Біле')">Біле</button>
+            <button class="btn btn-choice" onclick="selectChoice('color', 'Червоне')">Червоне</button>
+            <button class="btn btn-choice" onclick="selectChoice('color', 'Рожеве')">Рожеве</button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function selectChoice(step, choice) {
+    await saveChoice(step, choice);
+    window.location.href = '/style';
+}
+</script>
+{% endblock %}
