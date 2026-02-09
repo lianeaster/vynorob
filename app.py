@@ -76,6 +76,11 @@ def create_scheme_page():
     """Create scheme page - Створити схему"""
     return render_template('create_scheme.html')
 
+@app.route('/technology-scheme')
+def technology_scheme_page():
+    """Technology scheme visualization page - Принципова технологічна схема"""
+    return render_template('technology_scheme.html')
+
 @app.route('/api/save-choice', methods=['POST'])
 def save_choice():
     """API endpoint to save user choice"""

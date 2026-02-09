@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Принципова технологічна схема - Винороб{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: #fff;
+    }
+    
+    .container {
+        max-width: 1200px;
+    }
+    
+    .scheme-canvas-container {
+        background: #fff;
+        padding: 40px;
+        border-radius: 10px;
+        min-height: 800px;
+    }
+    
+    #schemeCanvas {
+        width: 100%;
+        height: auto;
+        display: block;
+        border: 1px solid #ddd;
+    }
+    
+    .scheme-title {
+        color: #000;
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 30px;
+        font-family: Arial, sans-serif;
+    }
+    
+    .controls {
+        text-align: center;
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="scheme-canvas-container">
+    <h1 class="scheme-title">Принципова технологічна схема</h1>
+    <canvas id="schemeCanvas" width="1000" height="1200"></canvas>
+    
+    <div class="controls">
+        <button class="btn btn-secondary" onclick="window.location.href='/'">На головну</button>
+        <button class="btn btn-primary" onclick="downloadScheme()">Завантажити схему</button>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('schemeCanvas');
+const ctx = canvas.getContext('2d');
+
+// Get session data
+let wineData = {};
+
+async function loadWineData() {
+    const response = await fetch('/api/get-session');
+    wineData = await response.json();
+    drawScheme();
+}
+
+function drawScheme() {
+    // Clear canvas with white background
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Set default styles - black text and lines
+    ctx.strokeStyle = '#000';
+    ctx.fillStyle = '#000';
+    ctx.lineWidth = 2;
+    
+    // Set consistent font for everything
+    const fontSize = 16;
+    ctx.font = `${fontSize}px Arial`;
+    
+    let currentY = 50;
+    
+    // Draw starting conditions (4 lines of text)
+    const startingConditionsHeight = 100; // Text spans from y+25 to y+100 = 75px + line height
+    drawStartConditions(currentY);
+    currentY += startingConditionsHeight; // Text ends at y+100
+    
+    // Calculate arrow length based on starting conditions text (same rule: 1/3 of text)
+    const firstArrowLength = Math.round(startingConditionsHeight / 3); // 100/3 = 33px
+    const gapAfterText = 10;
+    currentY += gapAfterText;
+    
+    console.log(`Starting conditions text: ${startingConditionsHeight}px, First arrow: ${firstArrowLength}px, Gap after text: ${gapAfterText}px`);
+    
+    // Draw arrow down - proportional to text above
+    drawArrow(500, currentY, 500, currentY + firstArrowLength);
+    currentY += firstArrowLength;
+    
+    // Draw acceptance box (Прийомка та сортування)
+    const boxInfo = drawProcessBox(200, currentY, 600, 60, 'Прийомка та сортування вишні');
+    currentY = boxInfo.bottomY;
+    
+    // Make bottom arrow SAME as top arrow: small line, text, gap, then arrow
+    // Add 30px for the small vertical line before text (same as top)
+    const smallLineHeight = 30;
+    currentY += smallLineHeight;
+    
+    // Draw wine conditions text (4 lines)
+    const wineConditionsHeight = 88; // 4 lines × 22px
+    drawWineConditions(currentY);
+    currentY += wineConditionsHeight;
+    
+    // Small gap after text before arrow starts (same as top)
+    const gapAfterWineText = 10;
+    currentY += gapAfterWineText;
+    
+    // Calculate arrow length: Arrow = Text ÷ 3 (same rule as top)
+    const secondArrowLength = Math.round(wineConditionsHeight / 3); // 88 ÷ 3 = 29px
+    
+    console.log(`Wine conditions text: ${wineConditionsHeight}px, Gap after text: ${gapAfterWineText}px, Second arrow: ${secondArrowLength}px (1/3 of text)`);
+    
+    // Draw simple arrow (exactly like the top arrow)
+    drawArrow(500, currentY, 500, currentY + secondArrowLength);
+    currentY += secondArrowLength;
+}
+
+function drawStartConditions(y) {
+    // Get raw material conditions from session
+    const rawMaterial = wineData.raw_material || {};
+    const color = wineData.color || 'вишні';
+    const sugar = rawMaterial.sugar || 12;
+    const acidity = rawMaterial.acidity || 6;
+    const ph = rawMaterial.ph || 3.3;
+    
+    // Draw vertical line at top
+    ctx.beginPath();
+    ctx.moveTo(500, y - 30);
+    ctx.lineTo(500, y);
+    ctx.stroke();
+    
+    ctx.textAlign = 'center';
+    ctx.font = '16px Arial';
+    ctx.fillStyle = '#000';
+    
+    ctx.fillText(`Свіжі ягоди ${getColorText(color)}`, 500, y + 25);
+    ctx.fillText(`CP ≥ ${sugar}%`, 500, y + 50);
+    ctx.fillText(`C_TK=${acidity}г/дм³`, 500, y + 75);
+    ctx.fillText(`pH=${ph}`, 500, y + 100);
+}
+
+function getColorText(color) {
+    const colorMap = {
+        'Біле': 'білого винограду',
+        'Червоне': 'червоного винограду',
+        'Рожеве': 'рожевого винограду'
+    };
+    return colorMap[color] || 'вишні';
+}
+
+function drawWineConditions(y) {
+    // Draw vertical line at top (from box to text start) - same as starting conditions
+    ctx.beginPath();
+    ctx.moveTo(500, y - 30);
+    ctx.lineTo(500, y);
+    ctx.stroke();
+    
+    // Get wine conditions from session
+    const wineConditions = wineData.wine_conditions || {};
+    const sugar = wineConditions.sugar || 0;
+    const acidity = wineConditions.acidity || 0;
+    const ph = wineConditions.ph || 0;
+    const alcohol = wineConditions.alcohol || 0;
+    
+    ctx.textAlign = 'center';
+    ctx.font = '16px Arial';
+    ctx.fillStyle = '#000';
+    
+    ctx.fillText(`МЧ цукру: ${sugar} г/дм³`, 500, y + 22);
+    ctx.fillText(`МЧ кислоти: ${acidity} г/дм³`, 500, y + 44);
+    ctx.fillText(`pH: ${ph}`, 500, y + 66);
+    ctx.fillText(`Спиртуозність: ${alcohol}%`, 500, y + 88);
+}
+
+function drawProcessBox(x, y, width, height, text) {
+    // Measure text first to determine actual box size
+    ctx.font = '16px Arial';
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'center';
+    
+    const words = text.split(' ');
+    let lines = [];
+    let currentLine = words[0];
+    
+    for (let i = 1; i < words.length; i++) {
+        const testLine = currentLine + ' ' + words[i];
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > width - 80) {
+            lines.push(currentLine);
+            currentLine = words[i];
+        } else {
+            currentLine = testLine;
+        }
+    }
+    lines.push(currentLine);
+    
+    // Calculate actual box dimensions based on text
+    const lineHeight = 22;
+    const textPaddingH = 30; // Horizontal padding
+    const textPaddingV = 20; // Vertical padding
+    
+    const maxTextWidth = Math.max(...lines.map(line => ctx.measureText(line).width));
+    const actualWidth = maxTextWidth + textPaddingH * 2;
+    const actualHeight = lines.length * lineHeight + textPaddingV * 2;
+    
+    // Center the box horizontally, start at y
+    const actualX = x + (width - actualWidth) / 2;
+    const actualY = y;
+    
+    // Draw rounded rectangle that fits text
+    const radius = 15;
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(actualX + radius, actualY);
+    ctx.lineTo(actualX + actualWidth - radius, actualY);
+    ctx.quadraticCurveTo(actualX + actualWidth, actualY, actualX + actualWidth, actualY + radius);
+    ctx.lineTo(actualX + actualWidth, actualY + actualHeight - radius);
+    ctx.quadraticCurveTo(actualX + actualWidth, actualY + actualHeight, actualX + actualWidth - radius, actualY + actualHeight);
+    ctx.lineTo(actualX + radius, actualY + actualHeight);
+    ctx.quadraticCurveTo(actualX, actualY + actualHeight, actualX, actualY + actualHeight - radius);
+    ctx.lineTo(actualX, actualY + radius);
+    ctx.quadraticCurveTo(actualX, actualY, actualX + radius, actualY);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Draw text
+    const startY = actualY + actualHeight / 2 - (lines.length - 1) * lineHeight / 2 + 5;
+    
+    lines.forEach((line, index) => {
+        ctx.fillText(line, actualX + actualWidth / 2, startY + index * lineHeight);
+    });
+    
+    // Return box info for positioning next elements
+    return {
+        bottomY: actualY + actualHeight,
+        height: actualHeight
+    };
+}
+
+function drawArrow(x1, y1, x2, y2) {
+    // Draw line
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    
+    // Draw arrowhead
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const headLength = 10;
+    
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(
+        x2 - headLength * Math.cos(angle - Math.PI / 6),
+        y2 - headLength * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(
+        x2 - headLength * Math.cos(angle + Math.PI / 6),
+        y2 - headLength * Math.sin(angle + Math.PI / 6)
+    );
+    ctx.stroke();
+}
+
+function drawArrowWithConditions(x1, y1, x2, y2, arrowBefore, arrowAfter, padding, textLines) {
+    // Text lines are now passed in to ensure consistency
+    
+    // Calculate text box dimensions
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'center';
+    const lineHeight = 22;
+    const textHeight = textLines.length * lineHeight;
+    const maxWidth = Math.max(...textLines.map(line => ctx.measureText(line).width));
+    
+    // Position text centered on the arrow
+    const textX = x2;
+    
+    // Arrow structure: arrowBefore + padding + text + padding + arrowAfter
+    const textTop = y1 + arrowBefore + padding;
+    const textBottom = textTop + textHeight;
+    
+    // Draw arrow in two parts (interrupted by text + padding)
+    const gapTop = y1 + arrowBefore;  // Arrow stops here
+    const gapBottom = textBottom + padding;  // Arrow resumes here
+    
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    
+    // Top part of arrow
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x1, gapTop);
+    ctx.stroke();
+    
+    // Bottom part of arrow with arrowhead
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const headLength = 10;
+    
+    ctx.beginPath();
+    ctx.moveTo(x2, gapBottom);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    
+    // Draw arrowhead
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(
+        x2 - headLength * Math.cos(angle - Math.PI / 6),
+        y2 - headLength * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(
+        x2 - headLength * Math.cos(angle + Math.PI / 6),
+        y2 - headLength * Math.sin(angle + Math.PI / 6)
+    );
+    ctx.stroke();
+    
+    // Draw white background rectangle for text (centered on arrow)
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(
+        textX - maxWidth / 2 - padding, 
+        textTop, 
+        maxWidth + padding * 2, 
+        textHeight
+    );
+    
+    // Draw text lines centered vertically on arrow
+    ctx.fillStyle = '#000';
+    textLines.forEach((line, index) => {
+        ctx.fillText(line, textX, textTop + (index + 0.8) * lineHeight);
+    });
+}
+
+function downloadScheme() {
+    const link = document.createElement('a');
+    link.download = 'technology-scheme.png';
+    link.href = canvas.toDataURL();
+    link.click();
+}
+
+// Load data and draw on page load
+loadWineData();
+
+// Add version for debugging
+console.log('Technology Scheme Version: 5.2 - Both arrows with small line: box→line→text→gap→arrow');
+</script>
+{% endblock %}
