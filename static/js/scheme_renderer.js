@@ -233,9 +233,8 @@ class SchemeRenderer {
      */
     drawTextWithSubscript(text, x, y) {
         // Patterns to detect: Cц, Cтк, Cсп (C followed by lowercase Ukrainian letters)
-        const subscriptPattern = /C([а-яієїґ]+)/g;
-        
-        if (!subscriptPattern.test(text)) {
+        // Check if text contains the pattern
+        if (!/C[а-яієїґ]+/.test(text)) {
             // No subscripts, draw normally
             this.ctx.fillText(text, x, y);
             return this.ctx.measureText(text).width;
