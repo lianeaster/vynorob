@@ -689,7 +689,25 @@ class SchemeRenderer {
         // Last arrow with text intersection
         currentY = this.drawArrowWithText(centerX, currentY, 120, null, true);
         
-        console.log(`Final Y position: ${currentY}px, Canvas height: ${this.canvas.height}px`);
+        const finalY = currentY;
+        const optimalHeight = finalY + 50; // Add 50px padding at bottom
+        
+        console.log(`Final Y position: ${finalY}px`);
+        console.log(`Optimal canvas height: ${optimalHeight}px (actual: ${this.canvas.height}px)`);
+        
+        // Resize canvas to optimal height if needed
+        if (this.canvas.height !== optimalHeight) {
+            // Save current canvas content
+            const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Resize canvas
+            this.canvas.height = optimalHeight;
+            
+            // Restore content
+            this.ctx.putImageData(imageData, 0, 0);
+            
+            console.log(`Canvas resized to: ${this.canvas.width}x${optimalHeight}px`);
+        }
     }
 
     /**
@@ -1214,8 +1232,8 @@ class SchemeRenderer {
             const lines = [
                 'Виноматервіал на',
                 'оброблення та розлив:',
-                `Cц≤${finalSugar} г/дм³`,
-                `Cт.к.≤${finalAcidity.toFixed(1)} г/дм³`,
+                `Cц=${finalSugar} г/дм³`,
+                `Cт.к.=${finalAcidity.toFixed(1)} г/дм³`,
                 `Cсп = ${finalAlcohol}% об.`
             ];
             

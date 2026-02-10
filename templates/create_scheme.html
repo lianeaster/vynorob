@@ -43,8 +43,8 @@ async function loadSchemePreview() {
     
     if (data.raw_material) {
         html += '<div class="scheme-section"><h3>Кондиції сировини:</h3>';
-        html += `<div class="scheme-item">МЧ цукру: ${data.raw_material.sugar} г/дм³</div>`;
-        html += `<div class="scheme-item">МЧ кислоти: ${data.raw_material.acidity} г/дм³</div>`;
+        html += `<div class="scheme-item">Масова концентрація цукру: ${data.raw_material.sugar} г/дм³</div>`;
+        html += `<div class="scheme-item">Масова концентрація кислоти: ${data.raw_material.acidity} г/дм³</div>`;
         html += '</div>';
     }
     
@@ -55,9 +55,9 @@ async function loadSchemePreview() {
             html += ' <span style="font-size: 0.8em; font-style: italic; color: #667eea;">(розраховано автоматично)</span>';
         }
         html += '</h3>';
-        html += `<div class="scheme-item">МЧ цукру: ${data.wine_conditions.sugar} г/дм³</div>`;
-        html += `<div class="scheme-item">МЧ кислоти: ${data.wine_conditions.acidity} г/дм³</div>`;
-        html += `<div class="scheme-item">Спиртуозність: ${data.wine_conditions.alcohol}% об.</div>`;
+        html += `<div class="scheme-item">Масова концентрація цукру: ${data.wine_conditions.sugar} г/дм³</div>`;
+        html += `<div class="scheme-item">Масова концентрація кислоти: ${data.wine_conditions.acidity} г/дм³</div>`;
+        html += `<div class="scheme-item">Масова концентрація спирту: ${data.wine_conditions.alcohol}% об.</div>`;
         html += '</div>';
     }
     
