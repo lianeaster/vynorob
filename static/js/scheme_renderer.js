@@ -224,6 +224,95 @@ class SchemeRenderer {
     }
 
     /**
+     * Helper: Draw text with subscripts
+     * Handles chemical notation like Cц, Cтк, Cсп where the second letter is subscript
+     * @param {string} text - Text that may contain subscript patterns
+     * @param {number} x - X position (left aligned or center based on textAlign)
+     * @param {number} y - Y position (baseline)
+     * @returns {number} - Width of rendered text
+     */
+    drawTextWithSubscript(text, x, y) {
+        // Patterns to detect: Cц, Cтк, Cсп (C followed by lowercase Ukrainian letters)
+        const subscriptPattern = /C([а-яієїґ]+)/g;
+        
+        if (!subscriptPattern.test(text)) {
+            // No subscripts, draw normally
+            this.ctx.fillText(text, x, y);
+            return this.ctx.measureText(text).width;
+        }
+        
+        // Has subscripts, need custom rendering
+        this.ctx.save();
+        const isCenter = this.ctx.textAlign === 'center';
+        const normalFont = this.ctx.font;
+        const fontSize = parseInt(normalFont);
+        const subscriptFont = (fontSize * 0.7) + 'px Arial'; // 70% size for subscript
+        const subscriptOffset = fontSize * 0.3; // Lower by 30% of font size
+        
+        // Split text into parts
+        let currentX = x;
+        let lastIndex = 0;
+        let totalWidth = 0;
+        const parts = [];
+        
+        // Calculate all parts and total width first
+        text.replace(/C([а-яієїґ]+)/g, (match, subscript, offset) => {
+            // Text before C
+            if (offset > lastIndex) {
+                const before = text.substring(lastIndex, offset);
+                this.ctx.font = normalFont;
+                const width = this.ctx.measureText(before).width;
+                parts.push({ text: before, type: 'normal', width });
+                totalWidth += width;
+            }
+            
+            // C letter
+            this.ctx.font = normalFont;
+            const cWidth = this.ctx.measureText('C').width;
+            parts.push({ text: 'C', type: 'normal', width: cWidth });
+            totalWidth += cWidth;
+            
+            // Subscript
+            this.ctx.font = subscriptFont;
+            const subWidth = this.ctx.measureText(subscript).width;
+            parts.push({ text: subscript, type: 'subscript', width: subWidth });
+            totalWidth += subWidth;
+            
+            lastIndex = offset + match.length;
+            return match;
+        });
+        
+        // Remaining text
+        if (lastIndex < text.length) {
+            const after = text.substring(lastIndex);
+            this.ctx.font = normalFont;
+            const width = this.ctx.measureText(after).width;
+            parts.push({ text: after, type: 'normal', width });
+            totalWidth += width;
+        }
+        
+        // Adjust starting X if centered
+        if (isCenter) {
+            currentX = x - totalWidth / 2;
+        }
+        
+        // Draw all parts
+        parts.forEach(part => {
+            if (part.type === 'normal') {
+                this.ctx.font = normalFont;
+                this.ctx.fillText(part.text, currentX, y);
+            } else if (part.type === 'subscript') {
+                this.ctx.font = subscriptFont;
+                this.ctx.fillText(part.text, currentX, y + subscriptOffset);
+            }
+            currentX += part.width;
+        });
+        
+        this.ctx.restore();
+        return totalWidth;
+    }
+
+    /**
      * Helper: Draw text with background
      */
     drawTextWithBackground(text, x, y, options = {}) {
@@ -1185,10 +1274,10 @@ class SchemeRenderer {
             this.ctx.fillRect(x - maxWidth/2 - padding, textStartY - padding, 
                               maxWidth + padding*2, totalTextHeight + padding*2);
             
-            // Draw text
+            // Draw text with subscripts
             this.ctx.fillStyle = '#000';
             lines.forEach((line, i) => {
-                this.ctx.fillText(line, x, textStartY + (i * lineHeight));
+                this.drawTextWithSubscript(line, x, textStartY + (i * lineHeight));
             });
             
         } else if (isFinal) {
@@ -1201,7 +1290,8 @@ class SchemeRenderer {
                 'Виноматервіал на',
                 'оброблення та розлив:',
                 `Cц≤${sugar} г/дм³`,
-                `Cсп = ${Math.round(alcohol)}...14 % об.`
+                `Cтк≤${acidity} г/дм³`,
+                `Cсп = ${Math.round(alcohol)}% об.`
             ];
             
             const lineHeight = 16;
@@ -1224,10 +1314,10 @@ class SchemeRenderer {
             this.ctx.fillRect(x - maxWidth/2 - padding, textStartY - padding, 
                               maxWidth + padding*2, totalTextHeight + padding*2);
             
-            // Draw text
+            // Draw text with subscripts
             this.ctx.fillStyle = '#000';
             lines.forEach((line, i) => {
-                this.ctx.fillText(line, x, textStartY + (i * lineHeight));
+                this.drawTextWithSubscript(line, x, textStartY + (i * lineHeight));
             });
             
         } else if (label) {
