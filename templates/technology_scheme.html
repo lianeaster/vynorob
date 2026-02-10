@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Принципова технологічна схема - Винороб{% endblock %}
+{% block title %}Принципова технологічна схема - Vynorob{% endblock %}
 
 {% block extra_css %}
 <style>
     body {
-        background: #fff;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     
     .container {
@@ -15,8 +15,9 @@
     .scheme-canvas-container {
         background: #fff;
         padding: 40px;
-        border-radius: 10px;
-        min-height: 800px;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        min-height: auto;
     }
     
     #schemeCanvas {
@@ -35,8 +36,47 @@
     }
     
     .controls {
-        text-align: center;
+        display: flex;
+        gap: 20px;
+        justify-content: center;
         margin-top: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+    }
+    
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.6);
+        background: #5a6268;
     }
 </style>
 {% endblock %}
@@ -44,14 +84,20 @@
 {% block content %}
 <div class="scheme-canvas-container">
     <h1 class="scheme-title">Принципова технологічна схема</h1>
-    <canvas id="schemeCanvas" width="1000" height="1200"></canvas>
+    <canvas id="schemeCanvas"></canvas>
     
     <div class="controls">
         <button class="btn btn-secondary" onclick="window.location.href='/'">На головну</button>
-        <button class="btn btn-primary" onclick="downloadScheme()">Завантажити схему</button>
+        <button class="btn btn-primary" onclick="downloadSchemePNG()">
+            📥 Завантажити PNG
+        </button>
+        <button class="btn btn-primary" onclick="downloadSchemePDF()">
+            📄 Завантажити PDF
+        </button>
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 const canvas = document.getElementById('schemeCanvas');
 const ctx = canvas.getContext('2d');
@@ -66,6 +112,37 @@ async function loadWineData() {
 }
 
 function drawScheme() {
+    // First, calculate all dimensions dynamically
+    const canvasWidth = 1000;
+    const topPadding = 50;
+    const bottomPadding = 50;
+    
+    // Calculate heights based on actual content
+    const smallLineTop = 30;
+    const startingConditionsHeight = 100;
+    const gapAfterText = 10;
+    const firstArrowLength = Math.round(startingConditionsHeight / 3);
+    
+    // Calculate box height (we'll get actual height from drawProcessBox)
+    const boxEstimatedHeight = 80; // Will be refined
+    
+    const smallLineBottom = 30;
+    const wineConditionsHeight = 88;
+    const secondArrowLength = Math.round(wineConditionsHeight / 3);
+    
+    // Calculate total height
+    const totalHeight = topPadding + 
+                       smallLineTop + startingConditionsHeight + gapAfterText + firstArrowLength +
+                       boxEstimatedHeight +
+                       smallLineBottom + wineConditionsHeight + gapAfterText + secondArrowLength +
+                       bottomPadding;
+    
+    // Set canvas dimensions dynamically
+    canvas.width = canvasWidth;
+    canvas.height = totalHeight;
+    
+    console.log(`Canvas dynamically sized: ${canvasWidth}x${totalHeight}px`);
+    
     // Clear canvas with white background
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -79,16 +156,11 @@ function drawScheme() {
     const fontSize = 16;
     ctx.font = `${fontSize}px Arial`;
     
-    let currentY = 50;
+    let currentY = topPadding;
     
     // Draw starting conditions (4 lines of text)
-    const startingConditionsHeight = 100; // Text spans from y+25 to y+100 = 75px + line height
     drawStartConditions(currentY);
-    currentY += startingConditionsHeight; // Text ends at y+100
-    
-    // Calculate arrow length based on starting conditions text (same rule: 1/3 of text)
-    const firstArrowLength = Math.round(startingConditionsHeight / 3); // 100/3 = 33px
-    const gapAfterText = 10;
+    currentY += startingConditionsHeight;
     currentY += gapAfterText;
     
     console.log(`Starting conditions text: ${startingConditionsHeight}px, First arrow: ${firstArrowLength}px, Gap after text: ${gapAfterText}px`);
@@ -98,31 +170,24 @@ function drawScheme() {
     currentY += firstArrowLength;
     
     // Draw acceptance box (Прийомка та сортування)
-    const boxInfo = drawProcessBox(200, currentY, 600, 60, 'Прийомка та сортування вишні');
+    const boxInfo = drawProcessBox(200, currentY, 600, 60, 'Прийомка та сортування винограду');
     currentY = boxInfo.bottomY;
     
-    // Make bottom arrow SAME as top arrow: small line, text, gap, then arrow
-    // Add 30px for the small vertical line before text (same as top)
-    const smallLineHeight = 30;
-    currentY += smallLineHeight;
+    // Add small vertical line before text (same as top)
+    currentY += smallLineBottom;
     
     // Draw wine conditions text (4 lines)
-    const wineConditionsHeight = 88; // 4 lines × 22px
     drawWineConditions(currentY);
     currentY += wineConditionsHeight;
+    currentY += gapAfterText;
     
-    // Small gap after text before arrow starts (same as top)
-    const gapAfterWineText = 10;
-    currentY += gapAfterWineText;
-    
-    // Calculate arrow length: Arrow = Text ÷ 3 (same rule as top)
-    const secondArrowLength = Math.round(wineConditionsHeight / 3); // 88 ÷ 3 = 29px
-    
-    console.log(`Wine conditions text: ${wineConditionsHeight}px, Gap after text: ${gapAfterWineText}px, Second arrow: ${secondArrowLength}px (1/3 of text)`);
+    console.log(`Wine conditions text: ${wineConditionsHeight}px, Gap after text: ${gapAfterText}px, Second arrow: ${secondArrowLength}px (1/3 of text)`);
     
     // Draw simple arrow (exactly like the top arrow)
     drawArrow(500, currentY, 500, currentY + secondArrowLength);
     currentY += secondArrowLength;
+    
+    console.log(`Final Y position: ${currentY}px, Canvas height: ${canvas.height}px`);
 }
 
 function drawStartConditions(y) {
@@ -344,17 +409,49 @@ function drawArrowWithConditions(x1, y1, x2, y2, arrowBefore, arrowAfter, paddin
     });
 }
 
-function downloadScheme() {
+// Function to download the scheme as PNG
+function downloadSchemePNG() {
     const link = document.createElement('a');
-    link.download = 'technology-scheme.png';
+    link.download = 'principova-tehnologichna-scheme.png';
     link.href = canvas.toDataURL();
     link.click();
+}
+
+// Function to download the scheme as PDF
+function downloadSchemePDF() {
+    const { jsPDF } = window.jspdf;
+    
+    // Get canvas dimensions
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    
+    // Create PDF with appropriate orientation and size
+    // Convert pixels to mm (assuming 96 DPI: 1 inch = 25.4mm, 96px = 25.4mm)
+    const pdfWidth = (canvasWidth * 25.4) / 96;
+    const pdfHeight = (canvasHeight * 25.4) / 96;
+    
+    // Determine orientation
+    const orientation = pdfWidth > pdfHeight ? 'landscape' : 'portrait';
+    
+    // Create PDF with custom dimensions
+    const pdf = new jsPDF({
+        orientation: orientation,
+        unit: 'mm',
+        format: [pdfWidth, pdfHeight]
+    });
+    
+    // Add canvas as image to PDF
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    
+    // Save the PDF
+    pdf.save('principova-tehnologichna-scheme.pdf');
 }
 
 // Load data and draw on page load
 loadWineData();
 
 // Add version for debugging
-console.log('Technology Scheme Version: 5.2 - Both arrows with small line: box→line→text→gap→arrow');
+console.log('Technology Scheme Version: 5.4 - PNG and PDF download options with jsPDF');
 </script>
 {% endblock %}
