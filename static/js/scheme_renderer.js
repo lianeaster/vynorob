@@ -224,94 +224,6 @@ class SchemeRenderer {
     }
 
     /**
-     * Helper: Draw text with subscripts
-     * Handles chemical notation like Cц, Cтк, Cсп where the second letter is subscript
-     * @param {string} text - Text that may contain subscript patterns
-     * @param {number} x - X position (left aligned or center based on textAlign)
-     * @param {number} y - Y position (baseline)
-     * @returns {number} - Width of rendered text
-     */
-    drawTextWithSubscript(text, x, y) {
-        // Patterns to detect: Cц, Cтк, Cсп (C followed by lowercase Ukrainian letters)
-        // Check if text contains the pattern
-        if (!/C[а-яієїґ]+/.test(text)) {
-            // No subscripts, draw normally
-            this.ctx.fillText(text, x, y);
-            return this.ctx.measureText(text).width;
-        }
-        
-        // Has subscripts, need custom rendering
-        this.ctx.save();
-        const isCenter = this.ctx.textAlign === 'center';
-        const normalFont = this.ctx.font;
-        const fontSize = parseInt(normalFont);
-        const subscriptFont = (fontSize * 0.7) + 'px Arial'; // 70% size for subscript
-        const subscriptOffset = fontSize * 0.3; // Lower by 30% of font size
-        
-        // Split text into parts
-        let currentX = x;
-        let lastIndex = 0;
-        let totalWidth = 0;
-        const parts = [];
-        
-        // Calculate all parts and total width first
-        text.replace(/C([а-яієїґ]+)/g, (match, subscript, offset) => {
-            // Text before C
-            if (offset > lastIndex) {
-                const before = text.substring(lastIndex, offset);
-                this.ctx.font = normalFont;
-                const width = this.ctx.measureText(before).width;
-                parts.push({ text: before, type: 'normal', width });
-                totalWidth += width;
-            }
-            
-            // C letter
-            this.ctx.font = normalFont;
-            const cWidth = this.ctx.measureText('C').width;
-            parts.push({ text: 'C', type: 'normal', width: cWidth });
-            totalWidth += cWidth;
-            
-            // Subscript
-            this.ctx.font = subscriptFont;
-            const subWidth = this.ctx.measureText(subscript).width;
-            parts.push({ text: subscript, type: 'subscript', width: subWidth });
-            totalWidth += subWidth;
-            
-            lastIndex = offset + match.length;
-            return match;
-        });
-        
-        // Remaining text
-        if (lastIndex < text.length) {
-            const after = text.substring(lastIndex);
-            this.ctx.font = normalFont;
-            const width = this.ctx.measureText(after).width;
-            parts.push({ text: after, type: 'normal', width });
-            totalWidth += width;
-        }
-        
-        // Adjust starting X if centered
-        if (isCenter) {
-            currentX = x - totalWidth / 2;
-        }
-        
-        // Draw all parts
-        parts.forEach(part => {
-            if (part.type === 'normal') {
-                this.ctx.font = normalFont;
-                this.ctx.fillText(part.text, currentX, y);
-            } else if (part.type === 'subscript') {
-                this.ctx.font = subscriptFont;
-                this.ctx.fillText(part.text, currentX, y + subscriptOffset);
-            }
-            currentX += part.width;
-        });
-        
-        this.ctx.restore();
-        return totalWidth;
-    }
-
-    /**
      * Helper: Draw text with background
      */
     drawTextWithBackground(text, x, y, options = {}) {
@@ -1260,17 +1172,12 @@ class SchemeRenderer {
             const textStartY = startY + (totalHeight - totalTextHeight) / 2;
             console.log(`START arrow - Text centered: arrow start=${startY}, arrow height=${totalHeight}, text height=${totalTextHeight}, text start Y=${textStartY}`);
             
-            // Calculate max text width for background (accounting for subscripts)
-            this.ctx.save();
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'top';
+            // Calculate max text width for background
             let maxWidth = 0;
             lines.forEach(line => {
-                // Simple approximation - actual rendering will handle subscripts
                 const textMetrics = this.ctx.measureText(line);
                 maxWidth = Math.max(maxWidth, textMetrics.width);
             });
-            this.ctx.restore();
             
             // Draw background with symmetric padding
             const padding = 3;
@@ -1278,29 +1185,23 @@ class SchemeRenderer {
             this.ctx.fillRect(x - maxWidth/2 - padding, textStartY - padding, 
                               maxWidth + padding*2, totalTextHeight + padding*2);
             
-            // Draw text with subscripts
-            this.ctx.save();
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'top';
+            // Draw text
             this.ctx.fillStyle = '#000';
             lines.forEach((line, i) => {
-                this.drawTextWithSubscript(line, x, textStartY + (i * lineHeight));
+                this.ctx.fillText(line, x, textStartY + (i * lineHeight));
             });
-            this.ctx.restore();
             
         } else if (isFinal) {
             // Draw final wine conditions
             const wineConditions = this.wineData.wine_conditions || {};
             const sugar = wineConditions.sugar || 2;
-            const acidity = wineConditions.acidity || 6;
             const alcohol = wineConditions.alcohol || 11;
             
             const lines = [
                 'Виноматервіал на',
                 'оброблення та розлив:',
                 `Cц≤${sugar} г/дм³`,
-                `Cтк≤${acidity} г/дм³`,
-                `Cсп = ${Math.round(alcohol)}% об.`
+                `Cсп = ${Math.round(alcohol)}...14 % об.`
             ];
             
             const lineHeight = 16;
@@ -1310,17 +1211,12 @@ class SchemeRenderer {
             const textStartY = startY + (totalHeight - totalTextHeight) / 2;
             console.log(`FINAL arrow - Text centered: arrow start=${startY}, arrow height=${totalHeight}, text height=${totalTextHeight}, text start Y=${textStartY}`);
             
-            // Calculate max text width for background (accounting for subscripts)
-            this.ctx.save();
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'top';
+            // Calculate max text width for background
             let maxWidth = 0;
             lines.forEach(line => {
-                // Simple approximation - actual rendering will handle subscripts
                 const textMetrics = this.ctx.measureText(line);
                 maxWidth = Math.max(maxWidth, textMetrics.width);
             });
-            this.ctx.restore();
             
             // Draw background with symmetric padding
             const padding = 3;
@@ -1328,15 +1224,11 @@ class SchemeRenderer {
             this.ctx.fillRect(x - maxWidth/2 - padding, textStartY - padding, 
                               maxWidth + padding*2, totalTextHeight + padding*2);
             
-            // Draw text with subscripts
-            this.ctx.save();
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'top';
+            // Draw text
             this.ctx.fillStyle = '#000';
             lines.forEach((line, i) => {
-                this.drawTextWithSubscript(line, x, textStartY + (i * lineHeight));
+                this.ctx.fillText(line, x, textStartY + (i * lineHeight));
             });
-            this.ctx.restore();
             
         } else if (label) {
             // Simple label with background
