@@ -1260,12 +1260,17 @@ class SchemeRenderer {
             const textStartY = startY + (totalHeight - totalTextHeight) / 2;
             console.log(`START arrow - Text centered: arrow start=${startY}, arrow height=${totalHeight}, text height=${totalTextHeight}, text start Y=${textStartY}`);
             
-            // Calculate max text width for background
+            // Calculate max text width for background (accounting for subscripts)
+            this.ctx.save();
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'top';
             let maxWidth = 0;
             lines.forEach(line => {
+                // Simple approximation - actual rendering will handle subscripts
                 const textMetrics = this.ctx.measureText(line);
                 maxWidth = Math.max(maxWidth, textMetrics.width);
             });
+            this.ctx.restore();
             
             // Draw background with symmetric padding
             const padding = 3;
@@ -1274,15 +1279,20 @@ class SchemeRenderer {
                               maxWidth + padding*2, totalTextHeight + padding*2);
             
             // Draw text with subscripts
+            this.ctx.save();
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'top';
             this.ctx.fillStyle = '#000';
             lines.forEach((line, i) => {
                 this.drawTextWithSubscript(line, x, textStartY + (i * lineHeight));
             });
+            this.ctx.restore();
             
         } else if (isFinal) {
             // Draw final wine conditions
             const wineConditions = this.wineData.wine_conditions || {};
             const sugar = wineConditions.sugar || 2;
+            const acidity = wineConditions.acidity || 6;
             const alcohol = wineConditions.alcohol || 11;
             
             const lines = [
@@ -1300,12 +1310,17 @@ class SchemeRenderer {
             const textStartY = startY + (totalHeight - totalTextHeight) / 2;
             console.log(`FINAL arrow - Text centered: arrow start=${startY}, arrow height=${totalHeight}, text height=${totalTextHeight}, text start Y=${textStartY}`);
             
-            // Calculate max text width for background
+            // Calculate max text width for background (accounting for subscripts)
+            this.ctx.save();
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'top';
             let maxWidth = 0;
             lines.forEach(line => {
+                // Simple approximation - actual rendering will handle subscripts
                 const textMetrics = this.ctx.measureText(line);
                 maxWidth = Math.max(maxWidth, textMetrics.width);
             });
+            this.ctx.restore();
             
             // Draw background with symmetric padding
             const padding = 3;
@@ -1314,10 +1329,14 @@ class SchemeRenderer {
                               maxWidth + padding*2, totalTextHeight + padding*2);
             
             // Draw text with subscripts
+            this.ctx.save();
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'top';
             this.ctx.fillStyle = '#000';
             lines.forEach((line, i) => {
                 this.drawTextWithSubscript(line, x, textStartY + (i * lineHeight));
             });
+            this.ctx.restore();
             
         } else if (label) {
             // Simple label with background
