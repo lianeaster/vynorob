@@ -38,10 +38,36 @@ class SchemeBuilder {
     
     /**
      * Get scheme type based on wine data
+     * Determines which technological scheme to draw
      */
     getSchemeType() {
-        // For now, only white dry wine is supported
-        return 'white-dry';
+        const color = this.wineData.color || '';
+        const style = this.wineData.style || '';
+        const styleCO2 = this.wineData.style_co2 || '';
+        const schemeType = this.wineData.scheme_type || '';
+        
+        // Validate this is a supported wine type
+        // Currently ONLY supports: White, Dry, Calm (Тихе), White Scheme (Біла)
+        if (color === 'Біле' && style === 'Сухе' && styleCO2 === 'Тихе' && schemeType === 'Біла') {
+            return 'white-dry-calm-white-scheme';
+        }
+        
+        // Return unsupported with details for better error message
+        return {
+            type: 'unsupported',
+            color: color,
+            style: style,
+            styleCO2: styleCO2,
+            schemeType: schemeType
+        };
+    }
+    
+    /**
+     * Validate if the wine type is supported
+     */
+    isSupported() {
+        const schemeType = this.getSchemeType();
+        return schemeType === 'white-dry-calm-white-scheme';
     }
     
     /**
@@ -53,13 +79,71 @@ class SchemeBuilder {
         
         const schemeType = this.getSchemeType();
         
+        // Check if supported
+        if (typeof schemeType === 'object' && schemeType.type === 'unsupported') {
+            this.drawUnsupportedMessage(schemeType);
+            return;
+        }
+        
         switch (schemeType) {
-            case 'white-dry':
+            case 'white-dry-calm-white-scheme':
                 this.buildWhiteDryWineScheme();
                 break;
             default:
-                console.error('Unknown scheme type:', schemeType);
+                this.drawUnsupportedMessage({ type: 'unknown' });
         }
+    }
+    
+    /**
+     * Draw message for unsupported wine types
+     */
+    drawUnsupportedMessage(details) {
+        this.ctx.save();
+        this.ctx.fillStyle = '#000';
+        this.ctx.font = '20px Arial';
+        this.ctx.textAlign = 'center';
+        
+        const centerX = this.canvas.width / 2;
+        let y = 100;
+        
+        this.ctx.fillText('⚠️ Технологічна схема недоступна', centerX, y);
+        y += 40;
+        
+        this.ctx.font = '16px Arial';
+        this.ctx.fillText('Наразі підтримується лише:', centerX, y);
+        y += 30;
+        
+        this.ctx.fillStyle = '#0066cc';
+        this.ctx.fillText('• Колір: Біле', centerX, y);
+        y += 25;
+        this.ctx.fillText('• Стиль: Сухе', centerX, y);
+        y += 25;
+        this.ctx.fillText('• Стиль по CO2: Тихе', centerX, y);
+        y += 25;
+        this.ctx.fillText('• Схема: Біла', centerX, y);
+        
+        if (details.type === 'unsupported') {
+            y += 50;
+            this.ctx.fillStyle = '#666';
+            this.ctx.fillText('Ваш вибір:', centerX, y);
+            y += 25;
+            this.ctx.fillText(`Колір: ${details.color || '—'}`, centerX, y);
+            y += 25;
+            this.ctx.fillText(`Стиль: ${details.style || '—'}`, centerX, y);
+            y += 25;
+            this.ctx.fillText(`Стиль по CO2: ${details.styleCO2 || '—'}`, centerX, y);
+            y += 25;
+            this.ctx.fillText(`Схема: ${details.schemeType || '—'}`, centerX, y);
+        }
+        
+        y += 50;
+        this.ctx.fillStyle = '#999';
+        this.ctx.font = '14px Arial';
+        this.ctx.fillText('Інші типи вин будуть додані в майбутніх версіях', centerX, y);
+        
+        this.ctx.restore();
+        
+        console.warn('Unsupported wine type:', details);
     }
     
     /**

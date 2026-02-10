@@ -2,6 +2,16 @@
  * Technology Scheme Renderer
  * Handles all canvas drawing operations for wine production technology schemes
  * 
+ * ⚠️ IMPORTANT LIMITATION:
+ * This scheme is ONLY valid for:
+ * - Color: White (Біле)
+ * - Style: Dry (Сухе) 
+ * - CO2 Style: Still/Calm (Тихе)
+ * - Production Scheme: White Scheme (Біла)
+ * 
+ * Other wine types (red, rosé, semi-dry, semi-sweet, sweet, sparkling) will be 
+ * added in future versions. See WINE_TYPES_SUPPORT.md for roadmap.
+ * 
  * ARCHITECTURE:
  * - Centralized configuration: All colors, dimensions, fonts in this.config
  * - BaseBox system: Reusable box drawing with consistent styling
@@ -9,6 +19,10 @@
  * - Shape primitives: drawRoundedRect(), drawBaseBox(), drawArrowhead[Right|Left|Down]()
  * - Complex elements: drawHorizontalArrowWithLabel(), drawTextWithBackground()
  * - High-level composers: drawProcessStage(), drawProcessBox(), drawArrowWithText()
+ * 
+ * REFACTORING NOTE:
+ * This file is being split into modular architecture. See static/js/scheme/ folder
+ * for the new modular version and REFACTORING_GUIDE.md for migration details.
  */
 
 class SchemeRenderer {
@@ -656,7 +670,7 @@ class SchemeRenderer {
             width: boxWidth,
             text: 'Егалізація',
             arrows: {
-                left: { text: 'SO₂ →\n30...50 мг/дм³' }
+                left: { text: 'SO₂ \n30...50 мг/дм³' }
             }
         });
         
