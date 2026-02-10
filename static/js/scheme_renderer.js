@@ -323,7 +323,10 @@ class SchemeRenderer {
             width: boxWidth,
             text: 'Бродіння сусла,\nt=14...17°C',
             arrows: {
-                left: { type: 'double', text: 'Холодоагент' },
+                left: [
+                    { type: 'double', text: 'Холодоагент' },
+                    { text: 'ЧКД' }
+                ],
                 right: { text: 'Гази бродіння' }
             }
         });
