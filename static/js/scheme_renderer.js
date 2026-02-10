@@ -1,6 +1,14 @@
 /**
  * Technology Scheme Renderer
  * Handles all canvas drawing operations for wine production technology schemes
+ * 
+ * ARCHITECTURE:
+ * - Centralized configuration: All colors, dimensions, fonts in this.config
+ * - BaseBox system: Reusable box drawing with consistent styling
+ * - Helper methods: applyLineStyle(), applyFillStyle(), applyBoxTextStyle(), applyLabelTextStyle()
+ * - Shape primitives: drawRoundedRect(), drawBaseBox(), drawArrowhead[Right|Left|Down]()
+ * - Complex elements: drawHorizontalArrowWithLabel(), drawTextWithBackground()
+ * - High-level composers: drawProcessStage(), drawProcessBox(), drawArrowWithText()
  */
 
 class SchemeRenderer {
@@ -8,17 +16,297 @@ class SchemeRenderer {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.wineData = wineData;
+        
+        // Centralized style configuration (BaseBox settings)
+        this.config = {
+            colors: {
+                background: '#fff',
+                line: '#000',
+                text: '#000',
+                textBackground: '#fff'
+            },
+            dimensions: {
+                lineWidth: 2,
+                arrowHeadLength: 8,
+                arrowHeadWidth: 5,
+                boxCornerRadius: 10,
+                boxPaddingH: 25,
+                boxPaddingV: 18,
+                textPadding: 3,
+                arrowLength: 60
+            },
+            fonts: {
+                box: '14px Arial',
+                label: '12px Arial',
+                boxSize: 14,
+                labelSize: 12,
+                boxLineHeight: 20,
+                labelLineHeight: 14
+            },
+            layout: {
+                canvasWidth: 1600,
+                topPadding: 50,
+                bottomPadding: 50,
+                boxWidth: 260,
+                sideArrowLength: 120, // Half of (250 - boxWidth/2)
+                multiArrowSpacing: 70
+            }
+        };
+    }
+
+    /**
+     * Helper: Apply line style
+     */
+    applyLineStyle() {
+        this.ctx.strokeStyle = this.config.colors.line;
+        this.ctx.lineWidth = this.config.dimensions.lineWidth;
+    }
+
+    /**
+     * Helper: Apply fill style
+     */
+    applyFillStyle(color = null) {
+        this.ctx.fillStyle = color || this.config.colors.text;
+    }
+
+    /**
+     * Helper: Apply text style for boxes
+     */
+    applyBoxTextStyle() {
+        this.ctx.font = this.config.fonts.box;
+        this.ctx.fillStyle = this.config.colors.text;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+    }
+
+    /**
+     * Helper: Apply text style for labels
+     */
+    applyLabelTextStyle() {
+        this.ctx.font = this.config.fonts.label;
+        this.ctx.fillStyle = this.config.colors.text;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'top';
+    }
+
+    /**
+     * Helper: Draw rounded rectangle (BaseBox shape)
+     */
+    drawRoundedRect(x, y, width, height, radius) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + radius, y);
+        this.ctx.lineTo(x + width - radius, y);
+        this.ctx.arcTo(x + width, y, x + width, y + radius, radius);
+        this.ctx.lineTo(x + width, y + height - radius);
+        this.ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+        this.ctx.lineTo(x + radius, y + height);
+        this.ctx.arcTo(x, y + height, x, y + height - radius, radius);
+        this.ctx.lineTo(x, y + radius);
+        this.ctx.arcTo(x, y, x + radius, y, radius);
+        this.ctx.closePath();
+    }
+
+    /**
+     * Helper: Draw a complete BaseBox with standard styling
+     * @param {Object} config - Box configuration
+     * @param {number} config.x - Center X position
+     * @param {number} config.y - Top Y position
+     * @param {number} config.width - Box width
+     * @param {number} config.height - Box height
+     * @param {string} config.text - Text content (optional)
+     * @param {boolean} config.fillBackground - Whether to fill background (default true)
+     * @param {boolean} config.strokeBorder - Whether to stroke border (default true)
+     */
+    drawBaseBox(config) {
+        const {
+            x,
+            y,
+            width,
+            height,
+            text = '',
+            fillBackground = true,
+            strokeBorder = true
+        } = config;
+        
+        this.ctx.save();
+        
+        const boxX = x - width / 2;
+        const radius = this.config.dimensions.boxCornerRadius;
+        
+        // Draw rounded rectangle
+        this.drawRoundedRect(boxX, y, width, height, radius);
+        
+        // Fill background
+        if (fillBackground) {
+            this.applyFillStyle(this.config.colors.background);
+            this.ctx.fill();
+        }
+        
+        // Stroke border
+        if (strokeBorder) {
+            this.applyLineStyle();
+            this.ctx.stroke();
+        }
+        
+        // Draw centered text if provided
+        if (text) {
+            this.applyBoxTextStyle();
+            const lines = text.split('\n');
+            const lineHeight = this.config.fonts.boxLineHeight;
+            const textBlockHeight = (lines.length - 1) * lineHeight + this.config.fonts.boxSize;
+            const textStartY = y + (height - textBlockHeight) / 2 + this.config.fonts.boxSize / 2;
+            
+            lines.forEach((line, i) => {
+                this.ctx.fillText(line, x, textStartY + (i * lineHeight));
+            });
+        }
+        
+        this.ctx.restore();
+    }
+
+    /**
+     * Helper: Draw arrowhead pointing right
+     */
+    drawArrowheadRight(x, y) {
+        const len = this.config.dimensions.arrowHeadLength;
+        const width = this.config.dimensions.arrowHeadWidth;
+        this.ctx.fillStyle = this.config.colors.line;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y);
+        this.ctx.lineTo(x - len, y - width);
+        this.ctx.lineTo(x - len, y + width);
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+
+    /**
+     * Helper: Draw arrowhead pointing left
+     */
+    drawArrowheadLeft(x, y) {
+        const len = this.config.dimensions.arrowHeadLength;
+        const width = this.config.dimensions.arrowHeadWidth;
+        this.ctx.fillStyle = this.config.colors.line;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y);
+        this.ctx.lineTo(x + len, y - width);
+        this.ctx.lineTo(x + len, y + width);
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+
+    /**
+     * Helper: Draw arrowhead pointing down
+     */
+    drawArrowheadDown(x, y) {
+        const len = this.config.dimensions.arrowHeadLength;
+        const width = this.config.dimensions.arrowHeadWidth;
+        this.ctx.fillStyle = this.config.colors.line;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y);
+        this.ctx.lineTo(x - width, y - len);
+        this.ctx.lineTo(x + width, y - len);
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+
+    /**
+     * Helper: Draw text with background
+     */
+    drawTextWithBackground(text, x, y, options = {}) {
+        const padding = options.padding || this.config.dimensions.textPadding;
+        const bgColor = options.bgColor || this.config.colors.textBackground;
+        const textColor = options.textColor || this.config.colors.text;
+        const font = options.font || this.config.fonts.label;
+        
+        this.ctx.save();
+        this.ctx.font = font;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'top';
+        
+        // Handle multi-line text
+        const lines = text.split('\n');
+        const fontSize = parseInt(font);
+        const lineHeight = options.lineHeight || (fontSize === 14 ? this.config.fonts.boxLineHeight : this.config.fonts.labelLineHeight);
+        const totalHeight = lines.length * lineHeight;
+        
+        // Measure max width
+        let maxWidth = 0;
+        lines.forEach(line => {
+            const metrics = this.ctx.measureText(line);
+            maxWidth = Math.max(maxWidth, metrics.width);
+        });
+        
+        // Draw background
+        this.ctx.fillStyle = bgColor;
+        this.ctx.fillRect(
+            x - maxWidth/2 - padding,
+            y - padding,
+            maxWidth + padding * 2,
+            totalHeight + padding * 2
+        );
+        
+        // Draw text
+        this.ctx.fillStyle = textColor;
+        lines.forEach((line, i) => {
+            this.ctx.fillText(line, x, y + i * lineHeight);
+        });
+        
+        this.ctx.restore();
+        
+        return { width: maxWidth, height: totalHeight };
+    }
+
+    /**
+     * Helper: Draw horizontal arrow with text above
+     * Draws continuous arrow with text label positioned above center
+     * @param {Object} config - Arrow configuration
+     * @param {number} config.x1 - Start X position
+     * @param {number} config.y - Y position of arrow line
+     * @param {number} config.x2 - End X position
+     * @param {string} config.text - Label text
+     * @param {string} [config.direction='right'] - Arrow direction: 'right', 'left', or 'both'
+     */
+    drawHorizontalArrowWithLabel(config) {
+        const { x1, y, x2, text, direction = 'right' } = config;
+        
+        this.ctx.save();
+        
+        // Draw continuous arrow line
+        this.applyLineStyle();
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1, y);
+        this.ctx.lineTo(x2, y);
+        this.ctx.stroke();
+        
+        // Draw arrowhead(s)
+        if (direction === 'right' || direction === 'both') {
+            this.drawArrowheadRight(x2, y);
+        }
+        if (direction === 'left' || direction === 'both') {
+            this.drawArrowheadLeft(x1, y);
+        }
+        
+        // Draw text above arrow center with background
+        const centerX = (x1 + x2) / 2;
+        const textY = y - 10; // 10px above arrow
+        
+        this.drawTextWithBackground(text, centerX, textY, {
+            font: this.config.fonts.label,
+            lineHeight: this.config.fonts.labelLineHeight
+        });
+        
+        this.ctx.restore();
     }
 
     /**
      * Main drawing function - orchestrates the entire scheme
      */
     drawScheme() {
-        // First, calculate all dimensions dynamically
-        const canvasWidth = 1600; // Wider to accommodate branching with Пресування
-        const topPadding = 50;
-        const bottomPadding = 50;
-        const arrowLength = 60; // Increased from 40 to make vertical arrows longer
+        // Use config for all dimensions
+        const canvasWidth = this.config.layout.canvasWidth;
+        const topPadding = this.config.layout.topPadding;
+        const arrowLength = this.config.dimensions.arrowLength;
+        const boxWidth = this.config.layout.boxWidth;
         
         // Estimate total height (will adjust as we draw)
         const totalHeight = 2000; // Generous initial height
@@ -29,19 +317,17 @@ class SchemeRenderer {
         
         console.log(`Canvas dynamically sized: ${canvasWidth}x${totalHeight}px`);
         
-        // Clear canvas with white background
-        this.ctx.fillStyle = '#fff';
+        // Clear canvas with background color
+        this.ctx.fillStyle = this.config.colors.background;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Set default styles - black text and lines
-        this.ctx.strokeStyle = '#000';
-        this.ctx.fillStyle = '#000';
-        this.ctx.lineWidth = 2;
-        this.ctx.font = '14px Arial';
+        // Set default styles
+        this.applyLineStyle();
+        this.applyFillStyle();
+        this.ctx.font = this.config.fonts.box;
         
         let currentY = topPadding;
         const centerX = canvasWidth / 2 - 200; // Shift left to accommodate right branch
-        const boxWidth = 260;
         
         // First arrow with starting conditions text on it
         const textHeight = 120;
@@ -433,47 +719,16 @@ class SchemeRenderer {
             boxHeight = minHeightForArrows;
             boxEndY = y + boxHeight;
             
-            // Redraw the box with extended height and rounded corners
-            this.ctx.save();
-            this.ctx.fillStyle = '#fff';
-            this.ctx.strokeStyle = '#000';
-            this.ctx.lineWidth = 2;
-            
-            const boxX = x - width / 2;
-            const radius = 8;
-            
-            // Draw rounded rectangle
-            this.ctx.beginPath();
-            this.ctx.moveTo(boxX + radius, y);
-            this.ctx.lineTo(boxX + width - radius, y);
-            this.ctx.quadraticCurveTo(boxX + width, y, boxX + width, y + radius);
-            this.ctx.lineTo(boxX + width, y + boxHeight - radius);
-            this.ctx.quadraticCurveTo(boxX + width, y + boxHeight, boxX + width - radius, y + boxHeight);
-            this.ctx.lineTo(boxX + radius, y + boxHeight);
-            this.ctx.quadraticCurveTo(boxX, y + boxHeight, boxX, y + boxHeight - radius);
-            this.ctx.lineTo(boxX, y + radius);
-            this.ctx.quadraticCurveTo(boxX, y, boxX + radius, y);
-            this.ctx.closePath();
-            
-            this.ctx.fill();
-            this.ctx.stroke();
-            
-            // Redraw text centered in the box
-            const textLines = text.split('\n');
-            const lineHeight = 20;
-            const totalTextHeight = textLines.length * lineHeight;
-            const textStartY = y + (boxHeight - totalTextHeight) / 2;
-            
-            this.ctx.fillStyle = '#000';
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'middle';
-            this.ctx.font = '14px Arial';
-            
-            textLines.forEach((line, i) => {
-                this.ctx.fillText(line, x, textStartY + (i * lineHeight) + lineHeight/2);
+            // Redraw the box with extended height using BaseBox helper
+            this.drawBaseBox({
+                x: x,
+                y: y,
+                width: width,
+                height: boxHeight,
+                text: text,
+                fillBackground: true,
+                strokeBorder: true
             });
-            
-            this.ctx.restore();
         }
         
         // Draw left arrow(s) if configured - evenly distributed
@@ -687,29 +942,11 @@ class SchemeRenderer {
      * Draw centered label below box (with background wide enough to interrupt vertical arrow)
      */
     drawSideLabel(x, y, text) {
-        this.ctx.save();
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'top';
-        this.ctx.font = '12px Arial';
-        
-        // Measure text and draw background
-        const textMetrics = this.ctx.measureText(text);
-        const textWidth = textMetrics.width;
-        const textHeight = 12; // font size
-        const padding = 3;
-        const minWidth = 20; // Minimum width to interrupt vertical arrow (arrow lineWidth is 2px)
-        const bgWidth = Math.max(textWidth + padding*2, minWidth);
-        
-        this.ctx.fillStyle = '#fff';
-        // Background with symmetric padding (3px top and bottom)
-        // Made wide enough to interrupt vertical arrow passing through center
-        this.ctx.fillRect(x - bgWidth/2, y - padding, 
-                          bgWidth, textHeight + padding*2);
-        
-        // Draw text
-        this.ctx.fillStyle = '#000';
-        this.ctx.fillText(text, x, y);
-        this.ctx.restore();
+        // Use the helper method for consistent text with background rendering
+        this.drawTextWithBackground(text, x, y, {
+            font: this.config.fonts.label,
+            lineHeight: this.config.fonts.labelLineHeight
+        });
     }
 
     /**
@@ -721,12 +958,13 @@ class SchemeRenderer {
         // Handle multi-line text with \n
         let lines = text.split('\n');
         
-        // Calculate box dimensions dynamically based on text
-        const fontSize = 14;
-        const lineHeight = 20;
-        const paddingV = 18;
-        const paddingH = 25;
-        this.ctx.font = `${fontSize}px Arial`;
+        // Use config for all styling values
+        const fontSize = this.config.fonts.boxSize;
+        const lineHeight = this.config.fonts.boxLineHeight;
+        const paddingV = this.config.dimensions.boxPaddingV;
+        const paddingH = this.config.dimensions.boxPaddingH;
+        const cornerRadius = this.config.dimensions.boxCornerRadius;
+        this.ctx.font = this.config.fonts.box;
         
         const maxTextWidth = Math.max(...lines.map(line => this.ctx.measureText(line).width));
         const actualWidth = Math.max(width, maxTextWidth + (paddingH * 2));
@@ -739,29 +977,15 @@ class SchemeRenderer {
         const boxX = x - actualWidth / 2;
         const boxY = y;
         
-        // Draw rounded rectangle
-        const radius = 8;
-        this.ctx.strokeStyle = '#000';
-        this.ctx.lineWidth = 2;
-        this.ctx.fillStyle = '#fff';
-        
-        this.ctx.beginPath();
-        this.ctx.moveTo(boxX + radius, boxY);
-        this.ctx.lineTo(boxX + actualWidth - radius, boxY);
-        this.ctx.quadraticCurveTo(boxX + actualWidth, boxY, boxX + actualWidth, boxY + radius);
-        this.ctx.lineTo(boxX + actualWidth, boxY + actualHeight - radius);
-        this.ctx.quadraticCurveTo(boxX + actualWidth, boxY + actualHeight, boxX + actualWidth - radius, boxY + actualHeight);
-        this.ctx.lineTo(boxX + radius, boxY + actualHeight);
-        this.ctx.quadraticCurveTo(boxX, boxY + actualHeight, boxX, boxY + actualHeight - radius);
-        this.ctx.lineTo(boxX, boxY + radius);
-        this.ctx.quadraticCurveTo(boxX, boxY, boxX + radius, boxY);
-        this.ctx.closePath();
-        
+        // Draw rounded rectangle using helper
+        this.drawRoundedRect(boxX, boxY, actualWidth, actualHeight, cornerRadius);
+        this.applyFillStyle(this.config.colors.background);
         this.ctx.fill();
+        this.applyLineStyle();
         this.ctx.stroke();
         
         // Draw text centered vertically with proper baseline
-        this.ctx.fillStyle = '#000';
+        this.applyFillStyle();
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'top';
         
@@ -780,8 +1004,7 @@ class SchemeRenderer {
      */
     drawArrow(x1, y1, x2, y2) {
         this.ctx.save();
-        this.ctx.strokeStyle = '#000';
-        this.ctx.lineWidth = 2;
+        this.applyLineStyle();
         
         // Draw line
         this.ctx.beginPath();
@@ -791,9 +1014,9 @@ class SchemeRenderer {
         
         // Draw arrowhead (filled triangle)
         const angle = Math.atan2(y2 - y1, x2 - x1);
-        const headLength = 8;
+        const headLength = this.config.dimensions.arrowHeadLength;
         
-        this.ctx.fillStyle = '#000';
+        this.applyFillStyle();
         this.ctx.beginPath();
         this.ctx.moveTo(x2, y2);
         this.ctx.lineTo(
