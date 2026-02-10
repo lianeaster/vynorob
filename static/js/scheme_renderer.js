@@ -1211,14 +1211,6 @@ class SchemeRenderer {
             const acidityLoss = 0.7; // Typical loss during fermentation
             const finalAcidity = Math.max(initialAcidity - acidityLoss, 4); // Minimum 4 g/dm³
             
-            console.log('Wine parameters calculation:');
-            console.log(`  Initial sugar: ${initialSugar} g/dm³`);
-            console.log(`  Final sugar: ${finalSugar} g/dm³ (dry wine)`);
-            console.log(`  Sugar consumed: ${sugarConsumed} g/dm³`);
-            console.log(`  Calculated alcohol: ${finalAlcohol}% vol`);
-            console.log(`  Initial acidity: ${initialAcidity} g/dm³`);
-            console.log(`  Final acidity: ${finalAcidity.toFixed(1)} g/dm³`);
-            
             const lines = [
                 'Виноматервіал на',
                 'оброблення та розлив:',

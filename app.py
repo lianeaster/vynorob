@@ -136,6 +136,29 @@ def save_choice():
     step = data.get('step')
     choice = data.get('choice')
     
+    # Server-side validation for raw material conditions
+    if step == 'raw_material':
+        sugar = choice.get('sugar', 0)
+        acidity = choice.get('acidity', 0)
+        
+        # Validate sugar minimum (170 g/dm³ for dry wine production)
+        if sugar < 170:
+            return jsonify({
+                'success': False,
+                'error': 'Масова частка цукру повинна бути не менше 170 г/дм³'
+            }), 400
+        
+        # Validate acidity range (4-12 g/dm³ recommended)
+        if acidity < 4 or acidity > 12:
+            print(f'Warning: Acidity {acidity} g/dm³ is outside recommended range (4-12 g/dm³)')
+        
+        # Validate acidity absolute minimum
+        if acidity < 3:
+            return jsonify({
+                'success': False,
+                'error': 'Масова частка кислоти повинна бути не менше 3 г/дм³'
+            }), 400
+    
     if 'wine_data' not in session:
         session['wine_data'] = {
             'id': str(uuid.uuid4()),

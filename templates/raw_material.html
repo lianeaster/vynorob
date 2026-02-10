@@ -72,12 +72,14 @@
         <form id="rawMaterialForm" class="form">
             <div class="form-group">
                 <label for="sugar">МЧ цукру (г/дм³)</label>
-                <input type="number" id="sugar" name="sugar" step="0.1" required class="form-input">
+                <input type="number" id="sugar" name="sugar" step="0.1" min="170" required class="form-input" placeholder="Мінімум 170">
+                <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">Мінімальне значення: 170 г/дм³ (для отримання сухого вина)</small>
             </div>
             
             <div class="form-group">
                 <label for="acidity">МЧ кислоти (г/дм³)</label>
-                <input type="number" id="acidity" name="acidity" step="0.1" required class="form-input">
+                <input type="number" id="acidity" name="acidity" step="0.1" min="4" max="12" required class="form-input" placeholder="4-12">
+                <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">Рекомендований діапазон: 5-9 г/дм³</small>
             </div>
             
             <div class="form-group">
@@ -103,15 +105,58 @@
 document.getElementById('rawMaterialForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    const sugarInput = document.getElementById('sugar');
+    const acidityInput = document.getElementById('acidity');
+    
+    const sugar = parseFloat(sugarInput.value);
+    const acidity = parseFloat(acidityInput.value);
+    
+    // Validate sugar minimum
+    if (sugar < 170) {
+        alert('Помилка: Масова частка цукру повинна бути не менше 170 г/дм³.\n\n' +
+              'Для виробництва сухого вина з мінімальним вмістом спирту 9% об. ' +
+              'необхідна мінімальна цукристість винограду 170 г/дм³.');
+        sugarInput.focus();
+        return;
+    }
+    
+    // Validate acidity range
+    if (acidity < 4 || acidity > 12) {
+        if (!confirm('Увага: Масова частка кислоти (' + acidity + ' г/дм³) знаходиться поза рекомендованим діапазоном (4-12 г/дм³).\n\n' +
+                     'Продовжити з цим значенням?')) {
+            acidityInput.focus();
+            return;
+        }
+    }
+    
     const data = {
-        sugar: parseFloat(document.getElementById('sugar').value),
-        acidity: parseFloat(document.getElementById('acidity').value),
+        sugar: sugar,
+        acidity: acidity,
         ph: 0  // pH disabled
     };
     
     await saveChoice('raw_material', data);
     // Skip wine conditions page for white wine - go directly to choice page
     window.location.href = '/choice';
+});
+
+// Add real-time validation feedback
+document.getElementById('sugar').addEventListener('input', function(e) {
+    const value = parseFloat(e.target.value);
+    if (value && value < 170) {
+        e.target.style.borderColor = '#e74c3c';
+    } else {
+        e.target.style.borderColor = '';
+    }
+});
+
+document.getElementById('acidity').addEventListener('input', function(e) {
+    const value = parseFloat(e.target.value);
+    if (value && (value < 4 || value > 12)) {
+        e.target.style.borderColor = '#f39c12';
+    } else {
+        e.target.style.borderColor = '';
+    }
 });
 </script>
 {% endblock %}
