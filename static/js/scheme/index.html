@@ -1,0 +1,24 @@
+<!-- 
+    Technology Scheme Module Loader
+    Include this in your HTML to load all scheme rendering modules
+    
+    Usage:
+    Add these script tags BEFORE your main application code:
+-->
+
+<!-- Configuration -->
+<script src="{{ url_for('static', filename='js/scheme/config.js') }}"></script>
+
+<!-- Primitive Shapes -->
+<script src="{{ url_for('static', filename='js/scheme/primitives.js') }}"></script>
+
+<!-- Drawing Components -->
+<script src="{{ url_for('static', filename='js/scheme/text-drawer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scheme/box-drawer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scheme/arrow-drawer.js') }}"></script>
+
+<!-- High-level Orchestration -->
+<script src="{{ url_for('static', filename='js/scheme/scheme-builder.js') }}"></script>
+
+<!-- Main Renderer (Facade) -->
+<script src="{{ url_for('static', filename='js/scheme/scheme-renderer-new.js') }}"></script>
