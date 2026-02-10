@@ -45,15 +45,18 @@ async function loadSchemePreview() {
         html += '<div class="scheme-section"><h3>Кондиції сировини:</h3>';
         html += `<div class="scheme-item">МЧ цукру: ${data.raw_material.sugar} г/дм³</div>`;
         html += `<div class="scheme-item">МЧ кислоти: ${data.raw_material.acidity} г/дм³</div>`;
-        html += `<div class="scheme-item">pH: ${data.raw_material.ph}</div>`;
         html += '</div>';
     }
     
     if (data.wine_conditions) {
-        html += '<div class="scheme-section"><h3>Кондиції вина:</h3>';
+        html += '<div class="scheme-section">';
+        html += '<h3>Кондиції вина:';
+        if (data.color === 'Біле') {
+            html += ' <span style="font-size: 0.8em; font-style: italic; color: #667eea;">(розраховано автоматично)</span>';
+        }
+        html += '</h3>';
         html += `<div class="scheme-item">МЧ цукру: ${data.wine_conditions.sugar} г/дм³</div>`;
         html += `<div class="scheme-item">МЧ кислоти: ${data.wine_conditions.acidity} г/дм³</div>`;
-        html += `<div class="scheme-item">pH: ${data.wine_conditions.ph}</div>`;
         html += `<div class="scheme-item">Спиртуозність: ${data.wine_conditions.alcohol}% об.</div>`;
         html += '</div>';
     }

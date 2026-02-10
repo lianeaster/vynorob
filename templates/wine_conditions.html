@@ -21,7 +21,7 @@
             
             <div class="form-group">
                 <label for="ph">pH</label>
-                <input type="number" id="ph" name="ph" step="0.01" min="0" max="14" required class="form-input">
+                <input type="number" id="ph" name="ph" step="0.01" min="0" max="14" disabled class="form-input" style="opacity: 0.5; cursor: not-allowed; background: #f0f0f0;">
             </div>
             
             <div class="form-group">
@@ -41,7 +41,7 @@ document.getElementById('wineConditionsForm').addEventListener('submit', async f
     const data = {
         sugar: parseFloat(document.getElementById('sugar').value),
         acidity: parseFloat(document.getElementById('acidity').value),
-        ph: parseFloat(document.getElementById('ph').value),
+        ph: 0,  // pH disabled
         alcohol: parseFloat(document.getElementById('alcohol').value)
     };
     

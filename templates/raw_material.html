@@ -2,6 +2,67 @@
 
 {% block title %}Кондиції сировини - Vynorob{% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-button-group {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    
+    .info-icon {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: help;
+        font-style: italic;
+    }
+    
+    .info-tooltip {
+        position: absolute;
+        bottom: 35px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        pointer-events: none;
+        z-index: 1000;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .info-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: rgba(0, 0, 0, 0.9);
+    }
+    
+    .info-icon:hover .info-tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="step-page">
     <div class="card">
@@ -21,10 +82,19 @@
             
             <div class="form-group">
                 <label for="ph">pH</label>
-                <input type="number" id="ph" name="ph" step="0.01" min="0" max="14" required class="form-input">
+                <input type="number" id="ph" name="ph" step="0.01" min="0" max="14" disabled class="form-input" style="opacity: 0.5; cursor: not-allowed; background: #f0f0f0;">
             </div>
             
-            <button type="submit" class="btn btn-primary">Далі</button>
+            <div class="form-button-group">
+                <button type="submit" class="btn btn-primary">Далі</button>
+                <div class="info-icon">
+                    i
+                    <div class="info-tooltip">
+                        Для білого вина кондиції вина будуть розраховані автоматично<br>
+                        та показані в звіті. Сторінка вводу буде пропущена.
+                    </div>
+                </div>
+            </div>
         </form>
     </div>
 </div>
@@ -36,11 +106,12 @@ document.getElementById('rawMaterialForm').addEventListener('submit', async func
     const data = {
         sugar: parseFloat(document.getElementById('sugar').value),
         acidity: parseFloat(document.getElementById('acidity').value),
-        ph: parseFloat(document.getElementById('ph').value)
+        ph: 0  // pH disabled
     };
     
     await saveChoice('raw_material', data);
-    window.location.href = '/wine-conditions';
+    // Skip wine conditions page for white wine - go directly to choice page
+    window.location.href = '/choice';
 });
 </script>
 {% endblock %}

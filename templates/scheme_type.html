@@ -2,6 +2,22 @@
 
 {% block title %}Схема - Vynorob{% endblock %}
 
+{% block extra_css %}
+<style>
+    .btn-choice:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f0f0f0;
+        color: #999;
+        border-color: #ddd;
+    }
+    .btn-choice:disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="step-page">
     <div class="card">
@@ -10,8 +26,8 @@
         
         <div class="button-group">
             <button class="btn btn-choice" onclick="selectChoice('scheme_type', 'Біла')">Біла</button>
-            <button class="btn btn-choice" onclick="selectChoice('scheme_type', 'Червона')">Червона</button>
-            <button class="btn btn-choice" onclick="selectChoice('scheme_type', 'Змішана')">Змішана</button>
+            <button class="btn btn-choice" onclick="selectChoice('scheme_type', 'Червона')" disabled>Червона</button>
+            <button class="btn btn-choice" onclick="selectChoice('scheme_type', 'Змішана')" disabled>Змішана</button>
         </div>
     </div>
 </div>

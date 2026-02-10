@@ -2,6 +2,22 @@
 
 {% block title %}Вибір - Vynorob{% endblock %}
 
+{% block extra_css %}
+<style>
+    .btn-choice:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f0f0f0;
+        color: #999;
+        border-color: #ddd;
+    }
+    .btn-choice:disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="step-page">
     <div class="card">
@@ -9,7 +25,7 @@
         <p class="subtitle">Ви хочете додати опис вина чи вибрати схему виробництва?</p>
         
         <div class="button-group">
-            <button class="btn btn-choice" onclick="selectPath('description')">Опис вина</button>
+            <button class="btn btn-choice" onclick="selectPath('description')" disabled>Опис вина</button>
             <button class="btn btn-choice" onclick="selectPath('scheme')">Схема</button>
         </div>
     </div>

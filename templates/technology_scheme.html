@@ -116,26 +116,10 @@ function drawScheme() {
     const canvasWidth = 1000;
     const topPadding = 50;
     const bottomPadding = 50;
+    const arrowLength = 40;
     
-    // Calculate heights based on actual content
-    const smallLineTop = 30;
-    const startingConditionsHeight = 100;
-    const gapAfterText = 10;
-    const firstArrowLength = Math.round(startingConditionsHeight / 3);
-    
-    // Calculate box height (we'll get actual height from drawProcessBox)
-    const boxEstimatedHeight = 80; // Will be refined
-    
-    const smallLineBottom = 30;
-    const wineConditionsHeight = 88;
-    const secondArrowLength = Math.round(wineConditionsHeight / 3);
-    
-    // Calculate total height
-    const totalHeight = topPadding + 
-                       smallLineTop + startingConditionsHeight + gapAfterText + firstArrowLength +
-                       boxEstimatedHeight +
-                       smallLineBottom + wineConditionsHeight + gapAfterText + secondArrowLength +
-                       bottomPadding;
+    // Estimate total height (will adjust as we draw)
+    const totalHeight = 2000; // Generous initial height
     
     // Set canvas dimensions dynamically
     canvas.width = canvasWidth;
@@ -151,193 +135,352 @@ function drawScheme() {
     ctx.strokeStyle = '#000';
     ctx.fillStyle = '#000';
     ctx.lineWidth = 2;
-    
-    // Set consistent font for everything
-    const fontSize = 16;
-    ctx.font = `${fontSize}px Arial`;
+    ctx.font = '14px Arial';
     
     let currentY = topPadding;
+    const centerX = canvasWidth / 2; // Center horizontally
+    const boxWidth = 260;
     
-    // Draw starting conditions (4 lines of text)
-    drawStartConditions(currentY);
-    currentY += startingConditionsHeight;
-    currentY += gapAfterText;
+    // Draw starting conditions
+    currentY = drawStartingConditions(centerX, currentY);
     
-    console.log(`Starting conditions text: ${startingConditionsHeight}px, First arrow: ${firstArrowLength}px, Gap after text: ${gapAfterText}px`);
+    // First arrow with text intersection
+    const textHeight = 60;
+    currentY = drawArrowWithText(centerX, currentY, textHeight, 'М\'язга');
     
-    // Draw arrow down - proportional to text above
-    drawArrow(500, currentY, 500, currentY + firstArrowLength);
-    currentY += firstArrowLength;
+    // 1. Гребеневіддокремлення, Подрібнення
+    const box1Y = currentY;
+    currentY = drawProcessWithSideOutput(centerX, currentY, boxWidth, 0, 
+        'Гребеневіддокремлення,\nПодрібнення', 'Гребені', true);
     
-    // Draw acceptance box (Прийомка та сортування)
-    const boxInfo = drawProcessBox(200, currentY, 600, 60, 'Прийомка та сортування винограду');
-    currentY = boxInfo.bottomY;
+    // Regular arrow to next
+    drawArrow(centerX, currentY, centerX, currentY + arrowLength);
+    currentY += arrowLength;
     
-    // Add small vertical line before text (same as top)
-    currentY += smallLineBottom;
+    // 2. Віддилення сусла-самопливу
+    currentY = drawProcessWithSideOutput(centerX, currentY, boxWidth, 0,
+        'Віддилення\nсусла-самопливу', 'Збіднена\nм\'язга', true);
     
-    // Draw wine conditions text (4 lines)
-    drawWineConditions(currentY);
-    currentY += wineConditionsHeight;
-    currentY += gapAfterText;
+    drawSideLabel(centerX, currentY + 25, "Сусло-самоплив", false);
+    drawArrow(centerX, currentY, centerX, currentY + arrowLength);
+    currentY += arrowLength;
     
-    console.log(`Wine conditions text: ${wineConditionsHeight}px, Gap after text: ${gapAfterText}px, Second arrow: ${secondArrowLength}px (1/3 of text)`);
+    // 3. Пресування with side inputs
+    const box3Y = currentY;
+    currentY = drawProcessWithSideOutput(centerX, currentY, boxWidth, 0,
+        'Пресування', 'Вичавки\n→Пресові II та\nIII фракції на\nординарні\nміцні вина', true);
+    const box3Height = currentY - box3Y;
+    drawSideInput(centerX - 200, box3Y + box3Height/2, 'Холодоагент ←\nМатеріали для\nосвітлення →\nSO₂\n75...80 мг/дм³→');
     
-    // Draw simple arrow (exactly like the top arrow)
-    drawArrow(500, currentY, 500, currentY + secondArrowLength);
-    currentY += secondArrowLength;
+    drawArrow(centerX, currentY, centerX, currentY + arrowLength);
+    currentY += arrowLength;
+    
+    // 4. Відстоювання сусла
+    currentY = drawProcessBox(centerX, currentY, boxWidth, 0,
+        'Відстоювання сусла:\nt = 14...17°C,\nτ = 12 год');
+    
+    drawSideLabel(centerX, currentY + 25, "І фракція", false);
+    drawArrow(centerX, currentY, centerX, currentY + arrowLength);
+    currentY += arrowLength;
+    
+    // 5. Зняття з осаду
+    currentY = drawProcessBox(centerX, currentY, boxWidth, 0,
+        'Зняття з осаду');
+    
+    drawArrow(centerX, currentY, centerX, currentY + arrowLength);
+    currentY += arrowLength;
+    
+    // 6. Бродіння сусла
+    const box6Y = currentY;
+    currentY = drawProcessWithSideOutput(centerX, currentY, boxWidth, 0,
+        'Бродіння сусла,\nt=14...17°C', 'Гази бродіння', true);
+    const box6Height = currentY - box6Y;
+    drawSideInput(centerX - 200, box6Y + box6Height/2, 'ЧКД →\nХолодоагент ←');
+    
+    drawArrow(centerX, currentY, centerX, currentY + arrowLength);
+    currentY += arrowLength;
+    
+    // 7. Освітлення виноматервалу
+    const box7Y = currentY;
+    currentY = drawProcessWithSideOutput(centerX, currentY, boxWidth, 0,
+        'Освітлення\nвиноматервалу\nt=10...12°C', 'Осад', true);
+    const box7Height = currentY - box7Y;
+    drawSideInput(centerX - 200, box7Y + box7Height/2, 'Холодоагент ←');
+    
+    drawArrow(centerX, currentY, centerX, currentY + arrowLength);
+    currentY += arrowLength;
+    
+    // 8. Зняття з дріжджів
+    currentY = drawProcessWithSideOutput(centerX, currentY, boxWidth, 0,
+        'Зняття з дріжджів', 'Дріжджові осади', true);
+    
+    drawArrow(centerX, currentY, centerX, currentY + arrowLength);
+    currentY += arrowLength;
+    
+    // 9. Егалізація
+    const box9Y = currentY;
+    currentY = drawProcessBox(centerX, currentY, boxWidth, 0,
+        'Егалізація');
+    const box9Height = currentY - box9Y;
+    drawSideInput(centerX - 200, box9Y + box9Height/2, 'SO₂ →\n30...50 мг/дм³');
+    
+    drawArrow(centerX, currentY, centerX, currentY + arrowLength);
+    currentY += arrowLength;
+    
+    // 10. Зберігання
+    currentY = drawProcessBox(centerX, currentY, boxWidth, 0,
+        'Зберігання');
+    
+    // Last arrow with text intersection
+    currentY = drawArrowWithText(centerX, currentY, 80, null, true);
+    
+    // Final product
+    drawFinalProduct(centerX, currentY);
     
     console.log(`Final Y position: ${currentY}px, Canvas height: ${canvas.height}px`);
 }
 
-function drawStartConditions(y) {
+function drawStartingConditions(x, y) {
     // Get raw material conditions from session
     const rawMaterial = wineData.raw_material || {};
-    const color = wineData.color || 'вишні';
-    const sugar = rawMaterial.sugar || 12;
+    const color = wineData.color || 'Біле';
+    const sugar = rawMaterial.sugar || 170;
     const acidity = rawMaterial.acidity || 6;
-    const ph = rawMaterial.ph || 3.3;
     
-    // Draw vertical line at top
-    ctx.beginPath();
-    ctx.moveTo(500, y - 30);
-    ctx.lineTo(500, y);
-    ctx.stroke();
-    
+    ctx.save();
     ctx.textAlign = 'center';
-    ctx.font = '16px Arial';
+    ctx.font = '14px Arial';
     ctx.fillStyle = '#000';
     
-    ctx.fillText(`Свіжі ягоди ${getColorText(color)}`, 500, y + 25);
-    ctx.fillText(`CP ≥ ${sugar}%`, 500, y + 50);
-    ctx.fillText(`C_TK=${acidity}г/дм³`, 500, y + 75);
-    ctx.fillText(`pH=${ph}`, 500, y + 100);
+    ctx.fillText('Виноград:', x, y);
+    ctx.fillText(`Cц ≥ ${sugar} г/дм³,`, x, y + 20);
+    ctx.fillText(`Ст.к = ${acidity}...9 г/дм³`, x, y + 40);
+    
+    ctx.restore();
+    return y + 60;
 }
 
-function getColorText(color) {
-    const colorMap = {
-        'Біле': 'білого винограду',
-        'Червоне': 'червоного винограду',
-        'Рожеве': 'рожевого винограду'
-    };
-    return colorMap[color] || 'вишні';
+function drawProcessWithSideOutput(x, y, width, height, mainText, sideText, isRightSide) {
+    // Draw main process box and get the bottom Y position
+    const boxBottomY = drawProcessBox(x, y, width, height, mainText);
+    
+    // Calculate the actual height of the box
+    const actualHeight = boxBottomY - y;
+    
+    // Draw side arrow and text centered vertically on the box
+    const midY = y + actualHeight / 2;
+    
+    if (isRightSide) {
+        // Arrow to the right
+        const startX = x + width / 2;
+        const endX = startX + 120;
+        
+        drawArrow(startX, midY, endX, midY);
+        
+        // Draw side text
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.font = '12px Arial';
+        const lines = sideText.split('\n');
+        lines.forEach((line, i) => {
+            ctx.fillText(line, endX + 10, midY + (i - lines.length/2 + 0.5) * 14);
+        });
+        ctx.restore();
+    }
+    
+    return boxBottomY;
 }
 
-function drawWineConditions(y) {
-    // Draw vertical line at top (from box to text start) - same as starting conditions
-    ctx.beginPath();
-    ctx.moveTo(500, y - 30);
-    ctx.lineTo(500, y);
-    ctx.stroke();
-    
-    // Get wine conditions from session
-    const wineConditions = wineData.wine_conditions || {};
-    const sugar = wineConditions.sugar || 0;
-    const acidity = wineConditions.acidity || 0;
-    const ph = wineConditions.ph || 0;
-    const alcohol = wineConditions.alcohol || 0;
-    
+function drawSideInput(x, y, text) {
+    ctx.save();
+    ctx.textAlign = 'right';
+    ctx.font = '11px Arial';
+    const lines = text.split('\n');
+    lines.forEach((line, i) => {
+        ctx.fillText(line, x, y + (i - lines.length/2 + 0.5) * 14);
+    });
+    ctx.restore();
+}
+
+function drawSideLabel(x, y, text, isDown) {
+    ctx.save();
     ctx.textAlign = 'center';
-    ctx.font = '16px Arial';
+    ctx.font = '12px Arial';
     ctx.fillStyle = '#000';
-    
-    ctx.fillText(`МЧ цукру: ${sugar} г/дм³`, 500, y + 22);
-    ctx.fillText(`МЧ кислоти: ${acidity} г/дм³`, 500, y + 44);
-    ctx.fillText(`pH: ${ph}`, 500, y + 66);
-    ctx.fillText(`Спиртуозність: ${alcohol}%`, 500, y + 88);
+    // No additional offset needed - y is already positioned correctly
+    ctx.fillText(text, x, y);
+    ctx.restore();
+}
+
+function drawFinalProduct(x, y) {
+    // Final product text is now drawn in drawArrowWithText
+    // This function is kept for compatibility
 }
 
 function drawProcessBox(x, y, width, height, text) {
-    // Measure text first to determine actual box size
-    ctx.font = '16px Arial';
-    ctx.fillStyle = '#000';
-    ctx.textAlign = 'center';
+    ctx.save();
     
-    const words = text.split(' ');
-    let lines = [];
-    let currentLine = words[0];
+    // Handle multi-line text with \n
+    let lines = text.split('\n');
     
-    for (let i = 1; i < words.length; i++) {
-        const testLine = currentLine + ' ' + words[i];
-        const metrics = ctx.measureText(testLine);
-        if (metrics.width > width - 80) {
-            lines.push(currentLine);
-            currentLine = words[i];
-        } else {
-            currentLine = testLine;
-        }
-    }
-    lines.push(currentLine);
-    
-    // Calculate actual box dimensions based on text
-    const lineHeight = 22;
-    const textPaddingH = 30; // Horizontal padding
-    const textPaddingV = 20; // Vertical padding
+    // Calculate box dimensions dynamically based on text
+    const fontSize = 14;
+    const lineHeight = 20; // Increased from 18 to give more space
+    const paddingV = 18; // Increased vertical padding
+    const paddingH = 25; // Increased horizontal padding
+    ctx.font = `${fontSize}px Arial`;
     
     const maxTextWidth = Math.max(...lines.map(line => ctx.measureText(line).width));
-    const actualWidth = maxTextWidth + textPaddingH * 2;
-    const actualHeight = lines.length * lineHeight + textPaddingV * 2;
+    const actualWidth = Math.max(width, maxTextWidth + (paddingH * 2));
     
-    // Center the box horizontally, start at y
-    const actualX = x + (width - actualWidth) / 2;
-    const actualY = y;
+    // Height based on text content with proper spacing
+    const textBlockHeight = (lines.length - 1) * lineHeight + fontSize;
+    const actualHeight = textBlockHeight + (paddingV * 2);
     
-    // Draw rounded rectangle that fits text
-    const radius = 15;
+    // Center the box
+    const boxX = x - actualWidth / 2;
+    const boxY = y;
+    
+    // Draw rounded rectangle
+    const radius = 8;
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
+    ctx.fillStyle = '#fff'; // White background
+    
     ctx.beginPath();
-    ctx.moveTo(actualX + radius, actualY);
-    ctx.lineTo(actualX + actualWidth - radius, actualY);
-    ctx.quadraticCurveTo(actualX + actualWidth, actualY, actualX + actualWidth, actualY + radius);
-    ctx.lineTo(actualX + actualWidth, actualY + actualHeight - radius);
-    ctx.quadraticCurveTo(actualX + actualWidth, actualY + actualHeight, actualX + actualWidth - radius, actualY + actualHeight);
-    ctx.lineTo(actualX + radius, actualY + actualHeight);
-    ctx.quadraticCurveTo(actualX, actualY + actualHeight, actualX, actualY + actualHeight - radius);
-    ctx.lineTo(actualX, actualY + radius);
-    ctx.quadraticCurveTo(actualX, actualY, actualX + radius, actualY);
+    ctx.moveTo(boxX + radius, boxY);
+    ctx.lineTo(boxX + actualWidth - radius, boxY);
+    ctx.quadraticCurveTo(boxX + actualWidth, boxY, boxX + actualWidth, boxY + radius);
+    ctx.lineTo(boxX + actualWidth, boxY + actualHeight - radius);
+    ctx.quadraticCurveTo(boxX + actualWidth, boxY + actualHeight, boxX + actualWidth - radius, boxY + actualHeight);
+    ctx.lineTo(boxX + radius, boxY + actualHeight);
+    ctx.quadraticCurveTo(boxX, boxY + actualHeight, boxX, boxY + actualHeight - radius);
+    ctx.lineTo(boxX, boxY + radius);
+    ctx.quadraticCurveTo(boxX, boxY, boxX + radius, boxY);
     ctx.closePath();
+    
+    ctx.fill();
     ctx.stroke();
     
-    // Draw text
-    const startY = actualY + actualHeight / 2 - (lines.length - 1) * lineHeight / 2 + 5;
+    // Draw text centered vertically with proper baseline
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top'; // Use top baseline for consistent positioning
     
-    lines.forEach((line, index) => {
-        ctx.fillText(line, actualX + actualWidth / 2, startY + index * lineHeight);
+    // Start from top padding and draw each line
+    const textStartY = boxY + paddingV;
+    lines.forEach((line, i) => {
+        ctx.fillText(line, x, textStartY + (i * lineHeight));
     });
     
-    // Return box info for positioning next elements
-    return {
-        bottomY: actualY + actualHeight,
-        height: actualHeight
-    };
+    ctx.restore();
+    return boxY + actualHeight;
 }
 
 function drawArrow(x1, y1, x2, y2) {
-    // Draw line
+    ctx.save();
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
+    
+    // Draw line
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
     
-    // Draw arrowhead
+    // Draw arrowhead (filled triangle)
     const angle = Math.atan2(y2 - y1, x2 - x1);
-    const headLength = 10;
+    const headLength = 8;
     
+    ctx.fillStyle = '#000';
     ctx.beginPath();
     ctx.moveTo(x2, y2);
     ctx.lineTo(
-        x2 - headLength * Math.cos(angle - Math.PI / 6),
-        y2 - headLength * Math.sin(angle - Math.PI / 6)
+        x2 - headLength * Math.cos(angle - Math.PI / 7),
+        y2 - headLength * Math.sin(angle - Math.PI / 7)
     );
-    ctx.moveTo(x2, y2);
     ctx.lineTo(
-        x2 - headLength * Math.cos(angle + Math.PI / 6),
-        y2 - headLength * Math.sin(angle + Math.PI / 6)
+        x2 - headLength * Math.cos(angle + Math.PI / 7),
+        y2 - headLength * Math.sin(angle + Math.PI / 7)
     );
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.restore();
+}
+
+function drawArrowWithText(x, startY, totalHeight, label, isFinal = false) {
+    ctx.save();
+    
+    // For first arrow: text in middle, or for final: wine conditions
+    const arrowPart = totalHeight / 3;
+    const textPadding = 10;
+    
+    // Draw first part of arrow
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, startY);
+    ctx.lineTo(x, startY + arrowPart);
     ctx.stroke();
+    
+    // Draw text in white background
+    ctx.textAlign = 'center';
+    ctx.font = '12px Arial';
+    ctx.fillStyle = '#000';
+    
+    if (isFinal) {
+        // Draw final wine conditions
+        const wineConditions = wineData.wine_conditions || {};
+        const sugar = wineConditions.sugar || 2;
+        const acidity = wineConditions.acidity || 6;
+        const alcohol = wineConditions.alcohol || 11;
+        
+        const lines = [
+            'Виноматервіал на',
+            'оброблення та розлив:',
+            `Cц≤${sugar} г/дм³`,
+            `Cсп = ${Math.round(alcohol)}...14 % об.`
+        ];
+        
+        const lineHeight = 16;
+        const textY = startY + arrowPart + textPadding;
+        
+        lines.forEach((line, i) => {
+            ctx.fillText(line, x, textY + (i * lineHeight));
+        });
+        
+        ctx.restore();
+        return startY + totalHeight;
+    } else if (label) {
+        // Simple label
+        const textY = startY + arrowPart + textPadding + 10;
+        ctx.fillText(label, x, textY);
+    }
+    
+    // Draw second part of arrow with arrowhead
+    const arrowStartY = startY + arrowPart + textPadding * 2 + (label ? 20 : 0);
+    const arrowEndY = startY + totalHeight;
+    
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, arrowStartY);
+    ctx.lineTo(x, arrowEndY);
+    ctx.stroke();
+    
+    // Draw arrowhead
+    const headLength = 8;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.moveTo(x, arrowEndY);
+    ctx.lineTo(x - headLength / 2, arrowEndY - headLength);
+    ctx.lineTo(x + headLength / 2, arrowEndY - headLength);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.restore();
+    return arrowEndY;
 }
 
 function drawArrowWithConditions(x1, y1, x2, y2, arrowBefore, arrowAfter, padding, textLines) {

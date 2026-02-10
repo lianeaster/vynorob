@@ -26,6 +26,41 @@ def save_wines(wines):
     with open(DB_FILE, 'w', encoding='utf-8') as f:
         json.dump(wines, f, ensure_ascii=False, indent=2)
 
+def calculate_wine_conditions(raw_material, color, style):
+    """Calculate wine conditions for white wine based on raw material"""
+    sugar = raw_material.get('sugar', 0)
+    acidity = raw_material.get('acidity', 0)
+    ph = raw_material.get('ph', 0)
+    
+    # Calculate alcohol content from sugar
+    # Formula: ~16.83 g/L sugar produces 1% alcohol
+    # For dry wine, assume almost all sugar is converted
+    if style == 'Сухе':
+        residual_sugar = round(2.0, 1)  # Dry wine: < 4 g/L residual sugar
+        alcohol = round((sugar - residual_sugar) / 16.83, 1)
+    elif style == 'Напівсухе':
+        residual_sugar = round(8.0, 1)  # Semi-dry: 4-12 g/L
+        alcohol = round((sugar - residual_sugar) / 16.83, 1)
+    elif style == 'Напівсолодке':
+        residual_sugar = round(20.0, 1)  # Semi-sweet: 12-45 g/L
+        alcohol = round((sugar - residual_sugar) / 16.83, 1)
+    else:  # Солодке
+        residual_sugar = round(50.0, 1)  # Sweet: > 45 g/L
+        alcohol = round((sugar - residual_sugar) / 16.83, 1)
+    
+    # Acidity typically decreases slightly during fermentation
+    wine_acidity = round(acidity * 0.9, 1)
+    
+    # pH is disabled
+    wine_ph = 0
+    
+    return {
+        'sugar': residual_sugar,
+        'acidity': wine_acidity,
+        'ph': wine_ph,
+        'alcohol': alcohol
+    }
+
 @app.route('/')
 def index():
     """Welcome page - Почати"""
@@ -59,6 +94,19 @@ def wine_conditions_page():
 @app.route('/choice')
 def choice_page():
     """Choice page - Опис вина or Схема"""
+    # Calculate wine conditions for white wine automatically
+    wine_data = session.get('wine_data', {})
+    
+    if wine_data.get('color') == 'Біле' and 'wine_conditions' not in wine_data:
+        raw_material = wine_data.get('raw_material', {})
+        style = wine_data.get('style', 'Сухе')
+        
+        # Calculate wine conditions
+        wine_conditions = calculate_wine_conditions(raw_material, 'Біле', style)
+        wine_data['wine_conditions'] = wine_conditions
+        session['wine_data'] = wine_data
+        session.modified = True
+    
     return render_template('choice.html')
 
 @app.route('/wine-description')
