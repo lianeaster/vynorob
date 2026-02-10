@@ -1161,8 +1161,8 @@ class SchemeRenderer {
             
             const lines = [
                 'Виноград:',
-                `Cц ≥ ${sugar} г/дм³,`,
-                `Ст.к = ${acidity}...9 г/дм³`
+                `Cц =${sugar} г/дм³,`,
+                `Ст.к. = ${acidity} г/дм³`
             ];
             
             const lineHeight = 16;
@@ -1192,16 +1192,39 @@ class SchemeRenderer {
             });
             
         } else if (isFinal) {
-            // Draw final wine conditions
-            const wineConditions = this.wineData.wine_conditions || {};
-            const sugar = wineConditions.sugar || 2;
-            const alcohol = wineConditions.alcohol || 11;
+            // Calculate final wine conditions based on initial grape parameters
+            const rawMaterial = this.wineData.raw_material || {};
+            const initialSugar = rawMaterial.sugar || 170; // g/dm³
+            const initialAcidity = rawMaterial.acidity || 6; // g/dm³
+            
+            // Final parameters for dry white wine
+            const finalSugar = 2; // g/dm³ - definition of dry wine (≤4 g/dm³)
+            
+            // Calculate alcohol content from sugar fermentation
+            // Formula: 17 g/L sugar produces approximately 1% vol alcohol
+            const sugarConsumed = initialSugar - finalSugar;
+            const calculatedAlcohol = sugarConsumed / 17;
+            const finalAlcohol = Math.round(calculatedAlcohol * 10) / 10; // Round to 1 decimal
+            
+            // Calculate final titratable acidity
+            // During white wine fermentation, acidity decreases slightly (0.5-1 g/dm³)
+            const acidityLoss = 0.7; // Typical loss during fermentation
+            const finalAcidity = Math.max(initialAcidity - acidityLoss, 4); // Minimum 4 g/dm³
+            
+            console.log('Wine parameters calculation:');
+            console.log(`  Initial sugar: ${initialSugar} g/dm³`);
+            console.log(`  Final sugar: ${finalSugar} g/dm³ (dry wine)`);
+            console.log(`  Sugar consumed: ${sugarConsumed} g/dm³`);
+            console.log(`  Calculated alcohol: ${finalAlcohol}% vol`);
+            console.log(`  Initial acidity: ${initialAcidity} g/dm³`);
+            console.log(`  Final acidity: ${finalAcidity.toFixed(1)} g/dm³`);
             
             const lines = [
                 'Виноматервіал на',
                 'оброблення та розлив:',
-                `Cц≤${sugar} г/дм³`,
-                `Cсп = ${Math.round(alcohol)}...14 % об.`
+                `Cц≤${finalSugar} г/дм³`,
+                `Cт.к.≤${finalAcidity.toFixed(1)} г/дм³`,
+                `Cсп = ${finalAlcohol}% об.`
             ];
             
             const lineHeight = 16;
