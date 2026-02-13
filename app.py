@@ -1,20 +1,44 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import json
 import os
 from datetime import datetime
 import uuid
+from authlib.integrations.flask_client import OAuth
+from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = 'winery-secret-key-2026'  # Change this in production
+app.secret_key = os.environ.get('SECRET_KEY', 'winery-secret-key-2026')  # Change this in production
+
+# OAuth configuration
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=os.environ.get('GOOGLE_CLIENT_ID'),
+    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
 
 # Database file paths
 DATA_DIR = 'data'
 DB_FILE = os.path.join(DATA_DIR, 'wines.json')
 BLOCKS_FILE = os.path.join(DATA_DIR, 'blocks.json')
 SCHEMAS_FILE = os.path.join(DATA_DIR, 'schemas.json')
+USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 
 # Ensure data directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# Login decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def load_wines():
     """Load wines from JSON database"""
@@ -80,6 +104,45 @@ def get_blocks_for_schema(schema):
     
     return schema_blocks
 
+def load_users():
+    """Load users from JSON database"""
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+def save_users(users):
+    """Save users to JSON database"""
+    with open(USERS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(users, f, ensure_ascii=False, indent=2)
+
+def get_or_create_user(email, name, picture):
+    """Get existing user or create new one"""
+    users = load_users()
+    
+    # Find existing user
+    for user in users:
+        if user['email'] == email:
+            # Update name and picture
+            user['name'] = name
+            user['picture'] = picture
+            user['last_login'] = datetime.now().isoformat()
+            save_users(users)
+            return user
+    
+    # Create new user
+    new_user = {
+        'id': str(uuid.uuid4()),
+        'email': email,
+        'name': name,
+        'picture': picture,
+        'created_at': datetime.now().isoformat(),
+        'last_login': datetime.now().isoformat()
+    }
+    users.append(new_user)
+    save_users(users)
+    return new_user
+
 def calculate_wine_conditions(raw_material, color, style):
     """Calculate wine conditions for white wine based on raw material"""
     sugar = raw_material.get('sugar', 0)
@@ -114,6 +177,57 @@ def calculate_wine_conditions(raw_material, color, style):
         'ph': wine_ph,
         'alcohol': alcohol
     }
+
+# Authentication routes
+@app.route('/login')
+def login():
+    """Login page or redirect to Google OAuth"""
+    # Check if Google OAuth is configured
+    if not os.environ.get('GOOGLE_CLIENT_ID'):
+        # OAuth not configured, show info page
+        return render_template('login.html', oauth_configured=False)
+    
+    # Redirect to Google OAuth
+    redirect_uri = url_for('authorize', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+@app.route('/authorize')
+def authorize():
+    """OAuth callback endpoint"""
+    try:
+        token = google.authorize_access_token()
+        user_info = token.get('userinfo')
+        
+        if user_info:
+            # Get or create user
+            user = get_or_create_user(
+                email=user_info['email'],
+                name=user_info.get('name', user_info['email']),
+                picture=user_info.get('picture', '')
+            )
+            
+            # Store user in session
+            session['user'] = {
+                'id': user['id'],
+                'email': user['email'],
+                'name': user['name'],
+                'picture': user['picture']
+            }
+            
+            # Redirect to next page or home
+            next_page = request.args.get('next')
+            return redirect(next_page if next_page else url_for('index'))
+        
+        return redirect(url_for('login'))
+    except Exception as e:
+        print(f'OAuth error: {e}')
+        return redirect(url_for('login'))
+
+@app.route('/logout')
+def logout():
+    """Logout and clear session"""
+    session.pop('user', None)
+    return redirect(url_for('index'))
 
 @app.route('/')
 def index():

@@ -42,3 +42,4 @@ data/wines.json
 # OS
 .DS_Store
 Thumbs.db
+.env
