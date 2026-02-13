@@ -399,11 +399,9 @@ class SchemeRenderer {
                 arrows.left = block.left_inputs;
             }
             
-            // Right outputs
+            // Right outputs - pass as array for consistent handling
             if (block.right_outputs && block.right_outputs.length > 0) {
-                if (block.right_outputs.length === 1) {
-                    arrows.right = block.right_outputs[0];
-                }
+                arrows.right = block.right_outputs;
             }
 
             // Draw the block
@@ -538,14 +536,32 @@ class SchemeRenderer {
                 this.ctx.restore();
                 
                 // Draw side branch block (Пресування)
-                const estimatedHeight = 20 + (18 * 2);
-                const sideBranchY = fromCenterY - estimatedHeight / 2;
-                
-                // Prepare arrows for side branch
+                // Calculate actual box height first
                 const sideBranchArrows = {};
                 if (sideBranchBlock.right_outputs && sideBranchBlock.right_outputs.length > 0) {
-                    sideBranchArrows.right = sideBranchBlock.right_outputs[0];
+                    sideBranchArrows.right = sideBranchBlock.right_outputs;
                 }
+                
+                // Calculate text height
+                this.ctx.save();
+                this.ctx.font = this.config.fonts.box;
+                const lines = sideBranchBlock.name.split('\n');
+                const textBlockHeight = (lines.length - 1) * this.config.fonts.boxLineHeight + this.config.fonts.boxSize;
+                const paddingV = this.config.dimensions.boxPaddingV;
+                let boxHeight = textBlockHeight + (paddingV * 2);
+                
+                // Check if we need more height for right arrows
+                if (sideBranchArrows.right) {
+                    const rightArrows = Array.isArray(sideBranchArrows.right) ? sideBranchArrows.right : [sideBranchArrows.right];
+                    if (rightArrows.length > 1) {
+                        const arrowHeight = (rightArrows.length - 1) * 70 + 40;
+                        boxHeight = Math.max(boxHeight, arrowHeight);
+                    }
+                }
+                this.ctx.restore();
+                
+                // Now center the block against the arrow
+                const sideBranchY = fromCenterY - boxHeight / 2;
                 
                 const sideBranchEndY = this.drawProcessStage({
                     x: rightBoxX,
@@ -763,11 +779,18 @@ class SchemeRenderer {
         const arrowLengthToPresuvanny = 250 - boxWidth/2;
         const rightBoxX = centerX + boxWidth/2 + arrowLengthToPresuvanny + boxWidth/2;
         
-        // Calculate Пресування height to center it with Віддilення
-        const estimatedPresuvannyaHeight = 20 + (18 * 2); // 1 line text + padding
-        const presuvannyaY = viddilennyaCenterY - estimatedPresuvannyaHeight / 2;
+        // Calculate actual Пресування height to center it with Віддilення
+        this.ctx.save();
+        this.ctx.font = this.config.fonts.box;
+        const presuvannyaLines = 'Пресування'.split('\n');
+        const presuvannyaTextHeight = (presuvannyaLines.length - 1) * this.config.fonts.boxLineHeight + this.config.fonts.boxSize;
+        const presuvannyaPaddingV = this.config.dimensions.boxPaddingV;
+        const presuvannyaHeight = presuvannyaTextHeight + (presuvannyaPaddingV * 2);
+        this.ctx.restore();
         
-        console.log('Centering boxes - Віддilення center:', viddilennyaCenterY, 'Пресування start:', presuvannyaY);
+        const presuvannyaY = viddilennyaCenterY - presuvannyaHeight / 2;
+        
+        console.log('Centering boxes - Віддilення center:', viddilennyaCenterY, 'Пресування start:', presuvannyaY, 'height:', presuvannyaHeight);
         
         const presuvannyaEndY = this.drawProcessStage({
             x: rightBoxX,
@@ -1024,14 +1047,26 @@ class SchemeRenderer {
         const text = config.text;
         const arrows = config.arrows || {};
         
-        // Calculate minimum height needed for left arrows
+        // Calculate minimum height needed for arrows (left or right)
         let minHeightForArrows = 0;
+        
+        // Check left arrows
         if (arrows.left) {
             const leftArrows = Array.isArray(arrows.left) ? arrows.left : [arrows.left];
             if (leftArrows.length > 1) {
-                // Need space for multiple arrows with proper spacing
-                const arrowSpacing = 70; // Minimum 70px between arrows
-                minHeightForArrows = (leftArrows.length - 1) * arrowSpacing + 40; // +40 for top/bottom margins
+                const arrowSpacing = 70;
+                const leftHeight = (leftArrows.length - 1) * arrowSpacing + 40;
+                minHeightForArrows = Math.max(minHeightForArrows, leftHeight);
+            }
+        }
+        
+        // Check right arrows
+        if (arrows.right) {
+            const rightArrows = Array.isArray(arrows.right) ? arrows.right : [arrows.right];
+            if (rightArrows.length > 1) {
+                const arrowSpacing = 70;
+                const rightHeight = (rightArrows.length - 1) * arrowSpacing + 40;
+                minHeightForArrows = Math.max(minHeightForArrows, rightHeight);
             }
         }
         
@@ -1085,72 +1120,75 @@ class SchemeRenderer {
             });
         }
         
-        // Draw right arrow if configured
-        if (arrows.right && typeof arrows.right === 'object' && arrows.right.text) {
-            const boxX = x - width / 2;
-            const rightX = boxX + width;
-            const arrowY = y + boxHeight / 2;
-            // Match the actual visible length of left arrows: 250 - width/2
-            const arrowLength = 250 - width/2;
+        // Draw right arrow(s) if configured - evenly distributed like left arrows
+        if (arrows.right) {
+            const rightArrows = Array.isArray(arrows.right) ? arrows.right : [arrows.right];
+            const arrowSpacing = rightArrows.length > 1 ? (boxHeight - 40) / (rightArrows.length - 1) : 0;
             
-            this.ctx.save();
-            
-            // Calculate text dimensions first
-            const lines = arrows.right.text.split('\n');
-            this.ctx.textAlign = 'center';
-            this.ctx.font = '12px Arial';
-            const textX = rightX + arrowLength / 2;
-            const lineHeight = 14;
-            const totalTextHeight = lines.length * lineHeight;
-            const startY = arrowY - 10 - totalTextHeight;
-            
-            let maxWidth = 0;
-            lines.forEach(line => {
-                const textMetrics = this.ctx.measureText(line);
-                maxWidth = Math.max(maxWidth, textMetrics.width);
+            rightArrows.forEach((rightArrow, index) => {
+                if (typeof rightArrow === 'object' && rightArrow.text) {
+                    const boxX = x - width / 2;
+                    const rightX = boxX + width;
+                    // Even distribution across box height
+                    const arrowY = rightArrows.length > 1 
+                        ? y + 20 + (index * arrowSpacing)
+                        : y + boxHeight / 2;
+                    const arrowLength = 250 - width/2;
+                    
+                    this.ctx.save();
+                    
+                    // Calculate text dimensions
+                    const lines = rightArrow.text.split('\n');
+                    this.ctx.textAlign = 'center';
+                    this.ctx.font = '12px Arial';
+                    const textX = rightX + arrowLength / 2;
+                    const lineHeight = 14;
+                    const totalTextHeight = lines.length * lineHeight;
+                    const startY = arrowY - 10 - totalTextHeight;
+                    
+                    let maxWidth = 0;
+                    lines.forEach(line => {
+                        const textMetrics = this.ctx.measureText(line);
+                        maxWidth = Math.max(maxWidth, textMetrics.width);
+                    });
+                    
+                    const padding = 3;
+                    
+                    // Draw horizontal arrow
+                    this.ctx.strokeStyle = '#000';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(rightX, arrowY);
+                    this.ctx.lineTo(rightX + arrowLength, arrowY);
+                    this.ctx.stroke();
+                    
+                    // Draw arrowhead
+                    this.ctx.fillStyle = '#000';
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(rightX + arrowLength, arrowY);
+                    this.ctx.lineTo(rightX + arrowLength - 8, arrowY - 5);
+                    this.ctx.lineTo(rightX + arrowLength - 8, arrowY + 5);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    
+                    // Draw text background
+                    this.ctx.fillStyle = '#fff';
+                    const bgTop = startY - padding;
+                    const bgBottom = startY + totalTextHeight + padding;
+                    const bgHeight = bgBottom - bgTop;
+                    this.ctx.fillRect(textX - maxWidth/2 - padding, bgTop, 
+                                      maxWidth + padding*2, bgHeight);
+                    
+                    // Draw text
+                    this.ctx.fillStyle = '#000';
+                    this.ctx.textBaseline = 'top';
+                    lines.forEach((line, i) => {
+                        this.ctx.fillText(line, textX, startY + (i * lineHeight));
+                    });
+                    
+                    this.ctx.restore();
+                }
             });
-            
-            const padding = 3;
-            const textBoxTop = startY - 12 - padding;
-            const textBoxBottom = startY - 12 - padding + totalTextHeight + padding*2;
-            
-            // Draw horizontal arrow ONLY where there's no text (check if arrow line intersects text box)
-            this.ctx.strokeStyle = '#000';
-            this.ctx.lineWidth = 2;
-            
-            // Check if arrow passes through text area (text is above arrow)
-            // Since text is above the arrow (startY < arrowY), we just draw the full arrow
-            this.ctx.beginPath();
-            this.ctx.moveTo(rightX, arrowY);
-            this.ctx.lineTo(rightX + arrowLength, arrowY);
-            this.ctx.stroke();
-            
-            // Draw arrowhead
-            this.ctx.fillStyle = '#000';
-            this.ctx.beginPath();
-            this.ctx.moveTo(rightX + arrowLength, arrowY);
-            this.ctx.lineTo(rightX + arrowLength - 8, arrowY - 5);
-            this.ctx.lineTo(rightX + arrowLength - 8, arrowY + 5);
-            this.ctx.closePath();
-            this.ctx.fill();
-            
-            // Draw text background - symmetric padding around text
-            this.ctx.fillStyle = '#fff';
-            const bgTop = startY - padding;
-            const bgBottom = startY + totalTextHeight + padding; // Symmetric padding
-            const bgHeight = bgBottom - bgTop;
-            
-            this.ctx.fillRect(textX - maxWidth/2 - padding, bgTop, 
-                              maxWidth + padding*2, bgHeight);
-            
-            // Draw text
-            this.ctx.fillStyle = '#000';
-            this.ctx.textBaseline = 'top';
-            lines.forEach((line, i) => {
-                this.ctx.fillText(line, textX, startY + (i * lineHeight));
-            });
-            
-            this.ctx.restore();
         }
         
         // Draw bottom label if configured

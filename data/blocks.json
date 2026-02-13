@@ -24,7 +24,8 @@
     "connects_to": "block_4",
     "is_side_branch": true,
     "right_outputs": [
-      {"text": "Вичавки\n→Пресові II та\nIII фракції на\nординарні\nміцні вина"}
+      {"text": "Вичавки"},
+      {"text": "Пресові II та\nIII фракції на\nординарні\nміцні вина"}
     ]
   },
   {
@@ -88,5 +89,52 @@
     "order": 9,
     "has_bottom_arrow": true,
     "bottom_arrow_label": "Кондиції вина"
+  },
+  {
+    "id": "block_10",
+    "name": "Бродіння м'язги",
+    "order": 10,
+    "left_inputs": [
+      {"type": "double", "text": "Холодоагент"},
+      {"text": "ЧКД"}
+    ],
+    "right_outputs": [
+      {"text": "Гази бродіння"}
+    ]
+  },
+  {
+    "id": "block_11",
+    "name": "Стікання м'язги,\nщо бродить",
+    "order": 11,
+    "arrow_out_label": "Сусло-самоплив"
+  },
+  {
+    "id": "block_11_1",
+    "name": "Пресування",
+    "order": 11.1,
+    "connects_from": "block_11",
+    "connects_to": "block_12",
+    "is_side_branch": true,
+    "right_outputs": [
+      {"text": "Вичавки"},
+      {"text": "Пресові II та\nIII фракції на\nординарні\nміцні вина"}
+    ]
+  },
+  {
+    "id": "block_12",
+    "name": "Доброджування",
+    "order": 12,
+    "arrow_out_label": "Виноматеріал",
+    "left_inputs": [
+      {"type": "double", "text": "Холодоагент"}
+    ]
+  },
+  {
+    "id": "block_13",
+    "name": "Відпочинок",
+    "order": 13,
+    "left_inputs": [
+      {"type": "double", "text": "Холодоагент"}
+    ]
   }
 ]

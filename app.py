@@ -69,11 +69,14 @@ def get_blocks_for_schema(schema):
     all_blocks = load_blocks()
     block_ids = schema.get('blocks', [])
     
-    # Filter blocks that are in the schema
-    schema_blocks = [block for block in all_blocks if block['id'] in block_ids]
+    # Create a dict for quick lookup
+    blocks_dict = {block['id']: block for block in all_blocks}
     
-    # Sort by order
-    schema_blocks.sort(key=lambda x: x.get('order', 0))
+    # Return blocks in the order specified by the schema
+    schema_blocks = []
+    for block_id in block_ids:
+        if block_id in blocks_dict:
+            schema_blocks.append(blocks_dict[block_id])
     
     return schema_blocks
 
