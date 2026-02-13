@@ -1,0 +1,92 @@
+[
+  {
+    "id": "block_1",
+    "name": "Гребеневіддокремлення,\nПодрібнення",
+    "order": 1,
+    "has_top_arrow": true,
+    "top_arrow_label": "Умови сировини",
+    "arrow_out_label": "М'язга",
+    "right_outputs": [
+      {"text": "Гребені"}
+    ]
+  },
+  {
+    "id": "block_2",
+    "name": "Відділення\nсусла-самопливу",
+    "order": 2,
+    "arrow_out_label": "Сусло-самоплив"
+  },
+  {
+    "id": "block_2_1",
+    "name": "Пресування",
+    "order": 2.1,
+    "connects_from": "block_2",
+    "connects_to": "block_4",
+    "is_side_branch": true,
+    "right_outputs": [
+      {"text": "Вичавки\n→Пресові II та\nIII фракції на\nординарні\nміцні вина"}
+    ]
+  },
+  {
+    "id": "block_3",
+    "name": "Відстоювання сусла:\nt = 14...17°C,\nτ = 12 год",
+    "order": 3,
+    "arrow_out_label": "І фракція",
+    "left_inputs": [
+      {"type": "double", "text": "Холодоагент"},
+      {"text": "Матеріали для\nосвітлення"},
+      {"text": "SO₂\n75...80 мг/дм³"}
+    ]
+  },
+  {
+    "id": "block_4",
+    "name": "Зняття з осаду",
+    "order": 4
+  },
+  {
+    "id": "block_5",
+    "name": "Бродіння сусла,\nt=14...17°C",
+    "order": 5,
+    "left_inputs": [
+      {"type": "double", "text": "Холодоагент"},
+      {"text": "ЧКД"}
+    ],
+    "right_outputs": [
+      {"text": "Гази бродіння"}
+    ]
+  },
+  {
+    "id": "block_6",
+    "name": "Освітлення\nвиноматервалу\nt=10...12°C",
+    "order": 6,
+    "left_inputs": [
+      {"type": "double", "text": "Холодоагент"}
+    ],
+    "right_outputs": [
+      {"text": "Осад"}
+    ]
+  },
+  {
+    "id": "block_7",
+    "name": "Зняття з дріжджів",
+    "order": 7,
+    "right_outputs": [
+      {"text": "Дріжджові осади"}
+    ]
+  },
+  {
+    "id": "block_8",
+    "name": "Егалізація",
+    "order": 8,
+    "left_inputs": [
+      {"text": "SO₂ \n30...50 мг/дм³"}
+    ]
+  },
+  {
+    "id": "block_9",
+    "name": "Зберігання",
+    "order": 9,
+    "has_bottom_arrow": true,
+    "bottom_arrow_label": "Кондиції вина"
+  }
+]

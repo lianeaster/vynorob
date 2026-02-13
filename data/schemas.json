@@ -1,0 +1,25 @@
+[
+  {
+    "id": "schema_white_dry_still",
+    "name": "Біле сухе тихе вино (біла схема)",
+    "parameters": {
+      "color": "Біле",
+      "style": "Сухе",
+      "style_co2": "Тихе",
+      "scheme_type": "Біла"
+    },
+    "blocks": [
+      "block_1",
+      "block_2",
+      "block_2_1",
+      "block_3",
+      "block_4",
+      "block_5",
+      "block_6",
+      "block_7",
+      "block_8",
+      "block_9"
+    ],
+    "description": "Схема виробництва білого сухого тихого вина за білою схемою"
+  }
+]

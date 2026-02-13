@@ -7,9 +7,11 @@ import uuid
 app = Flask(__name__)
 app.secret_key = 'winery-secret-key-2026'  # Change this in production
 
-# Database file path
+# Database file paths
 DATA_DIR = 'data'
 DB_FILE = os.path.join(DATA_DIR, 'wines.json')
+BLOCKS_FILE = os.path.join(DATA_DIR, 'blocks.json')
+SCHEMAS_FILE = os.path.join(DATA_DIR, 'schemas.json')
 
 # Ensure data directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -25,6 +27,55 @@ def save_wines(wines):
     """Save wines to JSON database"""
     with open(DB_FILE, 'w', encoding='utf-8') as f:
         json.dump(wines, f, ensure_ascii=False, indent=2)
+
+def load_blocks():
+    """Load blocks from JSON database"""
+    if os.path.exists(BLOCKS_FILE):
+        with open(BLOCKS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+def load_schemas():
+    """Load schemas from JSON database"""
+    if os.path.exists(SCHEMAS_FILE):
+        with open(SCHEMAS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+def find_schema_for_wine(wine_data):
+    """Find the appropriate schema based on wine parameters"""
+    schemas = load_schemas()
+    
+    for schema in schemas:
+        params = schema.get('parameters', {})
+        match = True
+        
+        # Check if all parameters match
+        for key, value in params.items():
+            if wine_data.get(key) != value:
+                match = False
+                break
+        
+        if match:
+            return schema
+    
+    return None
+
+def get_blocks_for_schema(schema):
+    """Get the list of block objects for a given schema"""
+    if not schema:
+        return []
+    
+    all_blocks = load_blocks()
+    block_ids = schema.get('blocks', [])
+    
+    # Filter blocks that are in the schema
+    schema_blocks = [block for block in all_blocks if block['id'] in block_ids]
+    
+    # Sort by order
+    schema_blocks.sort(key=lambda x: x.get('order', 0))
+    
+    return schema_blocks
 
 def calculate_wine_conditions(raw_material, color, style):
     """Calculate wine conditions for white wine based on raw material"""
@@ -205,6 +256,39 @@ def get_wines():
     """API endpoint to get all wines"""
     wines = load_wines()
     return jsonify(wines)
+
+@app.route('/api/blocks', methods=['GET'])
+def get_blocks():
+    """API endpoint to get all blocks"""
+    blocks = load_blocks()
+    return jsonify(blocks)
+
+@app.route('/api/schemas', methods=['GET'])
+def get_schemas():
+    """API endpoint to get all schemas"""
+    schemas = load_schemas()
+    return jsonify(schemas)
+
+@app.route('/api/schema-for-wine', methods=['GET'])
+def get_schema_for_wine():
+    """API endpoint to get schema for current wine in session"""
+    wine_data = session.get('wine_data', {})
+    
+    if not wine_data:
+        return jsonify({'error': 'No wine data in session'}), 404
+    
+    schema = find_schema_for_wine(wine_data)
+    
+    if not schema:
+        return jsonify({'error': 'No matching schema found'}), 404
+    
+    blocks = get_blocks_for_schema(schema)
+    
+    return jsonify({
+        'schema': schema,
+        'blocks': blocks,
+        'wine_data': wine_data
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

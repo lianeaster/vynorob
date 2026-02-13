@@ -26,10 +26,12 @@
  */
 
 class SchemeRenderer {
-    constructor(canvas, wineData) {
+    constructor(canvas, wineData, blocks = null, schema = null) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.wineData = wineData;
+        this.blocks = blocks || [];
+        this.schema = schema || null;
         
         // Centralized style configuration (BaseBox settings)
         this.config = {
@@ -313,9 +315,300 @@ class SchemeRenderer {
     }
 
     /**
+     * Draw scheme dynamically from blocks data
+     */
+    drawDynamicScheme() {
+        if (!this.blocks || this.blocks.length === 0) {
+            console.error('No blocks data available');
+            return;
+        }
+
+        console.log('Drawing dynamic scheme with blocks:', this.blocks);
+        console.log('Schema:', this.schema);
+
+        const canvasWidth = this.config.layout.canvasWidth;
+        const topPadding = this.config.layout.topPadding;
+        const arrowLength = this.config.dimensions.arrowLength;
+        const boxWidth = this.config.layout.boxWidth;
+
+        // Estimate total height
+        const totalHeight = 2000;
+
+        // Set canvas dimensions
+        this.canvas.width = canvasWidth;
+        this.canvas.height = totalHeight;
+
+        // Clear canvas
+        this.ctx.fillStyle = this.config.colors.background;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Set default styles
+        this.applyLineStyle();
+        this.applyFillStyle();
+        this.ctx.font = this.config.fonts.box;
+
+        let currentY = topPadding;
+        const centerX = canvasWidth / 2 - 200;
+
+        // Store block positions for side branches
+        const blockPositions = {};
+        
+        // Find side branch block first (before main drawing loop)
+        let sideBranchBlock = null;
+        for (const block of this.blocks) {
+            if (block.is_side_branch) {
+                sideBranchBlock = block;
+                console.log('Found side branch block:', sideBranchBlock);
+                break;
+            }
+        }
+
+        // Draw main blocks
+        this.blocks.forEach((block, index) => {
+            console.log(`Drawing block ${index + 1}:`, block);
+
+            // Skip side branch for now (will draw it later)
+            if (block.is_side_branch) {
+                return;
+            }
+
+            // Draw top arrow with raw material conditions for first block
+            if (block.has_top_arrow) {
+                currentY = this.drawArrowWithText(
+                    centerX, 
+                    currentY, 
+                    120, 
+                    '', 
+                    false, 
+                    true
+                );
+            }
+
+            // Store block start position
+            blockPositions[block.id] = {
+                startY: currentY,
+                endY: 0,
+                centerY: 0
+            };
+
+            // Prepare arrows configuration
+            const arrows = {};
+            
+            // Left inputs
+            if (block.left_inputs && block.left_inputs.length > 0) {
+                arrows.left = block.left_inputs;
+            }
+            
+            // Right outputs
+            if (block.right_outputs && block.right_outputs.length > 0) {
+                if (block.right_outputs.length === 1) {
+                    arrows.right = block.right_outputs[0];
+                }
+            }
+
+            // Draw the block
+            currentY = this.drawProcessStage({
+                x: centerX,
+                y: currentY,
+                width: boxWidth,
+                text: block.name,
+                arrows: arrows
+            });
+
+            // Store block end position
+            blockPositions[block.id].endY = currentY;
+            blockPositions[block.id].centerY = (blockPositions[block.id].startY + currentY) / 2;
+
+            // Draw bottom arrow with wine conditions for last block
+            if (block.has_bottom_arrow) {
+                currentY = this.drawArrowWithText(
+                    centerX, 
+                    currentY, 
+                    120, 
+                    null, 
+                    true
+                );
+            } else {
+                // Draw connecting arrow to next block with label if exists
+                if (block.arrow_out_label) {
+                    // Draw arrow with label interrupting it
+                    const labelText = block.arrow_out_label;
+                    this.ctx.save();
+                    this.ctx.font = '12px Arial';
+                    const labelHeight = 12 + 6;
+                    this.ctx.restore();
+                    
+                    const arrowStart = currentY;
+                    const arrowEnd = currentY + arrowLength;
+                    const arrowMid = (arrowStart + arrowEnd) / 2;
+                    const labelY = arrowMid - labelHeight / 2;
+                    const labelTop = labelY;
+                    const labelBottom = labelY + labelHeight;
+                    
+                    // Arrow part 1: from box to label
+                    this.ctx.save();
+                    this.ctx.strokeStyle = '#000';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(centerX, arrowStart);
+                    this.ctx.lineTo(centerX, labelTop);
+                    this.ctx.stroke();
+                    this.ctx.restore();
+                    
+                    // Arrow part 2: from label to next box
+                    this.drawArrow(centerX, labelBottom, centerX, arrowEnd);
+                    
+                    // Draw label
+                    this.drawSideLabel(centerX, labelY, labelText);
+                } else {
+                    // Regular arrow
+                    this.drawArrow(centerX, currentY, centerX, currentY + arrowLength);
+                }
+                currentY += arrowLength;
+            }
+        });
+
+        // Draw side branch if exists
+        if (sideBranchBlock) {
+            console.log('Drawing side branch:', sideBranchBlock);
+            const fromPos = blockPositions[sideBranchBlock.connects_from];
+            const toPos = blockPositions[sideBranchBlock.connects_to];
+            console.log('From position:', fromPos);
+            console.log('To position:', toPos);
+            
+            if (fromPos && toPos) {
+                // Calculate side branch position
+                const fromCenterY = fromPos.centerY;
+                const fromHeight = fromPos.endY - fromPos.startY;
+                const zbidnenaArrowLength = 250 - boxWidth/2;
+                const rightBoxX = centerX + boxWidth/2 + zbidnenaArrowLength + boxWidth/2;
+                
+                // Draw right output arrow from "from" block
+                const fromRightX = centerX + boxWidth/2;
+                
+                // Draw horizontal arrow with label
+                this.ctx.save();
+                this.ctx.strokeStyle = '#000';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(fromRightX, fromCenterY);
+                this.ctx.lineTo(fromRightX + zbidnenaArrowLength, fromCenterY);
+                this.ctx.stroke();
+                
+                // Draw arrowhead
+                this.ctx.fillStyle = '#000';
+                this.ctx.beginPath();
+                this.ctx.moveTo(fromRightX + zbidnenaArrowLength, fromCenterY);
+                this.ctx.lineTo(fromRightX + zbidnenaArrowLength - 8, fromCenterY - 5);
+                this.ctx.lineTo(fromRightX + zbidnenaArrowLength - 8, fromCenterY + 5);
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                // Draw label for arrow to side branch
+                const zbidnenaText = 'Збіднена\nм\'язга';
+                const zbidnenaLines = zbidnenaText.split('\n');
+                this.ctx.textAlign = 'center';
+                this.ctx.font = '12px Arial';
+                const zbidnenaTextX = fromRightX + zbidnenaArrowLength / 2;
+                const lineHeight = 14;
+                const totalTextHeight = zbidnenaLines.length * lineHeight;
+                const zbidnenaStartY = fromCenterY - 10 - totalTextHeight;
+                
+                let maxWidth = 0;
+                zbidnenaLines.forEach(line => {
+                    const textMetrics = this.ctx.measureText(line);
+                    maxWidth = Math.max(maxWidth, textMetrics.width);
+                });
+                const padding = 3;
+                
+                // Draw text background
+                this.ctx.fillStyle = '#fff';
+                const bgTop = zbidnenaStartY - padding;
+                const bgBottom = zbidnenaStartY + totalTextHeight + padding;
+                const bgHeight = bgBottom - bgTop;
+                this.ctx.fillRect(zbidnenaTextX - maxWidth/2 - padding, bgTop, 
+                                  maxWidth + padding*2, bgHeight);
+                
+                // Draw text
+                this.ctx.fillStyle = '#000';
+                this.ctx.textBaseline = 'top';
+                zbidnenaLines.forEach((line, i) => {
+                    this.ctx.fillText(line, zbidnenaTextX, zbidnenaStartY + (i * lineHeight));
+                });
+                this.ctx.restore();
+                
+                // Draw side branch block (Пресування)
+                const estimatedHeight = 20 + (18 * 2);
+                const sideBranchY = fromCenterY - estimatedHeight / 2;
+                
+                // Prepare arrows for side branch
+                const sideBranchArrows = {};
+                if (sideBranchBlock.right_outputs && sideBranchBlock.right_outputs.length > 0) {
+                    sideBranchArrows.right = sideBranchBlock.right_outputs[0];
+                }
+                
+                const sideBranchEndY = this.drawProcessStage({
+                    x: rightBoxX,
+                    y: sideBranchY,
+                    width: boxWidth,
+                    text: sideBranchBlock.name,
+                    arrows: sideBranchArrows
+                });
+                
+                // Draw vertical arrow from side branch down to merge point
+                const toCenterY = toPos.centerY;
+                this.ctx.save();
+                this.ctx.strokeStyle = '#000';
+                this.ctx.lineWidth = 2;
+                
+                // Vertical line down
+                this.ctx.beginPath();
+                this.ctx.moveTo(rightBoxX, sideBranchEndY);
+                this.ctx.lineTo(rightBoxX, toCenterY);
+                this.ctx.stroke();
+                
+                // Horizontal line to merge
+                this.ctx.beginPath();
+                this.ctx.moveTo(rightBoxX, toCenterY);
+                this.ctx.lineTo(centerX + boxWidth/2, toCenterY);
+                this.ctx.stroke();
+                
+                // Arrowhead pointing left (into merge block)
+                this.ctx.fillStyle = '#000';
+                this.ctx.beginPath();
+                const arrowTipX = centerX + boxWidth/2;
+                this.ctx.moveTo(arrowTipX, toCenterY);
+                this.ctx.lineTo(arrowTipX + 8, toCenterY - 5);
+                this.ctx.lineTo(arrowTipX + 8, toCenterY + 5);
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.restore();
+            }
+        }
+
+        // Optimize canvas height
+        const finalY = currentY;
+        const optimalHeight = finalY + 50;
+
+        if (this.canvas.height !== optimalHeight) {
+            const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            this.canvas.height = optimalHeight;
+            this.ctx.putImageData(imageData, 0, 0);
+            console.log(`Canvas resized to: ${this.canvas.width}x${optimalHeight}px`);
+        }
+    }
+
+    /**
      * Main drawing function - orchestrates the entire scheme
      */
     drawScheme() {
+        // If we have blocks data, use dynamic rendering
+        if (this.blocks && this.blocks.length > 0) {
+            this.drawDynamicScheme();
+            return;
+        }
+
+        // Otherwise fall back to hardcoded scheme
         // Use config for all dimensions
         const canvasWidth = this.config.layout.canvasWidth;
         const topPadding = this.config.layout.topPadding;

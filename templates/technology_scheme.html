@@ -113,12 +113,26 @@ script.onload = function() {
 };
 
 async function loadWineData() {
-    const response = await fetch('/api/get-session');
-    const wineData = await response.json();
-    
-    // Initialize renderer with canvas and wine data
-    renderer = new SchemeRenderer(canvas, wineData);
-    renderer.drawScheme();
+    try {
+        // Fetch schema data for current wine
+        const response = await fetch('/api/schema-for-wine');
+        
+        if (!response.ok) {
+            const error = await response.json();
+            alert('Помилка: ' + (error.error || 'Не вдалося знайти схему для цього вина'));
+            return;
+        }
+        
+        const data = await response.json();
+        const { schema, blocks, wine_data } = data;
+        
+        // Initialize renderer with canvas, schema blocks, and wine data
+        renderer = new SchemeRenderer(canvas, wine_data, blocks, schema);
+        renderer.drawScheme();
+    } catch (error) {
+        console.error('Error loading schema:', error);
+        alert('Помилка завантаження схеми: ' + error.message);
+    }
 }
 
 // Functions for download buttons
