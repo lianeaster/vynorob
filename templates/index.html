@@ -7,9 +7,26 @@
     <div class="card">
         <h1 class="title">🍷 Vynorob</h1>
         <p class="subtitle">Система створення технологічних схем для виноробства</p>
-        <div style="text-align: center;">
-            <button class="btn btn-primary btn-large" onclick="startProcess()">Почати</button>
-        </div>
+        
+        {% if session.get('user') %}
+            <div style="text-align: center;">
+                <button class="btn btn-primary btn-large" onclick="startProcess()">Почати</button>
+            </div>
+        {% else %}
+            <div style="text-align: center; margin-top: 30px;">
+                <p style="font-size: 18px; color: #666; margin-bottom: 30px;">
+                    Увійдіть або зареєструйтесь, щоб почати створення технологічних схем
+                </p>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary" style="text-decoration: none; padding: 15px 40px; font-size: 16px;">
+                        Увійти
+                    </a>
+                    <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary" style="text-decoration: none; padding: 15px 40px; font-size: 16px; background: linear-gradient(135deg, #d4af6e 0%, #c49b5a 100%); color: #2a0e1c; border: none;">
+                        Зареєструватись
+                    </a>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
 

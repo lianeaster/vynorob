@@ -42,4 +42,11 @@ data/wines.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Environment & Secrets
 .env
+sendgrid.env
+
+# Runtime
+*.log
+*.pid

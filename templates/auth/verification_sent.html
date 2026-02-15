@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Підтвердження Email - Vynorob{% endblock %}
+
+{% block content %}
+<div class="step-page">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vynorob" style="max-width: 220px; height: auto;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div style="display: none;">
+                <span style="font-size: 48px; display: block; margin-bottom: 8px;">🍷</span>
+                <span style="font-size: 28px; font-weight: bold; font-family: 'Georgia', 'Times New Roman', serif; letter-spacing: 3px; background: linear-gradient(135deg, #722f3e 0%, #4a1228 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Vynorob</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 class="title" style="font-size: 1.8rem;">Підтвердіть ваш Email</h1>
+        </div>
+        
+        {% if not email_configured %}
+        <div style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; margin: 20px 0; color: #856404;">
+            <strong>⚙️ Режим розробки</strong><br>
+            Email не налаштовано. Використайте посилання нижче для підтвердження.
+        </div>
+        {% elif email_error %}
+        <div style="padding: 15px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 10px; margin: 20px 0; color: #721c24;">
+            <strong>Помилка:</strong> Виникла помилка при відправці email. Зверніться до адміністратора.
+        </div>
+        {% else %}
+        <div style="padding: 20px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 10px; margin: 20px 0; color: #155724;">
+            <strong>✓ Лист відправлено!</strong>
+        </div>
+        {% endif %}
+        
+        <p style="color: #333; font-size: 16px; line-height: 1.8; text-align: center;">
+            Вітаємо, <strong>{{ name }}</strong>!<br><br>
+            {% if email_configured %}
+            Ми відправили лист з посиланням для підтвердження на адресу:<br>
+            <strong style="color: #722f3e;">{{ email }}</strong>
+            {% else %}
+            Ваш обліковий запис створено для:<br>
+            <strong style="color: #722f3e;">{{ email }}</strong>
+            {% endif %}
+        </p>
+        
+        {% if not email_configured and verification_url %}
+        <div style="background: #faf5f0; border: 2px solid #8b3a52; padding: 20px; margin: 30px 0; border-radius: 10px;">
+            <p style="color: #333; font-size: 14px; line-height: 1.6; margin-bottom: 15px;">
+                <strong>🔗 Посилання для підтвердження:</strong>
+            </p>
+            <div style="background: white; padding: 15px; border-radius: 5px; word-break: break-all; margin-bottom: 15px;">
+                <a href="{{ verification_url }}" style="color: #722f3e; font-size: 12px; text-decoration: none;">
+                    {{ verification_url }}
+                </a>
+            </div>
+            <div style="text-align: center;">
+                <a href="{{ verification_url }}" class="btn btn-primary" style="text-decoration: none;">
+                    Підтвердити Email Зараз
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div style="background: #faf5f0; border-left: 4px solid #8b3a52; padding: 20px; margin: 30px 0; border-radius: 5px;">
+            <p style="color: #333; font-size: 14px; line-height: 1.6; margin: 0;">
+                <strong>Що далі?</strong><br>
+                1. Перевірте вашу поштову скриньку<br>
+                2. Знайдіть лист від Vynorob<br>
+                3. Натисніть на посилання для підтвердження<br>
+                4. Поверніться сюди і увійдіть в систему
+            </p>
+        </div>
+        
+        <p style="color: #666; font-size: 14px; text-align: center; margin-top: 20px;">
+            Не отримали лист? Перевірте папку "Спам" або зачекайте кілька хвилин.
+        </p>
+        {% endif %}
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                Перейти до входу
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

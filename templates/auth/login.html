@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Вхід - Vynorob{% endblock %}
+
+{% block content %}
+<div class="step-page">
+    <div class="card" style="max-width: 500px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vynorob" style="max-width: 220px; height: auto;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div style="display: none;">
+                <span style="font-size: 48px; display: block; margin-bottom: 8px;">🍷</span>
+                <span style="font-size: 28px; font-weight: bold; font-family: 'Georgia', 'Times New Roman', serif; letter-spacing: 3px; background: linear-gradient(135deg, #722f3e 0%, #4a1228 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Vynorob</span>
+            </div>
+        </div>
+        <h1 class="title" style="font-size: 1.8rem;">Вхід до системи</h1>
+        <p class="subtitle">Введіть ваш email та пароль</p>
+        
+        {% if error %}
+        <div style="padding: 15px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 10px; margin: 20px 0; color: #721c24;">
+            {{ error }}
+        </div>
+        {% endif %}
+        
+        <form method="POST" style="margin-top: 30px;">
+            <div style="margin-bottom: 20px;">
+                <label for="email" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
+                    Email <span style="color: #d32f2f;">*</span>
+                </label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    required
+                    placeholder="example@email.com"
+                    value="{{ request.form.get('email', '') }}"
+                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s;"
+                >
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="password" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
+                    Пароль <span style="color: #d32f2f;">*</span>
+                </label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required
+                    placeholder="Введіть пароль"
+                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s;"
+                >
+            </div>
+            
+            <div style="text-align: right; margin-bottom: 15px;">
+                <a href="{{ url_for('auth.forgot_password') }}" style="color: #8b3a52; font-size: 14px; text-decoration: none;">
+                    Забули пароль?
+                </a>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                Увійти
+            </button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="color: #666; margin-bottom: 10px;">Ще не маєте облікового запису?</p>
+            <a href="{{ url_for('auth.signup') }}" style="color: #8b3a52; font-weight: 500; text-decoration: none;">
+                Зареєструватись
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    
+    // Add green border when email is valid
+    emailInput.addEventListener('input', function() {
+        const email = this.value.trim();
+        if (email && email.includes('@')) {
+            this.style.borderColor = '#4caf50'; // Green
+        } else if (email) {
+            this.style.borderColor = '#f44336'; // Red
+        } else {
+            this.style.borderColor = '#ddd'; // Default
+        }
+    });
+    
+    // Add green border when password has content
+    passwordInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            this.style.borderColor = '#4caf50'; // Green
+        } else {
+            this.style.borderColor = '#ddd'; // Default
+        }
+    });
+});
+</script>
+{% endblock %}

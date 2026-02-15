@@ -4,35 +4,35 @@
 
 {% block extra_css %}
 <style>
-    body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
     .container {
         max-width: 1200px;
     }
     
     .scheme-canvas-container {
-        background: #fff;
+        background: rgba(255, 255, 255, 0.95);
         padding: 40px;
         border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        box-shadow: 
+            0 20px 60px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(212, 175, 110, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
         min-height: auto;
+        backdrop-filter: blur(10px);
     }
     
     #schemeCanvas {
         width: 100%;
         height: auto;
         display: block;
-        border: 1px solid #ddd;
+        border: 1px solid #d9cab8;
     }
     
     .scheme-title {
-        color: #000;
+        color: #3b1022;
         text-align: center;
         font-size: 2rem;
         margin-bottom: 30px;
-        font-family: Arial, sans-serif;
+        font-family: 'Georgia', 'Times New Roman', serif;
     }
     
     .controls {
@@ -57,26 +57,27 @@
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #722f3e 0%, #4a1228 50%, #8b3a52 100%);
         color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 15px rgba(114, 47, 62, 0.5);
     }
     
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        box-shadow: 0 6px 20px rgba(114, 47, 62, 0.6);
+        background: linear-gradient(135deg, #8b3a52 0%, #5a1a32 50%, #9e4565 100%);
     }
     
     .btn-secondary {
-        background: #6c757d;
-        color: white;
-        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+        background: #e8ddd0;
+        color: #4a1228;
+        box-shadow: 0 4px 15px rgba(74, 18, 40, 0.2);
     }
     
     .btn-secondary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.6);
-        background: #5a6268;
+        box-shadow: 0 6px 20px rgba(74, 18, 40, 0.3);
+        background: #d9cab8;
     }
 </style>
 {% endblock %}
