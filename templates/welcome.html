@@ -31,22 +31,38 @@
             
             {% if has_previous_session %}
             <!-- Continue Previous Session Option -->
-            <div class="option-card" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #81c784; border-radius: 16px; padding: 30px; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;" onclick="continuePreviousSession()">
+            <div class="option-card" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #81c784; border-radius: 16px; padding: 30px; transition: all 0.3s; position: relative; overflow: hidden;">
                 <div style="display: flex; align-items: center; gap: 20px;">
                     <div style="font-size: 48px; min-width: 60px; text-align: center;">📋</div>
                     <div style="flex: 1;">
                         <h3 style="margin: 0 0 10px 0; color: #2e7d32; font-size: 1.4rem;">Продовжити попередню схему</h3>
-                        <p style="margin: 0; color: #555; font-size: 0.95rem;">Відновіть роботу з останньої збереженої сесії</p>
-                        {% if previous_session_data %}
-                        <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
-                            <strong>Останній вибір:</strong> 
-                            {% if previous_session_data.color %}Колір: {{ previous_session_data.color }}{% endif %}
-                            {% if previous_session_data.style %}, Стиль: {{ previous_session_data.style }}{% endif %}
-                            {% if previous_session_data.style_co2 %}, CO₂: {{ previous_session_data.style_co2 }}{% endif %}
-                        </div>
-                        {% endif %}
+                        <p style="margin: 0 0 15px 0; color: #555; font-size: 0.95rem;">Виберіть схему для продовження</p>
+                        
+                        <select id="schemeSelector" style="width: 100%; padding: 12px 16px; border: 2px solid #81c784; border-radius: 8px; font-size: 0.95rem; background: white; color: #333; cursor: pointer;">
+                            <option value="">-- Оберіть схему --</option>
+                            {% for scheme in in_progress_schemes %}
+                            <option value="{{ scheme.id }}">
+                                {% set choices = [] %}
+                                {% if scheme.color %}{% set _ = choices.append(scheme.color) %}{% endif %}
+                                {% if scheme.style %}{% set _ = choices.append(scheme.style) %}{% endif %}
+                                {% if scheme.style_co2 %}{% set _ = choices.append(scheme.style_co2) %}{% endif %}
+                                {{ choices|join(' • ') if choices else 'Нова схема' }}
+                                {% if scheme.created_at %}
+                                    {% set date_parts = scheme.created_at.split('T') %}
+                                    {% if date_parts|length > 1 %}
+                                        | {{ date_parts[0] }} о {{ date_parts[1][:5] }}
+                                    {% else %}
+                                        | {{ scheme.created_at[:19] }}
+                                    {% endif %}
+                                {% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        
+                        <button id="continueBtn" onclick="continueSelectedScheme()" disabled style="margin-top: 15px; width: 100%; padding: 12px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; opacity: 0.5; transition: all 0.3s;">
+                            Продовжити →
+                        </button>
                     </div>
-                    <div style="font-size: 24px; color: #2e7d32;">→</div>
                 </div>
             </div>
             {% endif %}
@@ -72,27 +88,56 @@
 </style>
 
 <script>
-function continuePreviousSession() {
-    // Restore previous session and redirect to appropriate step
+// Enable/disable continue button based on selection
+document.addEventListener('DOMContentLoaded', function() {
+    const selector = document.getElementById('schemeSelector');
+    const continueBtn = document.getElementById('continueBtn');
+    
+    if (selector && continueBtn) {
+        selector.addEventListener('change', function() {
+            if (this.value) {
+                continueBtn.disabled = false;
+                continueBtn.style.opacity = '1';
+                continueBtn.style.cursor = 'pointer';
+            } else {
+                continueBtn.disabled = true;
+                continueBtn.style.opacity = '0.5';
+                continueBtn.style.cursor = 'not-allowed';
+            }
+        });
+    }
+});
+
+function continueSelectedScheme() {
+    const schemeId = document.getElementById('schemeSelector').value;
+    
+    if (!schemeId) {
+        alert('Будь ласка, оберіть схему');
+        return;
+    }
+    
+    // Restore selected scheme and redirect to appropriate step
     fetch('/api/restore-session', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'
-        }
+        },
+        body: JSON.stringify({
+            scheme_id: schemeId
+        })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success && data.redirect) {
             window.location.href = data.redirect;
         } else {
-            // Fallback to color page
-            window.location.href = '{{ url_for("color_page") }}';
+            alert('Помилка при відновленні схеми');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        window.location.href = '{{ url_for("color_page") }}';
+        alert('Помилка при відновленні схеми');
     });
 }
 </script>

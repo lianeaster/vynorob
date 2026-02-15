@@ -198,30 +198,25 @@ def index():
 @login_required
 def welcome_page():
     """Welcome page after login - choose to create new or continue previous"""
-    # Check if user has previous session data
-    previous_session = session.get('previous_wine_data', {})
-    
-    # If no previous session in memory, check database for in-progress wines
     user_id = session.get('user', {}).get('id')
-    if not previous_session and os.path.exists(DB_FILE):
+    in_progress_schemes = []
+    
+    # Load all in-progress wines for this user from database
+    if os.path.exists(DB_FILE):
         with open(DB_FILE, 'r', encoding='utf-8') as f:
             wines = json.load(f)
         
-        # Find the most recent in-progress wine for this user
+        # Find all in-progress wines for this user
         user_wines = [w for w in wines if w.get('user_id') == user_id and w.get('status') == 'in_progress']
-        if user_wines:
-            # Sort by created_at and get the most recent
-            user_wines.sort(key=lambda x: x.get('created_at', ''), reverse=True)
-            previous_session = user_wines[0]
-            # Store in session for next use
-            session['previous_wine_data'] = previous_session
-            session.modified = True
+        # Sort by created_at (most recent first)
+        user_wines.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+        in_progress_schemes = user_wines
     
-    has_previous = bool(previous_session.get('color') or previous_session.get('style'))
+    has_previous = len(in_progress_schemes) > 0
     
     return render_template('welcome.html', 
                          has_previous_session=has_previous,
-                         previous_session_data=previous_session)
+                         in_progress_schemes=in_progress_schemes)
 
 @app.route('/color')
 @login_required
@@ -422,11 +417,28 @@ def get_session():
 @login_required
 def restore_session():
     """API endpoint to restore previous session and determine next step"""
-    # Try to load from database if not in session
     user_id = session.get('user', {}).get('id')
-    previous_data = session.get('previous_wine_data', {})
+    data = request.json or {}
+    scheme_id = data.get('scheme_id')
     
-    # If no previous_wine_data in session, try to load from database
+    previous_data = None
+    
+    # Load the specific scheme from database
+    if scheme_id and os.path.exists(DB_FILE):
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
+            wines = json.load(f)
+        
+        # Find the specific wine by id and user_id
+        for wine in wines:
+            if wine.get('id') == scheme_id and wine.get('user_id') == user_id and wine.get('status') == 'in_progress':
+                previous_data = wine
+                break
+    
+    # Fallback: try to get from session
+    if not previous_data:
+        previous_data = session.get('previous_wine_data', {})
+    
+    # Fallback: get most recent from database
     if not previous_data and os.path.exists(DB_FILE):
         with open(DB_FILE, 'r', encoding='utf-8') as f:
             wines = json.load(f)
