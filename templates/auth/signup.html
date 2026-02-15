@@ -3,6 +3,10 @@
 {% block title %}Реєстрація - Vynorob{% endblock %}
 
 {% block content %}
+<style>
+{% include 'auth/_password_validation.css' %}
+</style>
+
 <div class="step-page">
     <div class="card" style="max-width: 500px; margin: 0 auto;">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -64,23 +68,7 @@
                     placeholder="Введіть пароль"
                     style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s;"
                 >
-                <div id="password-requirements" style="margin-top: 8px; font-size: 13px; color: #666;">
-                    <div>Вимоги до паролю:</div>
-                    <ul style="margin: 5px 0 0 20px; padding: 0; list-style: none;">
-                        <li id="req-length" style="transition: color 0.3s;">
-                            <span class="req-icon">⚪</span> Мінімум 8 символів
-                        </li>
-                        <li id="req-uppercase" style="transition: color 0.3s;">
-                            <span class="req-icon">⚪</span> Принаймні одна велика літера (A-Z)
-                        </li>
-                        <li id="req-lowercase" style="transition: color 0.3s;">
-                            <span class="req-icon">⚪</span> Принаймні одна мала літера (a-z)
-                        </li>
-                        <li id="req-number" style="transition: color 0.3s;">
-                            <span class="req-icon">⚪</span> Принаймні одна цифра (0-9)
-                        </li>
-                    </ul>
-                </div>
+                {% include 'auth/_password_requirements.html' %}
             </div>
             
             <div style="margin-bottom: 20px;">
@@ -115,8 +103,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('email');
     const nameInput = document.getElementById('name');
-    const passwordInput = document.getElementById('password');
-    const confirmPasswordInput = document.getElementById('confirm_password');
     
     // Email validation
     emailInput.addEventListener('input', function() {
@@ -140,117 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Password validation function
-    function validatePassword(password) {
-        const requirements = {
-            length: password.length >= 8,
-            uppercase: /[A-Z]/.test(password),
-            lowercase: /[a-z]/.test(password),
-            number: /\d/.test(password)
-        };
-        
-        const allValid = requirements.length && requirements.uppercase && 
-                        requirements.lowercase && requirements.number;
-        
-        return { requirements, allValid };
-    }
-    
-    // Update requirement item visual state
-    function updateRequirementItem(elementId, isValid) {
-        const element = document.getElementById(elementId);
-        const icon = element.querySelector('.req-icon');
-        
-        if (isValid) {
-            icon.textContent = '✅';
-            element.style.color = '#4caf50';
-        } else {
-            icon.textContent = '❌';
-            element.style.color = '#f44336';
-        }
-    }
-    
-    // Reset requirement item to default state
-    function resetRequirementItem(elementId) {
-        const element = document.getElementById(elementId);
-        const icon = element.querySelector('.req-icon');
-        icon.textContent = '⚪';
-        element.style.color = '#666';
-    }
-    
-    // Password input validation
-    passwordInput.addEventListener('input', function() {
-        const password = this.value;
-        
-        if (password === '') {
-            // Reset all requirements
-            resetRequirementItem('req-length');
-            resetRequirementItem('req-uppercase');
-            resetRequirementItem('req-lowercase');
-            resetRequirementItem('req-number');
-            this.style.borderColor = '#ddd';
-            
-            // Also check confirm password
-            validateConfirmPassword();
-            return;
-        }
-        
-        const validation = validatePassword(password);
-        
-        // Update each requirement
-        updateRequirementItem('req-length', validation.requirements.length);
-        updateRequirementItem('req-uppercase', validation.requirements.uppercase);
-        updateRequirementItem('req-lowercase', validation.requirements.lowercase);
-        updateRequirementItem('req-number', validation.requirements.number);
-        
-        // Update border color
-        if (validation.allValid) {
-            this.style.borderColor = '#4caf50'; // Green
-        } else {
-            this.style.borderColor = '#f44336'; // Red
-        }
-        
-        // Also validate confirm password if it has value
-        validateConfirmPassword();
-    });
-    
-    // Confirm password validation
-    function validateConfirmPassword() {
-        const password = passwordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
-        
-        if (confirmPassword === '') {
-            confirmPasswordInput.style.borderColor = '#ddd';
-            return;
-        }
-        
-        if (password === confirmPassword && password !== '') {
-            confirmPasswordInput.style.borderColor = '#4caf50'; // Green - matches
-        } else {
-            confirmPasswordInput.style.borderColor = '#f44336'; // Red - doesn't match
-        }
-    }
-    
-    confirmPasswordInput.addEventListener('input', validateConfirmPassword);
-    
-    // Form submission validation
-    const form = document.querySelector('form');
-    form.addEventListener('submit', function(e) {
-        const password = passwordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
-        const validation = validatePassword(password);
-        
-        if (!validation.allValid) {
-            e.preventDefault();
-            alert('Будь ласка, переконайтесь, що пароль відповідає всім вимогам');
-            return false;
-        }
-        
-        if (password !== confirmPassword) {
-            e.preventDefault();
-            alert('Паролі не співпадають');
-            return false;
-        }
-    });
+    // Password validation (shared)
+    {% include 'auth/_password_validation.js' %}
 });
 </script>
 {% endblock %}

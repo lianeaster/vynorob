@@ -105,6 +105,96 @@
             background: rgba(255, 255, 255, 0.2);
         }
         
+        /* User Dropdown Menu */
+        .user-dropdown {
+            position: relative;
+        }
+        
+        .user-menu-button {
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .user-menu-button:hover {
+            background: rgba(212, 175, 110, 0.1);
+        }
+        
+        .menu-icon {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        .menu-icon span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: #d4af6e;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: rgba(42, 14, 28, 0.98);
+            border: 1px solid rgba(212, 175, 110, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+        
+        .user-dropdown.active .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-menu-item {
+            padding: 12px 16px;
+            color: #e8ddd0;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(212, 175, 110, 0.1);
+        }
+        
+        .dropdown-menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-menu-item:hover {
+            background: rgba(212, 175, 110, 0.15);
+        }
+        
+        .dropdown-menu-item:first-child {
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .dropdown-menu-item:last-child {
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .dropdown-menu-icon {
+            font-size: 16px;
+        }
+        
         body.has-topbar {
             padding-top: 80px;
         }
@@ -123,13 +213,32 @@
         </div>
         
         <div class="user-menu">
-            <div class="user-info">
-                <div class="user-avatar" style="background: linear-gradient(135deg, #d4af6e 0%, #c49b5a 100%); display: flex; align-items: center; justify-content: center; color: #2a0e1c; font-size: 16px; font-weight: bold;">
-                    {{ session['user']['name'][0].upper() }}
+            <div class="user-dropdown" id="userDropdown">
+                <div class="user-menu-button" onclick="toggleUserMenu()">
+                    <div class="menu-icon">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-avatar" style="background: linear-gradient(135deg, #d4af6e 0%, #c49b5a 100%); display: flex; align-items: center; justify-content: center; color: #2a0e1c; font-size: 16px; font-weight: bold;">
+                            {{ session['user']['name'][0].upper() }}
+                        </div>
+                        <span class="user-name">{{ session['user']['name'] }}</span>
+                    </div>
                 </div>
-                <span class="user-name">{{ session['user']['name'] }}</span>
+                
+                <div class="dropdown-menu">
+                    <a href="{{ url_for('auth.user_settings') }}" class="dropdown-menu-item">
+                        <span class="dropdown-menu-icon">⚙️</span>
+                        <span>Налаштування</span>
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="dropdown-menu-item">
+                        <span class="dropdown-menu-icon">🚪</span>
+                        <span>Вийти</span>
+                    </a>
+                </div>
             </div>
-            <a href="{{ url_for('auth.logout') }}" class="auth-button btn-logout">Вийти</a>
         </div>
     </div>
     {% endif %}
@@ -139,6 +248,21 @@
     </div>
     
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // User dropdown menu
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('active');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown && !dropdown.contains(event.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

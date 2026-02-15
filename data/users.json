@@ -3,9 +3,9 @@
     "id": "51d5c34c-0e1f-442b-92b1-6137a64df9fb",
     "email": "lianeaster@gmail.com",
     "name": "Анастасія",
-    "password_hash": "pbkdf2:sha256:600000$kp8Mvf6zJlaAYgUW$178d68edf4a5a75a939b1bacf83f373fa8c48471bd0bc7371f5e1b48529a8536",
-    "email_verified": false,
+    "password_hash": "pbkdf2:sha256:600000$rOlEEf7bZr1P5Yv8$7f48adccddffc8f77003a6466dea319edf0c68ed987ef5e3467d6be3b003b0bf",
+    "email_verified": true,
     "created_at": "2026-02-15T12:13:13.147408",
-    "last_login": "2026-02-15T12:13:13.147416"
+    "last_login": "2026-02-15T12:52:54.900343"
   }
 ]

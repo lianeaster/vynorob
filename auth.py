@@ -466,6 +466,8 @@ def reset_password(token):
         for user in users:
             if user['email'] == email:
                 user['password_hash'] = generate_password_hash(password, method='pbkdf2:sha256')
+                # Mark email as verified since they accessed the reset link from their email
+                user['email_verified'] = True
                 user_found = True
                 break
         
@@ -478,3 +480,62 @@ def reset_password(token):
             return render_template('auth/reset_password.html', error='Користувача не знайдено.')
     
     return render_template('auth/reset_password.html')
+
+@auth_bp.route('/settings', methods=['GET'])
+def user_settings():
+    """User settings page - must be logged in"""
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+    
+    return render_template('auth/user_settings.html')
+
+@auth_bp.route('/settings/change-password', methods=['POST'])
+def change_password():
+    """Change user password - must be logged in"""
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+    
+    current_password = request.form.get('current_password', '')
+    new_password = request.form.get('password', '')
+    confirm_password = request.form.get('confirm_password', '')
+    
+    # Validation
+    if not current_password:
+        return render_template('auth/user_settings.html', error='Будь ласка, введіть поточний пароль')
+    
+    if not new_password:
+        return render_template('auth/user_settings.html', error='Будь ласка, введіть новий пароль')
+    
+    # Validate new password requirements
+    is_valid, error_message = validate_password(new_password)
+    if not is_valid:
+        return render_template('auth/user_settings.html', error=error_message)
+    
+    # Check password confirmation
+    if new_password != confirm_password:
+        return render_template('auth/user_settings.html', error='Паролі не співпадають')
+    
+    # Get user from database
+    users = load_users()
+    user_email = session['user']['email']
+    user = None
+    user_index = -1
+    
+    for i, u in enumerate(users):
+        if u['email'] == user_email:
+            user = u
+            user_index = i
+            break
+    
+    if not user:
+        return render_template('auth/user_settings.html', error='Користувача не знайдено')
+    
+    # Check current password
+    if not check_password_hash(user.get('password_hash', ''), current_password):
+        return render_template('auth/user_settings.html', error='Неправильний поточний пароль')
+    
+    # Update password
+    users[user_index]['password_hash'] = generate_password_hash(new_password, method='pbkdf2:sha256')
+    save_users(users)
+    
+    return render_template('auth/user_settings.html', success='Пароль успішно змінено!')

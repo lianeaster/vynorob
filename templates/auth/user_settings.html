@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Налаштування користувача - Vynorob{% endblock %}
+
+{% block content %}
+<style>
+{% include 'auth/_password_validation.css' %}
+</style>
+
+<div class="step-page">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <h1 class="title" style="font-size: 1.8rem;">Налаштування користувача</h1>
+        <p class="subtitle">Керуйте вашим обліковим записом</p>
+        
+        {% if success %}
+        <div style="padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 10px; margin: 20px 0; color: #155724;">
+            {{ success }}
+        </div>
+        {% endif %}
+        
+        {% if error %}
+        <div style="padding: 15px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 10px; margin: 20px 0; color: #721c24;">
+            {{ error }}
+        </div>
+        {% endif %}
+        
+        <!-- User Info Section -->
+        <div style="background: #faf5f0; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
+            <h3 style="margin: 0 0 15px 0; color: #3b1022;">Інформація про профіль</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #666; font-weight: 500;">Ім'я:</span>
+                    <span style="color: #333;">{{ session['user']['name'] }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #666; font-weight: 500;">Email:</span>
+                    <span style="color: #333;">{{ session['user']['email'] }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Change Password Section -->
+        <div style="background: white; padding: 20px; border: 1px solid #ddd; border-radius: 12px;">
+            <h3 style="margin: 0 0 15px 0; color: #3b1022;">Зміна пароля</h3>
+            
+            <form method="POST" action="{{ url_for('auth.change_password') }}" style="margin-top: 20px;">
+                <div style="margin-bottom: 20px;">
+                    <label for="current_password" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
+                        Поточний пароль <span style="color: #d32f2f;">*</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="current_password" 
+                        name="current_password" 
+                        required
+                        placeholder="Введіть поточний пароль"
+                        style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s;"
+                    >
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="password" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
+                        Новий пароль <span style="color: #d32f2f;">*</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required
+                        placeholder="Введіть новий пароль"
+                        style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s;"
+                    >
+                    {% include 'auth/_password_requirements.html' %}
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="confirm_password" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
+                        Підтвердження нового пароля <span style="color: #d32f2f;">*</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        required
+                        placeholder="Повторіть новий пароль"
+                        style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s;"
+                    >
+                    <div id="matchMessage" style="margin-top: 8px; font-size: 13px;"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="submitBtn" style="width: 100%; margin-top: 10px;" disabled>
+                    Змінити пароль
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPasswordInput = document.getElementById('current_password');
+    
+    // Add green border when current password has content
+    currentPasswordInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            this.style.borderColor = '#4caf50'; // Green
+        } else {
+            this.style.borderColor = '#ddd'; // Default
+        }
+    });
+    
+    // Password validation (shared)
+    {% include 'auth/_password_validation.js' %}
+});
+</script>
+{% endblock %}
