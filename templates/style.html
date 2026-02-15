@@ -21,22 +21,72 @@
 {% block content %}
 <div class="step-page">
     <div class="card">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 2 з 7</span>
+        </div>
         <h1 class="title">Стиль</h1>
         <p class="subtitle">Виберіть стиль вина</p>
         
         <div class="button-group">
-            <button class="btn btn-choice" onclick="selectChoice('style', 'Сухе')">Сухе</button>
-            <button class="btn btn-choice" onclick="selectChoice('style', 'Напівсухе')" disabled>Напівсухе</button>
-            <button class="btn btn-choice" onclick="selectChoice('style', 'Напівсолодке')" disabled>Напівсолодке</button>
-            <button class="btn btn-choice" onclick="selectChoice('style', 'Солодке')" disabled>Солодке</button>
+            <button class="btn btn-choice" id="choice-Сухе" onclick="selectStyle('Сухе')">Сухе</button>
+            <button class="btn btn-choice" id="choice-Напівсухе" onclick="selectStyle('Напівсухе')" disabled>Напівсухе</button>
+            <button class="btn btn-choice" id="choice-Напівсолодке" onclick="selectStyle('Напівсолодке')" disabled>Напівсолодке</button>
+            <button class="btn btn-choice" id="choice-Солодке" onclick="selectStyle('Солодке')" disabled>Солодке</button>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 40px; gap: 15px;">
+            <button class="btn" onclick="window.location.href='/color'" style="background: #e0e0e0; color: #666;">
+                ← Назад
+            </button>
+            <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled style="opacity: 0.5;">
+                Далі →
+            </button>
         </div>
     </div>
 </div>
 
 <script>
-async function selectChoice(step, choice) {
-    await saveChoice(step, choice);
+let selectedStyle = null;
+
+async function selectStyle(style) {
+    selectedStyle = style;
+    
+    // Update button states
+    document.querySelectorAll('.btn-choice').forEach(btn => {
+        if (!btn.disabled) {
+            btn.style.opacity = '0.6';
+            btn.style.transform = 'scale(1)';
+        }
+    });
+    
+    const selectedBtn = document.getElementById('choice-' + style);
+    if (selectedBtn) {
+        selectedBtn.style.opacity = '1';
+        selectedBtn.style.transform = 'scale(1.05)';
+        selectedBtn.style.boxShadow = '0 8px 16px rgba(114, 47, 62, 0.3)';
+    }
+    
+    // Enable next button
+    document.getElementById('nextBtn').disabled = false;
+    document.getElementById('nextBtn').style.opacity = '1';
+}
+
+async function goNext() {
+    if (!selectedStyle) {
+        alert('Будь ласка, оберіть стиль вина');
+        return;
+    }
+    
+    await saveChoice('style', selectedStyle);
     window.location.href = '/style-co2';
 }
+
+// Load previous choice if exists
+window.addEventListener('DOMContentLoaded', async function() {
+    const sessionData = await getSessionData();
+    if (sessionData.style) {
+        selectStyle(sessionData.style);
+    }
+});
 </script>
 {% endblock %}

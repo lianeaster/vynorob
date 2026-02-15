@@ -18,7 +18,7 @@
         justify-content: center;
         width: 24px;
         height: 24px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #722f3e 0%, #8b3a52 100%);
         color: white;
         border-radius: 50%;
         font-size: 14px;
@@ -32,7 +32,7 @@
         bottom: 35px;
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.9);
+        background: linear-gradient(135deg, #722f3e 0%, #8b3a52 100%);
         color: white;
         padding: 12px 16px;
         border-radius: 8px;
@@ -43,7 +43,8 @@
         transition: all 0.3s ease;
         pointer-events: none;
         z-index: 1000;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 15px rgba(114, 47, 62, 0.4);
+        border: 1px solid rgba(212, 175, 110, 0.3);
     }
     
     .info-tooltip::after {
@@ -53,7 +54,7 @@
         left: 50%;
         transform: translateX(-50%);
         border: 6px solid transparent;
-        border-top-color: rgba(0, 0, 0, 0.9);
+        border-top-color: #722f3e;
     }
     
     .info-icon:hover .info-tooltip {
@@ -66,6 +67,9 @@
 {% block content %}
 <div class="step-page">
     <div class="card">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 4 з 7</span>
+        </div>
         <h1 class="title">Кондиції сировини</h1>
         <p class="subtitle">Введіть параметри сировини</p>
         
@@ -87,15 +91,19 @@
                 <input type="number" id="ph" name="ph" step="0.01" min="0" max="14" disabled class="form-input" style="opacity: 0.5; cursor: not-allowed; background: #f0f0f0;">
             </div>
             
-            <div class="form-button-group">
-                <button type="submit" class="btn btn-primary">Далі</button>
+            <div style="display: flex; justify-content: space-between; margin-top: 40px; gap: 15px; align-items: center;">
+                <button type="button" class="btn" onclick="window.location.href='/style-co2'" style="background: #e0e0e0; color: #666;">
+                    ← Назад
+                </button>
                 <div class="info-icon">
                     i
                     <div class="info-tooltip">
-                        Для білого вина кондиції вина будуть розраховані автоматично<br>
-                        та показані в звіті. Сторінка вводу буде пропущена.
+                        Для сухих вин крок 5 буде пропущено
                     </div>
                 </div>
+                <button type="submit" class="btn btn-primary">
+                    Далі →
+                </button>
             </div>
         </form>
     </div>
@@ -156,6 +164,15 @@ document.getElementById('acidity').addEventListener('input', function(e) {
         e.target.style.borderColor = '#f39c12';
     } else {
         e.target.style.borderColor = '';
+    }
+});
+
+// Load previous values if exists
+window.addEventListener('DOMContentLoaded', async function() {
+    const sessionData = await getSessionData();
+    if (sessionData.raw_material) {
+        document.getElementById('sugar').value = sessionData.raw_material.sugar || '';
+        document.getElementById('acidity').value = sessionData.raw_material.acidity || '';
     }
 });
 </script>

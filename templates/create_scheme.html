@@ -1,21 +1,29 @@
 {% extends "base.html" %}
 
-{% block title %}Створити схему - Vynorob{% endblock %}
+{% block title %}Підсумок - Vynorob{% endblock %}
 
 {% block content %}
 <div class="step-page">
     <div class="card">
-        <h1 class="title">Створити схему</h1>
-        <p class="subtitle">Перегляньте та збережіть технологічну схему</p>
+        <h1 class="title">Підсумок</h1>
+        <p class="subtitle">Перегляньте параметри вашої технологічної схеми</p>
         
         <div id="schemePreview" class="scheme-preview">
             <!-- Will be populated by JavaScript -->
         </div>
         
-        <div class="button-group">
-            <button class="btn btn-secondary" onclick="window.location.href='/'">Почати заново</button>
-            <button class="btn btn-success" onclick="saveScheme(false)">Save</button>
-            <button class="btn btn-primary" onclick="saveScheme(true)">Save and Create</button>
+        <div style="display: flex; justify-content: space-between; margin-top: 40px; gap: 15px;">
+            <button class="btn" onclick="window.location.href='/scheme-type'" style="background: #e0e0e0; color: #666;">
+                ← Назад
+            </button>
+            <div style="display: flex; gap: 15px;">
+                <button class="btn btn-secondary" onclick="exportToPDF()">
+                    📄 Зберегти в PDF
+                </button>
+                <button class="btn btn-primary" onclick="createScheme()">
+                    Створити схему
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -75,30 +83,92 @@ async function loadSchemePreview() {
     preview.innerHTML = html;
 }
 
-async function saveScheme(createNext) {
+async function createScheme() {
     const response = await fetch('/api/save-wine', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            create_next: createNext
+            create_next: true
         })
     });
     
     const result = await response.json();
     
     if (result.success) {
-        alert('Схему успішно збережено!');
-        
-        if (createNext) {
-            // Navigate to technology scheme drawing page
-            window.location.href = '/technology-scheme';
-        } else {
-            window.location.href = '/';
-        }
+        // Navigate to technology scheme drawing page
+        window.location.href = '/technology-scheme';
     } else {
         alert('Помилка при збереженні схеми');
+    }
+}
+
+async function exportToPDF() {
+    try {
+        // Get the preview content
+        const preview = document.getElementById('schemePreview');
+        
+        // For now, use browser's print functionality
+        // Create a print-friendly version
+        const printWindow = window.open('', '_blank');
+        const sessionData = await fetch('/api/get-session').then(r => r.json());
+        
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Підсумок технологічної схеми - Vynorob</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        padding: 40px;
+                        max-width: 800px;
+                        margin: 0 auto;
+                    }
+                    h1 {
+                        color: #722f3e;
+                        border-bottom: 3px solid #d4af6e;
+                        padding-bottom: 10px;
+                    }
+                    .scheme-section {
+                        margin: 20px 0;
+                        padding: 15px;
+                        background: #f9f9f9;
+                        border-left: 4px solid #722f3e;
+                    }
+                    .scheme-item {
+                        margin: 10px 0;
+                        padding: 8px 0;
+                    }
+                    h3 {
+                        color: #4a1228;
+                        margin-top: 0;
+                    }
+                    strong {
+                        color: #722f3e;
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>🍷 Підсумок технологічної схеми</h1>
+                ${preview.innerHTML}
+                <p style="margin-top: 40px; color: #999; font-size: 12px;">
+                    Створено: ${new Date().toLocaleDateString('uk-UA')} ${new Date().toLocaleTimeString('uk-UA')}
+                </p>
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        
+        // Wait a bit for content to load, then trigger print dialog
+        setTimeout(() => {
+            printWindow.print();
+        }, 250);
+        
+    } catch (error) {
+        console.error('Error exporting to PDF:', error);
+        alert('Помилка при експорті в PDF');
     }
 }
 

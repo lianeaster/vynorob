@@ -262,6 +262,30 @@
                 dropdown.classList.remove('active');
             }
         });
+        
+        // Global fetch wrapper to handle session expiration
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            return originalFetch.apply(this, args)
+                .then(response => {
+                    // Check if response is JSON and has session_expired flag
+                    if (response.status === 401) {
+                        return response.json().then(data => {
+                            if (data.session_expired && data.redirect) {
+                                // Session expired - redirect to login
+                                window.location.href = data.redirect;
+                                return Promise.reject(new Error('Session expired'));
+                            }
+                            return Promise.reject(data);
+                        });
+                    }
+                    return response;
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    throw error;
+                });
+        };
     </script>
     {% block extra_js %}{% endblock %}
 </body>

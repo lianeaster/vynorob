@@ -2,13 +2,17 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from functools import wraps
 import json
 import os
-from datetime import datetime
+import uuid
+from datetime import datetime, timedelta
 
 # Import auth module
 from auth import init_auth
 
 app = Flask(__name__)
 app.secret_key = 'winery-secret-key-2026'  # Change this in production
+
+# Session configuration - 30 minutes timeout
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
 # Initialize authentication module
 init_auth(app)
@@ -22,6 +26,57 @@ USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 
 # Ensure data directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# Session timeout check
+@app.before_request
+def check_session_timeout():
+    """Check if session has expired due to inactivity"""
+    # Skip session check for auth routes (login, signup, etc.)
+    if request.endpoint and request.endpoint.startswith('auth.'):
+        return
+    
+    # Skip for static files
+    if request.endpoint == 'static':
+        return
+    
+    # Check if user is logged in
+    if 'user' in session:
+        # Get last activity time
+        last_activity = session.get('last_activity')
+        
+        if last_activity:
+            # Convert string to datetime
+            last_activity_time = datetime.fromisoformat(last_activity)
+            # Check if session has expired (30 minutes of inactivity)
+            if datetime.now() - last_activity_time > timedelta(minutes=30):
+                # Session expired - clear session
+                session.clear()
+                
+                # Check if this is an AJAX request
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+                    # Return JSON response for AJAX requests
+                    return jsonify({
+                        'error': 'Сесія завершилась',
+                        'session_expired': True,
+                        'redirect': url_for('auth.login', timeout='1')
+                    }), 401
+                else:
+                    # Regular redirect for page requests
+                    return redirect(url_for('auth.login', timeout='1'))
+        
+        # Update last activity time
+        session['last_activity'] = datetime.now().isoformat()
+        session.permanent = True
+    elif request.endpoint and not request.endpoint.startswith('auth.'):
+        # User not logged in but trying to access protected route
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+            return jsonify({
+                'error': 'Необхідна авторизація',
+                'session_expired': True,
+                'redirect': url_for('auth.login')
+            }), 401
+        else:
+            return redirect(url_for('auth.login'))
 
 # Login decorator
 def login_required(f):
@@ -134,14 +189,48 @@ def calculate_wine_conditions(raw_material, color, style):
 # Authentication routes
 @app.route('/')
 def index():
-    """Welcome page - redirect to login or color page"""
+    """Welcome page - redirect to login or welcome page"""
     if 'user' not in session:
         return redirect(url_for('auth.login'))
-    return redirect(url_for('color_page'))
+    return redirect(url_for('welcome_page'))
+
+@app.route('/welcome')
+@login_required
+def welcome_page():
+    """Welcome page after login - choose to create new or continue previous"""
+    # Check if user has previous session data
+    previous_session = session.get('previous_wine_data', {})
+    
+    # If no previous session in memory, check database for in-progress wines
+    user_id = session.get('user', {}).get('id')
+    if not previous_session and os.path.exists(DB_FILE):
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
+            wines = json.load(f)
+        
+        # Find the most recent in-progress wine for this user
+        user_wines = [w for w in wines if w.get('user_id') == user_id and w.get('status') == 'in_progress']
+        if user_wines:
+            # Sort by created_at and get the most recent
+            user_wines.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+            previous_session = user_wines[0]
+            # Store in session for next use
+            session['previous_wine_data'] = previous_session
+            session.modified = True
+    
+    has_previous = bool(previous_session.get('color') or previous_session.get('style'))
+    
+    return render_template('welcome.html', 
+                         has_previous_session=has_previous,
+                         previous_session_data=previous_session)
 
 @app.route('/color')
+@login_required
 def color_page():
     """Color selection page - Колір"""
+    # Clear current wine_data when starting new scheme (but keep previous_wine_data)
+    if 'wine_data' in session:
+        session.pop('wine_data', None)
+        session.modified = True
     return render_template('color.html')
 
 @app.route('/style')
@@ -192,9 +281,9 @@ def scheme_type_page():
     """Scheme type page - Схема"""
     return render_template('scheme_type.html')
 
-@app.route('/create-scheme')
-def create_scheme_page():
-    """Create scheme page - Створити схему"""
+@app.route('/summary')
+def summary_page():
+    """Summary page - Підсумок"""
     return render_template('create_scheme.html')
 
 @app.route('/technology-scheme')
@@ -203,50 +292,192 @@ def technology_scheme_page():
     return render_template('technology_scheme.html')
 
 @app.route('/api/save-choice', methods=['POST'])
+@login_required
 def save_choice():
     """API endpoint to save user choice"""
-    data = request.json
-    step = data.get('step')
-    choice = data.get('choice')
-    
-    # Server-side validation for raw material conditions
-    if step == 'raw_material':
-        sugar = choice.get('sugar', 0)
-        acidity = choice.get('acidity', 0)
+    try:
+        data = request.json
+        step = data.get('step')
+        choice = data.get('choice')
         
-        # Validate sugar minimum (170 g/dm³ for dry wine production)
-        if sugar < 170:
-            return jsonify({
-                'success': False,
-                'error': 'Масова частка цукру повинна бути не менше 170 г/дм³'
-            }), 400
+        print(f"[save_choice] Saving step: {step}, choice: {choice}")
         
-        # Validate acidity range (4-12 g/dm³ recommended)
-        if acidity < 4 or acidity > 12:
-            print(f'Warning: Acidity {acidity} g/dm³ is outside recommended range (4-12 g/dm³)')
+        # Server-side validation for raw material conditions
+        if step == 'raw_material':
+            sugar = choice.get('sugar', 0)
+            acidity = choice.get('acidity', 0)
+            
+            # Validate sugar minimum (170 g/dm³ for dry wine production)
+            if sugar < 170:
+                return jsonify({
+                    'success': False,
+                    'error': 'Масова частка цукру повинна бути не менше 170 г/дм³'
+                }), 400
+            
+            # Validate acidity range (4-12 g/dm³ recommended)
+            if acidity < 4 or acidity > 12:
+                print(f'Warning: Acidity {acidity} g/dm³ is outside recommended range (4-12 g/dm³)')
+            
+            # Validate acidity absolute minimum
+            if acidity < 3:
+                return jsonify({
+                    'success': False,
+                    'error': 'Масова частка кислоти повинна бути не менше 3 г/дм³'
+                }), 400
         
-        # Validate acidity absolute minimum
-        if acidity < 3:
-            return jsonify({
-                'success': False,
-                'error': 'Масова частка кислоти повинна бути не менше 3 г/дм³'
-            }), 400
+        # Get current user
+        user_id = session.get('user', {}).get('id')
+        
+        if 'wine_data' not in session:
+            session['wine_data'] = {
+                'id': str(uuid.uuid4()),
+                'user_id': user_id,
+                'created_at': datetime.now().isoformat(),
+                'status': 'in_progress'
+            }
+        
+        # Ensure wine_data has required fields
+        if 'id' not in session['wine_data']:
+            session['wine_data']['id'] = str(uuid.uuid4())
+        if 'user_id' not in session['wine_data']:
+            session['wine_data']['user_id'] = user_id
+        if 'created_at' not in session['wine_data']:
+            session['wine_data']['created_at'] = datetime.now().isoformat()
+        if 'status' not in session['wine_data']:
+            session['wine_data']['status'] = 'in_progress'
+        
+        session['wine_data'][step] = choice
+        
+        # Also save to previous_wine_data for "continue" functionality
+        if 'previous_wine_data' not in session:
+            session['previous_wine_data'] = {}
+        session['previous_wine_data'][step] = choice
+        
+        # Save to database
+        wines = []
+        if os.path.exists(DB_FILE):
+            with open(DB_FILE, 'r', encoding='utf-8') as f:
+                wines = json.load(f)
+        
+        # Find if this wine already exists in database (by id and user_id)
+        wine_id = session['wine_data']['id']
+        existing_wine_index = None
+        for i, wine in enumerate(wines):
+            if wine.get('id') == wine_id and wine.get('user_id') == user_id:
+                existing_wine_index = i
+                break
+        
+        # Update existing or add new
+        if existing_wine_index is not None:
+            wines[existing_wine_index] = session['wine_data'].copy()
+            print(f"[save_choice] Updated existing wine at index {existing_wine_index}")
+        else:
+            wines.append(session['wine_data'].copy())
+            print(f"[save_choice] Added new wine")
+        
+        # Save to file
+        with open(DB_FILE, 'w', encoding='utf-8') as f:
+            json.dump(wines, f, ensure_ascii=False, indent=2)
+        
+        session.modified = True
+        
+        print(f"[save_choice] Successfully saved. Wine ID: {wine_id}")
+        return jsonify({'success': True, 'session_data': session['wine_data']})
     
-    if 'wine_data' not in session:
-        session['wine_data'] = {
-            'id': str(uuid.uuid4()),
-            'created_at': datetime.now().isoformat()
-        }
-    
-    session['wine_data'][step] = choice
-    session.modified = True
-    
-    return jsonify({'success': True, 'session_data': session['wine_data']})
+    except Exception as e:
+        print(f"[save_choice] ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': f'Помилка сервера: {str(e)}'
+        }), 500
 
 @app.route('/api/get-session', methods=['GET'])
+@login_required
 def get_session():
     """API endpoint to get current session data"""
-    return jsonify(session.get('wine_data', {}))
+    # First check session
+    wine_data = session.get('wine_data', {})
+    
+    # If no session data, try to load from database
+    if not wine_data or len(wine_data.keys()) <= 3:  # Only has id, user_id, created_at
+        user_id = session.get('user', {}).get('id')
+        if os.path.exists(DB_FILE):
+            with open(DB_FILE, 'r', encoding='utf-8') as f:
+                wines = json.load(f)
+            
+            # Find the most recent in-progress wine for this user
+            user_wines = [w for w in wines if w.get('user_id') == user_id and w.get('status') == 'in_progress']
+            if user_wines:
+                # Sort by created_at and get the most recent
+                user_wines.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+                wine_data = user_wines[0]
+                session['wine_data'] = wine_data
+                session.modified = True
+    
+    return jsonify(wine_data)
+
+@app.route('/api/restore-session', methods=['POST'])
+@login_required
+def restore_session():
+    """API endpoint to restore previous session and determine next step"""
+    # Try to load from database if not in session
+    user_id = session.get('user', {}).get('id')
+    previous_data = session.get('previous_wine_data', {})
+    
+    # If no previous_wine_data in session, try to load from database
+    if not previous_data and os.path.exists(DB_FILE):
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
+            wines = json.load(f)
+        
+        # Find the most recent in-progress wine for this user
+        user_wines = [w for w in wines if w.get('user_id') == user_id and w.get('status') == 'in_progress']
+        if user_wines:
+            # Sort by created_at and get the most recent
+            user_wines.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+            previous_data = user_wines[0]
+    
+    if not previous_data:
+        return jsonify({'success': False, 'redirect': url_for('color_page')})
+    
+    # Restore the wine_data from previous_wine_data
+    session['wine_data'] = previous_data.copy()
+    session['previous_wine_data'] = previous_data.copy()
+    session.modified = True
+    
+    # Determine which page to redirect to based on the FIRST missing step
+    # Flow: color -> style -> style_co2 -> raw_material -> choice -> scheme_type -> summary -> technology_scheme
+    
+    if 'color' not in previous_data:
+        return jsonify({'success': True, 'redirect': url_for('color_page')})
+    
+    if 'style' not in previous_data:
+        return jsonify({'success': True, 'redirect': url_for('style_page')})
+    
+    if 'style_co2' not in previous_data:
+        return jsonify({'success': True, 'redirect': url_for('style_co2_page')})
+    
+    if 'raw_material' not in previous_data:
+        return jsonify({'success': True, 'redirect': url_for('raw_material_page')})
+    
+    if 'choice_path' not in previous_data:
+        return jsonify({'success': True, 'redirect': url_for('choice_page')})
+    
+    # If user chose 'scheme' path
+    if previous_data.get('choice_path') == 'scheme':
+        if 'scheme_type' not in previous_data:
+            return jsonify({'success': True, 'redirect': url_for('scheme_type_page')})
+        
+        # All steps done, go to summary
+        return jsonify({'success': True, 'redirect': url_for('summary_page')})
+    
+    # If user chose 'description' path (currently disabled, but handle it)
+    if previous_data.get('choice_path') == 'description':
+        return jsonify({'success': True, 'redirect': url_for('wine_description_page')})
+    
+    # Default: go to choice page
+    return jsonify({'success': True, 'redirect': url_for('choice_page')})
 
 @app.route('/api/save-wine', methods=['POST'])
 def save_wine():

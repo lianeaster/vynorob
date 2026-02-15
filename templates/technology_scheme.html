@@ -84,17 +84,25 @@
 
 {% block content %}
 <div class="scheme-canvas-container">
+    <div style="text-align: center; margin-bottom: 15px;">
+        <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 7 з 7</span>
+    </div>
     <h1 class="scheme-title">Принципова технологічна схема</h1>
     <canvas id="schemeCanvas"></canvas>
     
-    <div class="controls">
-        <button class="btn btn-secondary" onclick="window.location.href='/'">На головну</button>
-        <button class="btn btn-primary" onclick="downloadSchemePNG()">
-            📥 Завантажити PNG
+    <div style="display: flex; justify-content: space-between; margin-top: 30px; gap: 15px; align-items: center;">
+        <button class="btn btn-secondary" onclick="window.location.href='/summary'" style="background: #e0e0e0; color: #666;">
+            ← Назад
         </button>
-        <button class="btn btn-primary" onclick="downloadSchemePDF()">
-            📄 Завантажити PDF
-        </button>
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; flex: 1;">
+            <button class="btn btn-secondary" onclick="window.location.href='/'">На головну</button>
+            <button class="btn btn-primary" onclick="downloadSchemePNG()">
+                📥 Завантажити PNG
+            </button>
+            <button class="btn btn-primary" onclick="downloadSchemePDF()">
+                📄 Завантажити PDF
+            </button>
+        </div>
     </div>
 </div>
 

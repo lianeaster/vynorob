@@ -293,9 +293,13 @@ def login():
             'name': user['name']
         }
         
-        # Redirect to next page or color selection
+        # Set session as permanent and track last activity
+        session.permanent = True
+        session['last_activity'] = datetime.now().isoformat()
+        
+        # Redirect to next page or welcome page
         next_page = request.args.get('next')
-        return redirect(next_page if next_page else url_for('color_page'))
+        return redirect(next_page if next_page else url_for('welcome_page'))
     
     return render_template('auth/login.html')
 

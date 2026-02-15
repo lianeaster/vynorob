@@ -21,21 +21,69 @@
 {% block content %}
 <div class="step-page">
     <div class="card">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 1 з 7</span>
+        </div>
         <h1 class="title">Колір</h1>
         <p class="subtitle">Виберіть колір вина</p>
         
         <div class="button-group">
-            <button class="btn btn-choice" onclick="selectChoice('color', 'Біле')">Біле</button>
-            <button class="btn btn-choice" onclick="selectChoice('color', 'Червоне')">Червоне</button>
-            <button class="btn btn-choice" onclick="selectChoice('color', 'Рожеве')" disabled>Рожеве</button>
+            <button class="btn btn-choice" id="choice-Біле" onclick="selectColor('Біле')">Біле</button>
+            <button class="btn btn-choice" id="choice-Червоне" onclick="selectColor('Червоне')">Червоне</button>
+            <button class="btn btn-choice" id="choice-Рожеве" onclick="selectColor('Рожеве')" disabled>Рожеве</button>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 40px; gap: 15px;">
+            <button class="btn" onclick="window.location.href='{{ url_for('welcome_page') }}'" style="background: #e0e0e0; color: #666;">
+                ← Назад
+            </button>
+            <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled style="opacity: 0.5;">
+                Далі →
+            </button>
         </div>
     </div>
 </div>
 
 <script>
-async function selectChoice(step, choice) {
-    await saveChoice(step, choice);
+let selectedColor = null;
+
+async function selectColor(color) {
+    selectedColor = color;
+    
+    // Update button states
+    document.querySelectorAll('.btn-choice').forEach(btn => {
+        btn.style.opacity = '0.6';
+        btn.style.transform = 'scale(1)';
+    });
+    
+    const selectedBtn = document.getElementById('choice-' + color);
+    if (selectedBtn) {
+        selectedBtn.style.opacity = '1';
+        selectedBtn.style.transform = 'scale(1.05)';
+        selectedBtn.style.boxShadow = '0 8px 16px rgba(114, 47, 62, 0.3)';
+    }
+    
+    // Enable next button
+    document.getElementById('nextBtn').disabled = false;
+    document.getElementById('nextBtn').style.opacity = '1';
+}
+
+async function goNext() {
+    if (!selectedColor) {
+        alert('Будь ласка, оберіть колір вина');
+        return;
+    }
+    
+    await saveChoice('color', selectedColor);
     window.location.href = '/style';
 }
+
+// Load previous choice if exists
+window.addEventListener('DOMContentLoaded', async function() {
+    const sessionData = await getSessionData();
+    if (sessionData.color) {
+        selectColor(sessionData.color);
+    }
+});
 </script>
 {% endblock %}

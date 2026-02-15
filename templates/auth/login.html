@@ -15,6 +15,12 @@
         <h1 class="title" style="font-size: 1.8rem;">Вхід до системи</h1>
         <p class="subtitle">Введіть ваш email та пароль</p>
         
+        {% if request.args.get('timeout') %}
+        <div style="padding: 15px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px; margin: 20px 0; color: #856404;">
+            ⏱️ Ваша сесія завершилась через неактивність. Будь ласка, увійдіть знову.
+        </div>
+        {% endif %}
+        
         {% if error %}
         <div style="padding: 15px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 10px; margin: 20px 0; color: #721c24;">
             {{ error }}

@@ -49,7 +49,7 @@ document.getElementById('wineDescriptionForm').addEventListener('submit', async 
     const characteristics = Array.from(checkboxes).map(cb => cb.value);
     
     await saveChoice('wine_description', characteristics);
-    window.location.href = '/create-scheme';
+    window.location.href = '/summary';
 });
 </script>
 {% endblock %}

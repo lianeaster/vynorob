@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Вітаємо - Vynorob{% endblock %}
+
+{% block content %}
+<div class="step-page">
+    <div class="card" style="max-width: 800px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Vynorob" style="max-width: 250px; height: auto; margin-bottom: 20px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div style="display: none;">
+                <span style="font-size: 64px; display: block; margin-bottom: 12px;">🍷</span>
+                <span style="font-size: 32px; font-weight: bold; font-family: 'Georgia', 'Times New Roman', serif; letter-spacing: 3px; background: linear-gradient(135deg, #722f3e 0%, #4a1228 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Vynorob</span>
+            </div>
+        </div>
+        
+        <h1 class="title" style="font-size: 2rem; text-align: center;">Вітаємо, {{ session['user']['name'] }}!</h1>
+        <p class="subtitle" style="text-align: center; font-size: 1.1rem;">Система створення технологічних схем для виноробства</p>
+        
+        <div style="margin-top: 40px; display: flex; flex-direction: column; gap: 20px;">
+            <!-- Create New Scheme Option -->
+            <div class="option-card" style="background: linear-gradient(135deg, #faf5f0 0%, #f5ebe0 100%); border: 2px solid #d4af6e; border-radius: 16px; padding: 30px; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;" onclick="window.location.href='{{ url_for('color_page') }}'">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="font-size: 48px; min-width: 60px; text-align: center;">✨</div>
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 10px 0; color: #3b1022; font-size: 1.4rem;">Створити нову схему</h3>
+                        <p style="margin: 0; color: #666; font-size: 0.95rem;">Почніть з нуля та створіть технологічну схему виробництва вина</p>
+                    </div>
+                    <div style="font-size: 24px; color: #722f3e;">→</div>
+                </div>
+            </div>
+            
+            {% if has_previous_session %}
+            <!-- Continue Previous Session Option -->
+            <div class="option-card" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #81c784; border-radius: 16px; padding: 30px; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;" onclick="continuePreviousSession()">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="font-size: 48px; min-width: 60px; text-align: center;">📋</div>
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 10px 0; color: #2e7d32; font-size: 1.4rem;">Продовжити попередню схему</h3>
+                        <p style="margin: 0; color: #555; font-size: 0.95rem;">Відновіть роботу з останньої збереженої сесії</p>
+                        {% if previous_session_data %}
+                        <div style="margin-top: 10px; font-size: 0.85rem; color: #666;">
+                            <strong>Останній вибір:</strong> 
+                            {% if previous_session_data.color %}Колір: {{ previous_session_data.color }}{% endif %}
+                            {% if previous_session_data.style %}, Стиль: {{ previous_session_data.style }}{% endif %}
+                            {% if previous_session_data.style_co2 %}, CO₂: {{ previous_session_data.style_co2 }}{% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div style="font-size: 24px; color: #2e7d32;">→</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if not has_previous_session %}
+        <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f0f4f8; border-radius: 12px;">
+            <p style="margin: 0; color: #666; font-size: 0.9rem;">💡 Схеми автоматично зберігаються під час роботи</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.option-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.option-card:active {
+    transform: translateY(-2px);
+}
+</style>
+
+<script>
+function continuePreviousSession() {
+    // Restore previous session and redirect to appropriate step
+    fetch('/api/restore-session', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.redirect) {
+            window.location.href = data.redirect;
+        } else {
+            // Fallback to color page
+            window.location.href = '{{ url_for("color_page") }}';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        window.location.href = '{{ url_for("color_page") }}';
+    });
+}
+</script>
+{% endblock %}
