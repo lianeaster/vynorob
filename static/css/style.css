@@ -182,6 +182,7 @@ body::after {
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
 }
 
 .button-group {
@@ -291,6 +292,7 @@ body::after {
     margin-bottom: 15px;
     font-size: 1.3rem;
 }
+
 
 @media (max-width: 768px) {
     .card {

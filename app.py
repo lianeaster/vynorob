@@ -222,10 +222,10 @@ def welcome_page():
 @login_required
 def color_page():
     """Color selection page - Колір"""
-    # Clear current wine_data when starting new scheme (but keep previous_wine_data)
-    if 'wine_data' in session:
-        session.pop('wine_data', None)
-        session.modified = True
+    # Clear ALL wine data when starting new scheme
+    session.pop('wine_data', None)
+    session.pop('previous_wine_data', None)
+    session.modified = True
     return render_template('color.html')
 
 @app.route('/style')
@@ -392,25 +392,9 @@ def save_choice():
 @login_required
 def get_session():
     """API endpoint to get current session data"""
-    # First check session
+    # Return only what's in the current session
+    # Do NOT auto-load from database - that should only happen when explicitly continuing
     wine_data = session.get('wine_data', {})
-    
-    # If no session data, try to load from database
-    if not wine_data or len(wine_data.keys()) <= 3:  # Only has id, user_id, created_at
-        user_id = session.get('user', {}).get('id')
-        if os.path.exists(DB_FILE):
-            with open(DB_FILE, 'r', encoding='utf-8') as f:
-                wines = json.load(f)
-            
-            # Find the most recent in-progress wine for this user
-            user_wines = [w for w in wines if w.get('user_id') == user_id and w.get('status') == 'in_progress']
-            if user_wines:
-                # Sort by created_at and get the most recent
-                user_wines.sort(key=lambda x: x.get('created_at', ''), reverse=True)
-                wine_data = user_wines[0]
-                session['wine_data'] = wine_data
-                session.modified = True
-    
     return jsonify(wine_data)
 
 @app.route('/api/restore-session', methods=['POST'])
@@ -498,21 +482,40 @@ def save_wine():
     create_next = data.get('create_next', False)
     
     wine_data = session.get('wine_data', {})
+    wine_id = wine_data.get('id')
+    user_id = session.get('user', {}).get('id')
+    
+    # Keep status as 'in_progress' so user can continue editing
+    if 'status' not in wine_data:
+        wine_data['status'] = 'in_progress'
     
     # Load existing wines
     wines = load_wines()
     
-    # Add new wine
-    wines.append(wine_data)
+    # Find if this wine already exists (by id and user_id)
+    existing_wine_index = None
+    for i, wine in enumerate(wines):
+        if wine.get('id') == wine_id and wine.get('user_id') == user_id:
+            existing_wine_index = i
+            break
+    
+    # Update existing or add new
+    if existing_wine_index is not None:
+        wines[existing_wine_index] = wine_data.copy()
+    else:
+        wines.append(wine_data.copy())
     
     # Save to database
     save_wines(wines)
     
-    wine_id = wine_data.get('id')
+    # Store in previous_wine_data so it appears in dropdown
+    session['previous_wine_data'] = wine_data.copy()
     
-    # Only clear session if not creating next
+    # Only clear wine_data if not creating next (to start fresh)
     if not create_next:
         session.pop('wine_data', None)
+    
+    session.modified = True
     
     return jsonify({'success': True, 'wine_id': wine_id, 'create_next': create_next})
 
