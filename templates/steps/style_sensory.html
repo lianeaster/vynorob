@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block title %}Бажаний смаковий стиль - Vynorob{% endblock %}
+
+{% block extra_css %}
+<style>
+    .step-page .card { max-width: 680px; margin: 0 auto; }
+    .block-title { font-size: 1rem; font-weight: 600; color: #3b1022; margin-bottom: 8px; }
+    .slider-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+    .slider-row label { min-width: 160px; font-size: 0.9rem; color: #555; }
+    .slider-wrap { flex: 1; min-width: 200px; }
+    .slider-wrap input[type="range"] { width: 100%; height: 8px; -webkit-appearance: none; appearance: none; background: transparent; outline: none; }
+    .slider-wrap input[type="range"]::-webkit-slider-runnable-track { height: 8px; background: linear-gradient(90deg, #e8ddd0, #722f3e); border-radius: 4px; }
+    .slider-wrap input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -6px; border-radius: 50%; background: linear-gradient(135deg, #722f3e, #4a1228); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .slider-wrap input[type="range"]::-moz-range-track { height: 8px; background: linear-gradient(90deg, #e8ddd0, #722f3e); border-radius: 4px; }
+    .slider-wrap input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #722f3e, #4a1228); cursor: pointer; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .slider-hint { font-size: 11px; color: #6b4c5a; margin-top: 2px; }
+    .nav-buttons { display: flex; justify-content: space-between; margin-top: 28px; gap: 15px; align-items: center; }
+    .result-box { background: linear-gradient(135deg, #faf5f0 0%, #f5ebe0 100%); border: 2px solid #d4af6e; border-radius: 12px; padding: 14px 18px; margin-top: 18px; }
+    .result-box .warnings-list { margin-top: 6px; font-size: 0.9rem; color: #856404; list-style: none; padding: 0; }
+    .result-box .warnings-list li { margin-bottom: 4px; }
+    .hidden { display: none !important; }
+    .advanced-section { margin: 20px 0; border: 1px solid rgba(212, 175, 110, 0.5); border-radius: 12px; overflow: hidden; background: rgba(250, 245, 240, 0.6); }
+    .advanced-trigger { width: 100%; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; background: transparent; border: none; cursor: pointer; font-size: 0.95rem; font-weight: 600; color: #3b1022; text-align: left; }
+    .advanced-trigger:hover { background: rgba(212, 175, 110, 0.15); }
+    .advanced-trigger .chevron { transition: transform 0.25s ease; color: #722f3e; }
+    .advanced-section.open .advanced-trigger .chevron { transform: rotate(180deg); }
+    .advanced-content { display: none; padding: 18px 22px 20px; border-top: 1px solid rgba(212, 175, 110, 0.3); }
+    .advanced-section.open .advanced-content { display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="step-page">
+    <div class="card">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 5 з 7</span>
+        </div>
+        <h1 class="title">Бажаний смаковий стиль</h1>
+        <p class="subtitle">Яким має бути вино у келиху</p>
+
+        <!-- Основний блок: баланс і структура -->
+        <div class="block">
+            <div class="block-title">Баланс</div>
+            <div class="slider-row">
+                <label for="perceivedAcidity">Сприйняття кислотності</label>
+                <div class="slider-wrap">
+                    <input type="range" id="perceivedAcidity" min="0" max="100" value="50" step="5">
+                    <p class="slider-hint">0 – м’яке, 50 – збалансоване, 100 – дуже свіже.</p>
+                </div>
+            </div>
+            <div class="slider-row">
+                <label for="alcoholWarmth">Алкогольне тепло</label>
+                <div class="slider-wrap">
+                    <input type="range" id="alcoholWarmth" min="0" max="100" value="50" step="5">
+                    <p class="slider-hint">0 – не гріє, 50 – помірно, 100 – гаряче.</p>
+                </div>
+            </div>
+            <div class="slider-row">
+                <label for="bitterness">Гіркота</label>
+                <div class="slider-wrap">
+                    <input type="range" id="bitterness" min="0" max="100" value="30" step="5">
+                    <p class="slider-hint">0 – майже нема, 50 – помітна, 100 – домінує.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block-title">Структура</div>
+            <div class="slider-row">
+                <label for="body">Тіло</label>
+                <div class="slider-wrap">
+                    <input type="range" id="body" min="0" max="100" value="50" step="5">
+                    <p class="slider-hint">0 – легке, 50 – середнє, 100 – щільне.</p>
+                </div>
+            </div>
+            <div class="slider-row">
+                <label for="tannins">Танінність / в’яжучість</label>
+                <div class="slider-wrap">
+                    <input type="range" id="tannins" min="0" max="100" value="40" step="5">
+                    <p class="slider-hint">0 – без танінів, 50 – середня, 100 – дуже танінне.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Розширене: деталізована ароматка та стилістика -->
+        <div class="advanced-section" id="advancedSection">
+            <button type="button" class="advanced-trigger" id="advancedTrigger" aria-expanded="false">
+                <span>Розширене</span>
+                <span class="chevron">▼</span>
+            </button>
+            <div class="advanced-content" id="advancedContent">
+                <div class="block">
+                    <div class="block-title">Ароматика</div>
+                    <div class="slider-row">
+                        <label for="aromaIntensity">Загальна ароматична інтенсивність</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="aromaIntensity" min="0" max="100" value="60" step="5">
+                            <p class="slider-hint">0 – нейтральне, 50 – виразне, 100 – дуже ароматне.</p>
+                        </div>
+                    </div>
+                    <div class="slider-row">
+                        <label for="fruitiness">Фруктовість</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="fruitiness" min="0" max="100" value="60" step="5">
+                        </div>
+                    </div>
+                    <div class="slider-row">
+                        <label for="berry">Ягідність</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="berry" min="0" max="100" value="40" step="5">
+                        </div>
+                    </div>
+                    <div class="slider-row">
+                        <label for="tropical">Тропічні / тіолові ноти</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="tropical" min="0" max="100" value="40" step="5">
+                        </div>
+                    </div>
+                    <div class="slider-row">
+                        <label for="floral">Квіткові / терпенові ноти</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="floral" min="0" max="100" value="40" step="5">
+                        </div>
+                    </div>
+                    <div class="slider-row">
+                        <label for="spice">Пряні / вторинні ноти</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="spice" min="0" max="100" value="40" step="5">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block">
+                    <div class="block-title">Стильові маркери</div>
+                    <div class="slider-row">
+                        <label for="oak">Дубовість</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="oak" min="0" max="100" value="40" step="5">
+                            <p class="slider-hint">0 – без дуба, 50 – інтегровано, 100 – виражений дуб.</p>
+                        </div>
+                    </div>
+                    <div class="slider-row">
+                        <label for="oxidation">Стиль кисню</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="oxidation" min="0" max="100" value="40" step="5">
+                            <p class="slider-hint">0 – максимально редуктивний, 50 – нейтральний, 100 – окиснювальний.</p>
+                        </div>
+                    </div>
+                    <div class="slider-row">
+                        <label for="malolactic">Малолактика (стильовий намір)</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="malolactic" min="0" max="100" value="50" step="5">
+                            <p class="slider-hint">0 – блокувати, 50 – за потреби, 100 – робити.</p>
+                        </div>
+                    </div>
+                    <div class="slider-row">
+                        <label for="creaminess">Кремовість / округлість</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="creaminess" min="0" max="100" value="50" step="5">
+                            <p class="slider-hint">0 – лінійне, 50 – округле, 100 – кремове.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-box" id="resultBox">
+            <div class="status-msg" id="statusMsg"></div>
+            <ul class="warnings-list hidden" id="warningsList"></ul>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn" type="button" onclick="window.location.href='/raw-material'" style="background: #e0e0e0; color: #666;">← Назад</button>
+            <button class="btn btn-primary" id="nextBtn" type="button">Далі →</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+var statusMsg = document.getElementById('statusMsg');
+var warningsList = document.getElementById('warningsList');
+
+function getValue(id) { return parseInt(document.getElementById(id).value, 10); }
+
+function getSessionStyleParams() { return window._sessionStyleParams || {}; }
+function getSessionColorParams() { return window._sessionColorParams || {}; }
+function getSessionStyleCo2() { return window._sessionStyleCo2 || null; }
+function getSessionRawMaterial() { return window._sessionRawMaterial || {}; }
+
+function getStyleColorOut() {
+    var cp = getSessionColorParams();
+    return cp.style_color_out || null;
+}
+
+function getCo2Class() {
+    var sc = getSessionStyleCo2();
+    if (!sc) return 'still';
+    if (typeof sc === 'object' && sc.CO2_level) return sc.CO2_level;
+    if (sc === 'Ігристе') return 'spumante';
+    if (sc === 'Тихе') return 'still';
+    return 'still';
+}
+
+function getSweetnessCategory() {
+    var sp = getSessionStyleParams();
+    return sp.sweetnessCategory || null;
+}
+
+function getTaTarget() {
+    var rm = getSessionRawMaterial();
+    return rm.TA_target != null ? parseFloat(rm.TA_target) : null;
+}
+
+function updateResult() {
+    warningsList.innerHTML = '';
+    warningsList.classList.add('hidden');
+    statusMsg.textContent = '';
+
+    var co2 = getCo2Class();
+    var styleColor = getStyleColorOut();
+    var cat = getSweetnessCategory();
+    var taTarget = getTaTarget();
+
+    var perceivedAcidity = getValue('perceivedAcidity');
+    var alcoholWarmth = getValue('alcoholWarmth');
+    var bitterness = getValue('bitterness');
+    var creaminess = getValue('creaminess');
+    var floral = getValue('floral');
+    var tropical = getValue('tropical');
+    var oak = getValue('oak');
+    var berry = getValue('berry');
+    var spice = getValue('spice');
+    var tannins = getValue('tannins');
+    var aromaIntensity = getValue('aromaIntensity');
+
+    var warnings = [];
+
+    // S5.1: висока квітковість + високий окиснювальний стиль
+    var oxidation = getValue('oxidation');
+    if (floral >= 70 && oxidation >= 70) {
+        warnings.push('Висока квітковість + окиснювальний стиль: квіткові ноти можуть втрачатися.');
+    }
+
+    // S5.2: високі тропічні + високий окиснювальний стиль
+    if (tropical >= 70 && oxidation >= 70) {
+        warnings.push('Високі тропічні/тіолові ноти + окиснювальний стиль: тропічний профіль може швидко деградувати.');
+    }
+
+    // S5.3: висока дубовість + низька ароматична інтенсивність
+    if (oak >= 70 && aromaIntensity <= 30) {
+        warnings.push('Висока дубовість при низькій ароматичній інтенсивності: дуб може повністю домінувати.');
+    }
+
+    // S5.4: висока танінність + високий CO2
+    if (tannins >= 70 && (co2 === 'frizzante' || co2 === 'spumante')) {
+        warnings.push('Висока танінність під газом: в’яжучість буде відчуватись сильніше.');
+    }
+
+    // S5.5: висока гіркота + orange / висока екстракція (наближено: стиль orange)
+    if (bitterness >= 60 && styleColor === 'orange') {
+        warnings.push('Висока гіркота + orange стиль: вино може стати занадто жорстким.');
+    }
+
+    // S5.6: висока кремовість + дуже свіже сприйняття кислотності
+    if (creaminess >= 70 && perceivedAcidity >= 70) {
+        warnings.push('Висока кремовість + дуже свіже сприйняття кислотності: цілі можуть конфліктувати, стиль буде менш «хрустким».');
+    }
+
+    // S5.7: висока ягідність + висока дубовість
+    if (berry >= 70 && oak >= 70) {
+        warnings.push('Висока ягідність + висока дубовість: дуб може приглушити ягідний профіль.');
+    }
+
+    // S5.8: високі пряні/вторинні + максимально редуктивний стиль
+    if (spice >= 70 && oxidation <= 20) {
+        warnings.push('Високі пряні/вторинні ноти + максимально редуктивний стиль: вторинний профіль може не розкритися.');
+    }
+
+    // Зв'язок з TA (крок 4)
+    if (taTarget !== null) {
+        if (taTarget < 5 && perceivedAcidity >= 70) {
+            warnings.push('Низька TA при бажанні дуже свіжого стилю: без корекції кислотності це може бути недосяжно.');
+        }
+        if (taTarget >= 7 && perceivedAcidity <= 30) {
+            warnings.push('Висока TA при бажанні м’якого стилю: знадобиться пом’якшення (MLF, RS, текстура).');
+        }
+    }
+
+    if (warnings.length === 0) {
+        statusMsg.textContent = 'Стиль виглядає внутрішньо узгодженим. Деталі будуть перевірені на технічному кроці.';
+    } else {
+        statusMsg.textContent = 'Є потенційні конфлікти стилю, зверніть увагу на зауваження нижче.';
+        warningsList.classList.remove('hidden');
+        warnings.forEach(function(t) {
+            var li = document.createElement('li');
+            li.textContent = t;
+            warningsList.appendChild(li);
+        });
+    }
+}
+
+function onParamsChange() {
+    updateResult();
+}
+
+['perceivedAcidity','alcoholWarmth','bitterness','body','tannins',
+ 'aromaIntensity','fruitiness','berry','tropical','floral','spice',
+ 'oak','oxidation','malolactic','creaminess'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('input', onParamsChange);
+    }
+});
+
+document.getElementById('advancedTrigger').addEventListener('click', function() {
+    document.getElementById('advancedSection').classList.toggle('open');
+});
+
+function buildChoice() {
+    return {
+        perceivedAcidity: getValue('perceivedAcidity'),
+        alcoholWarmth: getValue('alcoholWarmth'),
+        bitterness: getValue('bitterness'),
+        body: getValue('body'),
+        tannins: getValue('tannins'),
+        aromaIntensity: getValue('aromaIntensity'),
+        fruitiness: getValue('fruitiness'),
+        berry: getValue('berry'),
+        tropical: getValue('tropical'),
+        floral: getValue('floral'),
+        spice: getValue('spice'),
+        oak: getValue('oak'),
+        oxidation: getValue('oxidation'),
+        malolactic: getValue('malolactic'),
+        creaminess: getValue('creaminess')
+    };
+}
+
+function goNext() {
+    var choice = buildChoice();
+    saveChoice('style_sensory', choice).then(function() {
+        window.location.href = '/style-tech';
+    });
+}
+
+document.getElementById('nextBtn').addEventListener('click', goNext);
+
+window.addEventListener('DOMContentLoaded', async function() {
+    var sessionData = await getSessionData();
+    window._sessionStyleParams = sessionData.style_params || {};
+    window._sessionColorParams = sessionData.color_params || {};
+    window._sessionStyleCo2 = sessionData.style_co2 || null;
+    window._sessionRawMaterial = sessionData.raw_material || {};
+
+    var sp5 = sessionData.style_sensory;
+    if (sp5 && typeof sp5 === 'object') {
+        Object.keys(sp5).forEach(function(key) {
+            var el = document.getElementById(key);
+            if (el && typeof sp5[key] === 'number') el.value = sp5[key];
+        });
+    }
+    updateResult();
+});
+})();
+</script>
+{% endblock %}
+

@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block title %}Технічні параметри - Vynorob{% endblock %}
+
+{% block extra_css %}
+<style>
+    .step-page .card { max-width: 680px; margin: 0 auto; }
+    .form-row { margin-bottom: 20px; }
+    .form-row label { display: block; font-size: 0.95rem; font-weight: 600; color: #3b1022; margin-bottom: 8px; }
+    .form-row select, .form-row input[type="number"] { width: 100%; max-width: 260px; padding: 10px 12px; font-size: 0.95rem; border: 2px solid rgba(212, 175, 110, 0.6); border-radius: 10px; background: #fff; color: #3b1022; }
+    .form-row select:focus, .form-row input:focus { outline: none; border-color: #722f3e; }
+    .slider-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+    .slider-row label { min-width: 180px; font-size: 0.9rem; color: #555; }
+    .slider-wrap { flex: 1; min-width: 200px; }
+    .slider-wrap input[type="range"] { width: 100%; height: 8px; -webkit-appearance: none; appearance: none; background: transparent; outline: none; }
+    .slider-wrap input[type="range"]::-webkit-slider-runnable-track { height: 8px; background: linear-gradient(90deg, #e8ddd0, #722f3e); border-radius: 4px; }
+    .slider-wrap input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -6px; border-radius: 50%; background: linear-gradient(135deg, #722f3e, #4a1228); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .slider-wrap input[type="range"]::-moz-range-track { height: 8px; background: linear-gradient(90deg, #e8ddd0, #722f3e); border-radius: 4px; }
+    .slider-wrap input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #722f3e, #4a1228); cursor: pointer; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .slider-hint { font-size: 11px; color: #6b4c5a; margin-top: 2px; }
+    .result-box { background: linear-gradient(135deg, #faf5f0 0%, #f5ebe0 100%); border: 2px solid #d4af6e; border-radius: 12px; padding: 14px 18px; margin-top: 18px; }
+    .result-box.ok { border-color: #2e7d32; background: rgba(46, 125, 50, 0.08); }
+    .result-box.warning { border-color: #d4a017; background: rgba(212, 160, 23, 0.1); }
+    .result-box.conflict { border-color: #b23b25; background: rgba(178, 59, 37, 0.08); }
+    .result-box .status-msg { font-size: 0.95rem; color: #555; margin-top: 4px; }
+    .result-box .warnings-list { margin-top: 6px; font-size: 0.9rem; color: #856404; list-style: none; padding: 0; }
+    .result-box .warnings-list li { margin-bottom: 4px; }
+    .nav-buttons { display: flex; justify-content: space-between; margin-top: 28px; gap: 15px; align-items: center; }
+    .hidden { display: none !important; }
+    .block-title { font-size: 1rem; font-weight: 600; color: #3b1022; margin-bottom: 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="step-page">
+    <div class="card">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 6 з 7</span>
+        </div>
+        <h1 class="title">Технічні параметри</h1>
+        <p class="subtitle">pH, живлення дріжджів, SO₂, бродіння, осад і стабільність</p>
+
+        <div class="form-row">
+            <label for="phInput">pH</label>
+            <input type="number" id="phInput" step="0.01" min="2.5" max="4.5" placeholder="наприклад 3.3">
+            <p class="slider-hint">Показує хімічну кислотність, стабільність і мікробіологічний ризик. Це не те саме, що титрована кислотність.</p>
+        </div>
+
+        <div class="form-row">
+            <label for="yanLevel">YAN / живлення дріжджів</label>
+            <select id="yanLevel">
+                <option value="unknown">Невідомо</option>
+                <option value="low">Низький</option>
+                <option value="normal">Нормальний</option>
+                <option value="high">Високий</option>
+            </select>
+            <p class="slider-hint">Чи вистачить дріжджам живлення для чистого і повного бродіння.</p>
+        </div>
+
+        <div class="block">
+            <div class="block-title">Захист і стабільність</div>
+            <div class="slider-row">
+                <label for="so2Protection">SO₂-режим</label>
+                <div class="slider-wrap">
+                    <input type="range" id="so2Protection" min="0" max="100" value="50" step="5">
+                    <p class="slider-hint">0 – мінімальний, 50 – стандартний, 100 – активний захист.</p>
+                </div>
+            </div>
+            <div class="slider-row">
+                <label for="proteinStab">Білкова стабілізація</label>
+                <div class="slider-wrap">
+                    <input type="range" id="proteinStab" min="0" max="100" value="50" step="5">
+                    <p class="slider-hint">0 – мінімальна, 50 – за потреби, 100 – обов’язкова.</p>
+                </div>
+            </div>
+            <div class="slider-row">
+                <label for="tartrateStab">Тартратна / холодова стабілізація</label>
+                <div class="slider-wrap">
+                    <input type="range" id="tartrateStab" min="0" max="100" value="50" step="5">
+                    <p class="slider-hint">0 – мінімальна, 50 – стандарт, 100 – жорстка.</p>
+                </div>
+            </div>
+            <div class="slider-row">
+                <label for="filtrationLevel">Фільтрація / мікробіологічна жорсткість</label>
+                <div class="slider-wrap">
+                    <input type="range" id="filtrationLevel" min="0" max="100" value="50" step="5">
+                    <p class="slider-hint">0 – мінімальне втручання, 50 – стандарт, 100 – максимально стабільно.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block-title">Ферментація та осад</div>
+            <div class="slider-row">
+                <label for="fermentationTemp">Температура бродіння</label>
+                <div class="slider-wrap">
+                    <input type="range" id="fermentationTemp" min="0" max="100" value="40" step="5">
+                    <p class="slider-hint">0 – холодне, 50 – помірне, 100 – тепле.</p>
+                </div>
+            </div>
+            <div class="slider-row">
+                <label for="yeastNutrition">Живлення дріжджів / інтенсивність підтримки</label>
+                <div class="slider-wrap">
+                    <input type="range" id="yeastNutrition" min="0" max="100" value="50" step="5">
+                    <p class="slider-hint">0 – мінімально, 50 – стандарт, 100 – активно контролювати.</p>
+                </div>
+            </div>
+            <div class="slider-row">
+                <label for="leesContact">Контакт з дріжджовим осадом</label>
+                <div class="slider-wrap">
+                    <input type="range" id="leesContact" min="0" max="100" value="50" step="5">
+                    <p class="slider-hint">0 – швидко зняти, 50 – частково, 100 – довго тримати.</p>
+                </div>
+            </div>
+            <div class="slider-row">
+                <label for="batonnage">Батонаж / перемішування осаду</label>
+                <div class="slider-wrap">
+                    <input type="range" id="batonnage" min="0" max="100" value="40" step="5">
+                    <p class="slider-hint">0 – ні, 50 – іноді, 100 – регулярно.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block-title">Ризики</div>
+            <div class="slider-row">
+                <label for="microRisk">Мікробіологічний ризик</label>
+                <div class="slider-wrap">
+                    <input type="range" id="microRisk" min="0" max="100" value="40" step="5">
+                    <p class="slider-hint">0 – низький, 50 – середній, 100 – високий.</p>
+                </div>
+            </div>
+            <div class="slider-row">
+                <label for="vaRisk">Летка кислотність / ризик леткої</label>
+                <div class="slider-wrap">
+                    <input type="range" id="vaRisk" min="0" max="100" value="40" step="5">
+                    <p class="slider-hint">0 – низький, 50 – контрольований, 100 – підвищений.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-box" id="resultBox">
+            <div class="status-msg" id="statusMsg"></div>
+            <ul class="warnings-list hidden" id="warningsList"></ul>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn" type="button" onclick="window.location.href='/style-sensory'" style="background: #e0e0e0; color: #666;">← Назад</button>
+            <button class="btn btn-primary" id="nextBtn" type="button">Далі →</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+var statusMsg = document.getElementById('statusMsg');
+var warningsList = document.getElementById('warningsList');
+
+function getValue(id) { return parseInt(document.getElementById(id).value, 10); }
+
+function getSessionStyleParams() { return window._sessionStyleParams || {}; }
+function getSessionColorParams() { return window._sessionColorParams || {}; }
+function getSessionStyleCo2() { return window._sessionStyleCo2 || null; }
+function getSessionRawMaterial() { return window._sessionRawMaterial || {}; }
+function getSessionSensory() { return window._sessionStyleSensory || {}; }
+
+function getCo2Class() {
+    var sc = getSessionStyleCo2();
+    if (!sc) return 'still';
+    if (typeof sc === 'object' && sc.CO2_level) return sc.CO2_level;
+    if (sc === 'Ігристе') return 'spumante';
+    if (sc === 'Тихе') return 'still';
+    return 'still';
+}
+
+function getSweetnessCategory() {
+    var sp = getSessionStyleParams();
+    return sp.sweetnessCategory || null;
+}
+
+function getTaTarget() {
+    var rm = getSessionRawMaterial();
+    return rm.TA_target != null ? parseFloat(rm.TA_target) : null;
+}
+
+function getPh() {
+    var v = parseFloat(document.getElementById('phInput').value);
+    return isNaN(v) ? null : v;
+}
+
+function updateResult() {
+    warningsList.innerHTML = '';
+    warningsList.classList.add('hidden');
+    statusMsg.textContent = '';
+    var co2 = getCo2Class();
+    var cat = getSweetnessCategory();
+    var taTarget = getTaTarget();
+    var ph = getPh();
+    var yanLevel = document.getElementById('yanLevel').value;
+
+    var so2 = getValue('so2Protection');
+    var proteinStab = getValue('proteinStab');
+    var tartrateStab = getValue('tartrateStab');
+    var filtration = getValue('filtrationLevel');
+    var fermTemp = getValue('fermentationTemp');
+    var yeastNutrition = getValue('yeastNutrition');
+    var leesContact = getValue('leesContact');
+    var batonnage = getValue('batonnage');
+    var microRisk = getValue('microRisk');
+    var vaRisk = getValue('vaRisk');
+
+    var warnings = [];
+    var level = 'ok';
+
+    // H6.1: pH валідний
+    if (ph !== null && (ph < 2.5 || ph > 4.5)) {
+        level = 'conflict';
+        warnings.push('pH має бути в робочому діапазоні 2.5–4.5.');
+    }
+
+    // H6.2: YAN unknown обмежує точні поради
+    if (yanLevel === 'unknown') {
+        warnings.push('YAN невідомий: точні рекомендації по бродінню обмежені.');
+    }
+
+    // S6.1: низький YAN + високий цукор/ABV (спрощено: дуже солодке)
+    if (yanLevel === 'low' && (cat === 'napivsolodke' || cat === 'desert')) {
+        warnings.push('Низький YAN при високій цукристості: ризик зупинки бродіння і H₂S, потрібне живлення та контроль.');
+        if (level !== 'conflict') level = 'warning';
+    }
+
+    // S6.2: високий pH + високий RS
+    if (ph !== null && ph > 3.6 && (cat === 'napivsolodke' || cat === 'desert')) {
+        warnings.push('Високий pH при солодкому стилі: підвищений мікробіологічний ризик, потрібен жорсткіший захист.');
+        if (level !== 'conflict') level = 'warning';
+    }
+
+    // S6.3: високий pH + низький SO₂
+    if (ph !== null && ph > 3.6 && so2 <= 30) {
+        warnings.push('Високий pH + низький SO₂: SO₂ буде менш ефективним, стабільність нижча.');
+        if (level !== 'conflict') level = 'warning';
+    }
+
+    // S6.4: довгий осад + максимально редуктивний стиль + низький SO₂
+    var sensory = getSessionSensory();
+    var oxidationTarget = typeof sensory.oxidation === 'number' ? sensory.oxidation : 20;
+    if (leesContact >= 70 && oxidationTarget <= 20 && so2 <= 30) {
+        warnings.push('Довгий контакт з осадом + максимально редуктивний стиль + низький SO₂: ризик редукції / сірководневих тонів.');
+        if (level !== 'conflict') level = 'warning';
+    }
+
+    // S6.5: холодне бродіння + висока фруктовість / квітковість
+    var fruitinessTarget = typeof sensory.fruitiness === 'number' ? sensory.fruitiness : 60;
+    var floralTarget = typeof sensory.floral === 'number' ? sensory.floral : 40;
+    if (fermTemp <= 30 && (fruitinessTarget >= 60 || floralTarget >= 60)) {
+        warnings.push('Холодне бродіння добре підтримує фруктовість/квітковість — технічні параметри узгоджені зі стилем.');
+    }
+
+    // S6.6: тепле бродіння + високі тропіки/квіти
+    var tropicalTarget = typeof sensory.tropical === 'number' ? sensory.tropical : 40;
+    if (fermTemp >= 70 && (tropicalTarget >= 60 || floralTarget >= 60)) {
+        warnings.push('Тепле бродіння при високих тропічних/квіткових цілях: частина яскравої ароматики може втрачатися.');
+        if (level !== 'conflict') level = 'warning';
+    }
+
+    // S6.7: довгий осад + висока кремовість
+    var creaminessTarget = typeof sensory.creaminess === 'number' ? sensory.creaminess : 50;
+    if (leesContact >= 70 && creaminessTarget >= 60) {
+        warnings.push('Довгий контакт з осадом добре підтримує бажану кремовість/округлість.');
+    }
+
+    // S6.8: мінімальна білкова/тартратна стабілізація + біле/рожеве/ігристе
+    var color = (getSessionColorParams().color) || '';
+    if ((color === 'Біле' || color === 'Рожеве' || co2 === 'spumante') &&
+        proteinStab <= 20 && tartrateStab <= 20) {
+        warnings.push('Мінімальна білкова/тартратна стабілізація для білого/рожевого/ігристого підвищує ризик нестабільності в пляшці.');
+        if (level !== 'conflict') level = 'warning';
+    }
+
+    // S6.9: висока летка + окиснювальний стиль
+    if (vaRisk >= 70 && oxidationTarget >= 70) {
+        warnings.push('Високий ризик леткої кислотності + окиснювальний стиль: дефекти можуть посилитися.');
+        if (level !== 'conflict') level = 'warning';
+    }
+
+    // microRisk: якщо дуже високий – загальний попереджувальний статус
+    if (microRisk >= 70) {
+        warnings.push('Високий мікробіологічний ризик: перегляньте SO₂, стабілізації та фільтрацію.');
+        if (level !== 'conflict') level = 'warning';
+    }
+
+    if (level === 'conflict') {
+        statusMsg.textContent = 'Є критичні технічні конфлікти, які потрібно вирішити перед продовженням.';
+        document.getElementById('resultBox').classList.remove('ok','warning');
+        document.getElementById('resultBox').classList.add('conflict');
+    } else if (level === 'warning') {
+        statusMsg.textContent = 'Стиль технічно можливий, але є важливі ризики та попередження.';
+        document.getElementById('resultBox').classList.remove('ok','conflict');
+        document.getElementById('resultBox').classList.add('warning');
+    } else {
+        statusMsg.textContent = 'Технічні параметри виглядають узгодженими з бажаним стилем.';
+        document.getElementById('resultBox').classList.remove('warning','conflict');
+        document.getElementById('resultBox').classList.add('ok');
+    }
+
+    if (warnings.length > 0) {
+        warningsList.classList.remove('hidden');
+        warnings.forEach(function(t) {
+            var li = document.createElement('li');
+            li.textContent = t;
+            warningsList.appendChild(li);
+        });
+    }
+}
+
+function onParamsChange() {
+    updateResult();
+}
+
+['so2Protection','proteinStab','tartrateStab','filtrationLevel',
+ 'fermentationTemp','yeastNutrition','leesContact','batonnage',
+ 'microRisk','vaRisk'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', onParamsChange);
+});
+
+document.getElementById('phInput').addEventListener('input', onParamsChange);
+document.getElementById('yanLevel').addEventListener('change', onParamsChange);
+
+function buildChoice() {
+    return {
+        pH: getPh(),
+        yanLevel: document.getElementById('yanLevel').value,
+        so2Protection: getValue('so2Protection'),
+        proteinStab: getValue('proteinStab'),
+        tartrateStab: getValue('tartrateStab'),
+        filtrationLevel: getValue('filtrationLevel'),
+        fermentationTemp: getValue('fermentationTemp'),
+        yeastNutrition: getValue('yeastNutrition'),
+        leesContact: getValue('leesContact'),
+        batonnage: getValue('batonnage'),
+        microRisk: getValue('microRisk'),
+        vaRisk: getValue('vaRisk')
+    };
+}
+
+function goNext() {
+    var ph = getPh();
+    if (ph !== null && (ph < 2.5 || ph > 4.5)) {
+        alert('pH має бути в межах 2.5–4.5.');
+        return;
+    }
+    var choice = buildChoice();
+    saveChoice('style_tech', choice).then(function() {
+        window.location.href = '/summary';
+    });
+}
+
+document.getElementById('nextBtn').addEventListener('click', goNext);
+
+window.addEventListener('DOMContentLoaded', async function() {
+    var sessionData = await getSessionData();
+    window._sessionStyleParams = sessionData.style_params || {};
+    window._sessionColorParams = sessionData.color_params || {};
+    window._sessionStyleCo2 = sessionData.style_co2 || null;
+    window._sessionRawMaterial = sessionData.raw_material || {};
+    window._sessionStyleSensory = sessionData.style_sensory || {};
+
+    var tp = sessionData.style_tech;
+    if (tp && typeof tp === 'object') {
+        if (tp.pH != null) document.getElementById('phInput').value = tp.pH;
+        if (tp.yanLevel) document.getElementById('yanLevel').value = tp.yanLevel;
+        ['so2Protection','proteinStab','tartrateStab','filtrationLevel',
+         'fermentationTemp','yeastNutrition','leesContact','batonnage',
+         'microRisk','vaRisk'].forEach(function(id) {
+            if (typeof tp[id] === 'number') {
+                var el = document.getElementById(id);
+                if (el) el.value = tp[id];
+            }
+        });
+    }
+    updateResult();
+});
+})();
+</script>
+{% endblock %}
+

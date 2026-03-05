@@ -234,17 +234,27 @@ def color_page():
 @app.route('/style')
 def style_page():
     """Style selection page - Стиль"""
-    return render_template('style.html')
+    return render_template('steps/style.html')
 
 @app.route('/style-co2')
 def style_co2_page():
     """Style by CO2 page - Стиль за CO2"""
-    return render_template('style_co2.html')
+    return render_template('steps/style_co2.html')
 
 @app.route('/raw-material')
 def raw_material_page():
-    """Raw material conditions page - Кондиції сировини"""
-    return render_template('raw_material.html')
+    """Raw material conditions page - Кондиції сировини (TA)"""
+    return render_template('steps/raw_material.html')
+
+@app.route('/style-sensory')
+def style_sensory_page():
+    """Sensory style page - Бажаний смаковий стиль"""
+    return render_template('steps/style_sensory.html')
+
+@app.route('/style-tech')
+def style_tech_page():
+    """Technical parameters page - Технічні параметри та стабільність"""
+    return render_template('steps/style_tech.html')
 
 @app.route('/wine-conditions')
 def wine_conditions_page():
@@ -277,7 +287,7 @@ def wine_description_page():
 @app.route('/scheme-type')
 def scheme_type_page():
     """Scheme type page - Схема"""
-    return render_template('scheme_type.html')
+    return render_template('steps/scheme_type.html')
 
 @app.route('/summary')
 def summary_page():
@@ -461,7 +471,7 @@ def restore_session():
     session.modified = True
     
     # Determine which page to redirect to based on the FIRST missing step
-    # Flow: color -> style -> style_co2 -> raw_material -> choice -> scheme_type -> summary -> technology_scheme
+    # Flow: color -> style -> style_co2 -> raw_material (TA) -> style_sensory -> style_tech -> summary -> technology_scheme
     
     if 'color' not in previous_data:
         return jsonify({'success': True, 'redirect': url_for('color_page')})
@@ -475,23 +485,14 @@ def restore_session():
     if 'raw_material' not in previous_data:
         return jsonify({'success': True, 'redirect': url_for('raw_material_page')})
     
-    if 'choice_path' not in previous_data:
-        return jsonify({'success': True, 'redirect': url_for('choice_page')})
+    if 'style_sensory' not in previous_data:
+        return jsonify({'success': True, 'redirect': url_for('style_sensory_page')})
     
-    # If user chose 'scheme' path
-    if previous_data.get('choice_path') == 'scheme':
-        if 'scheme_type' not in previous_data:
-            return jsonify({'success': True, 'redirect': url_for('scheme_type_page')})
-        
-        # All steps done, go to summary
-        return jsonify({'success': True, 'redirect': url_for('summary_page')})
+    if 'style_tech' not in previous_data:
+        return jsonify({'success': True, 'redirect': url_for('style_tech_page')})
     
-    # If user chose 'description' path (currently disabled, but handle it)
-    if previous_data.get('choice_path') == 'description':
-        return jsonify({'success': True, 'redirect': url_for('wine_description_page')})
-    
-    # Default: go to choice page
-    return jsonify({'success': True, 'redirect': url_for('choice_page')})
+    # All steps done, go to summary
+    return jsonify({'success': True, 'redirect': url_for('summary_page')})
 
 @app.route('/api/save-wine', methods=['POST'])
 def save_wine():

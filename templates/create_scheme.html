@@ -13,7 +13,7 @@
         </div>
         
         <div style="display: flex; justify-content: space-between; margin-top: 40px; gap: 15px;">
-            <button class="btn" onclick="window.location.href='/scheme-type'" style="background: #e0e0e0; color: #666;">
+            <button class="btn" onclick="window.location.href='/style-tech'" style="background: #e0e0e0; color: #666;">
                 ← Назад
             </button>
             <div style="display: flex; gap: 15px;">
@@ -37,29 +37,125 @@ async function loadSchemePreview() {
     
     let html = '<div class="scheme-data">';
     
-    if (data.color) {
+    // Блок 1: Сировина і схема бродіння
+    if (data.color_params) {
+        const cp = data.color_params;
+        const styleLabel = cp.expected_style || data.color || '';
+        if (styleLabel) {
+            html += `<div class="scheme-item"><strong>Сировина і колір:</strong> ${styleLabel}</div>`;
+        }
+        if (cp.fermentation_scheme) {
+            const fsMap = {
+                white: 'Біла',
+                red: 'Червона',
+                rose: 'Рожева',
+                orange: 'Orange',
+                blanc_de_noirs: 'Blanc de noirs'
+            };
+            const fsLabel = fsMap[cp.fermentation_scheme] || cp.fermentation_scheme;
+            html += `<div class="scheme-item"><strong>Схема бродіння:</strong> ${fsLabel}</div>`;
+        }
+    } else if (data.color) {
         html += `<div class="scheme-item"><strong>Колір:</strong> ${data.color}</div>`;
     }
     
-    if (data.style) {
-        html += `<div class="scheme-item"><strong>Стиль:</strong> ${data.style}</div>`;
+    // Блок 2: Стиль по солодкості та спирту
+    if (data.style_params) {
+        const sp = data.style_params;
+        const sweetMap = {
+            suhe: 'Сухе',
+            napivsuhe: 'Напівсухе',
+            napivsolodke: 'Напівсолодке',
+            desert: 'Десертне'
+        };
+        const abvMap = {
+            low: '9–11%',
+            mid: '11–13%',
+            high: '13–15%',
+            very_high: '15–17%'
+        };
+        const sweet = sweetMap[sp.sweetnessCategory] || sp.style || data.style || '';
+        const abv = abvMap[sp.alcoholCategory] || '';
+        if (sweet || abv) {
+            html += '<div class="scheme-section"><h3>Стиль по солодкості та спирту:</h3>';
+            if (sweet) html += `<div class="scheme-item"><strong>Солодкість:</strong> ${sweet}</div>`;
+            if (abv) html += `<div class="scheme-item"><strong>Цільова спиртуозність:</strong> ${abv}</div>`;
+            if (sp.S0 != null) html += `<div class="scheme-item">Початковий цукор сусла S₀: ${sp.S0} г/дм³</div>`;
+            if (sp.RS != null) html += `<div class="scheme-item">Залишковий цукор RS: ${sp.RS} г/дм³</div>`;
+            html += '</div>';
+        }
     }
     
+    // Блок 3: Стиль за CO2
     if (data.style_co2) {
-        const co2Label = typeof data.style_co2 === 'object' && data.style_co2.CO2_label ? data.style_co2.CO2_label : data.style_co2;
-        if (co2Label) html += `<div class="scheme-item"><strong>Стиль за CO2:</strong> ${co2Label}</div>`;
+        const sc = data.style_co2;
+        const co2Label = typeof sc === 'object' && sc.CO2_label ? sc.CO2_label : sc;
+        if (co2Label) {
+            html += '<div class="scheme-section"><h3>Стиль за CO₂:</h3>';
+            html += `<div class="scheme-item"><strong>Рівень CO₂:</strong> ${co2Label}</div>`;
+            if (typeof sc === 'object') {
+                if (sc.pressure_target != null) {
+                    html += `<div class="scheme-item">Цільовий тиск: ${sc.pressure_target} бар (20°C)</div>`;
+                }
+                if (sc.method_CO2_label) {
+                    html += `<div class="scheme-item">Метод отримання CO₂: ${sc.method_CO2_label}</div>`;
+                }
+                if (sc.packaging_label) {
+                    html += `<div class="scheme-item">Тара: ${sc.packaging_label}</div>`;
+                }
+                if (sc.sugar_for_secondary != null) {
+                    html += `<div class="scheme-item">Додатковий цукор на вторинне бродіння: ${sc.sugar_for_secondary} г/дм³</div>`;
+                }
+            }
+            html += '</div>';
+        }
     }
     
+    // Блок 4: Кислотність сировини (TA)
     if (data.raw_material) {
-        html += '<div class="scheme-section"><h3>Кондиції сировини:</h3>';
-        html += `<div class="scheme-item">Масова концентрація цукру: ${data.raw_material.sugar} г/дм³</div>`;
-        html += `<div class="scheme-item">Масова концентрація кислоти: ${data.raw_material.acidity} г/дм³</div>`;
+        const rm = data.raw_material;
+        html += '<div class="scheme-section"><h3>Кислотність сировини (TA):</h3>';
+        if (rm.TA_now != null) html += `<div class="scheme-item">Поточна TA: ${rm.TA_now} г/дм³ (винна кислота)</div>`;
+        if (rm.TA_target != null) html += `<div class="scheme-item">Цільова TA: ${rm.TA_target} г/дм³</div>`;
+        if (rm.reference_norm) html += `<div class="scheme-item">Референс-норма: ${rm.reference_norm}</div>`;
+        if (rm.correction_mode) html += `<div class="scheme-item">Режим корекції: ${rm.correction_mode}</div>`;
+        if (rm.delta_TA != null && rm.delta_TA !== 0) {
+            html += `<div class="scheme-item">План корекції ΔTA: ${rm.delta_TA.toFixed ? rm.delta_TA.toFixed(1) : rm.delta_TA} г/дм³</div>`;
+        }
         html += '</div>';
     }
     
+    // Блок 5: Бажаний смаковий стиль
+    if (data.style_sensory) {
+        const s = data.style_sensory;
+        html += '<div class="scheme-section"><h3>Бажаний смаковий стиль:</h3>';
+        html += `<div class="scheme-item">Сприйняття кислотності: ${s.perceivedAcidity ?? 50}/100</div>`;
+        html += `<div class="scheme-item">Алкогольне тепло: ${s.alcoholWarmth ?? 50}/100</div>`;
+        html += `<div class="scheme-item">Тіло: ${s.body ?? 50}/100, танінність: ${s.tannins ?? 40}/100, гіркота: ${s.bitterness ?? 30}/100</div>`;
+        html += `<div class="scheme-item">Ароматична інтенсивність: ${s.aromaIntensity ?? 60}/100, фруктовість: ${s.fruitiness ?? 60}/100</div>`;
+        html += `<div class="scheme-item">Тропічні/тіолові: ${s.tropical ?? 40}/100, квіткові/терпенові: ${s.floral ?? 40}/100, пряні/вторинні: ${s.spice ?? 40}/100</div>`;
+        html += `<div class="scheme-item">Дубовість: ${s.oak ?? 40}/100, стиль кисню: ${s.oxidation ?? 40}/100, MLF: ${s.malolactic ?? 50}/100, кремовість: ${s.creaminess ?? 50}/100</div>`;
+        html += '</div>';
+    }
+    
+    // Блок 6: Технічні параметри та стабільність
+    if (data.style_tech) {
+        const t = data.style_tech;
+        html += '<div class="scheme-section"><h3>Технічні параметри та стабільність:</h3>';
+        if (t.pH != null) html += `<div class="scheme-item">pH: ${t.pH}</div>`;
+        if (t.yanLevel) html += `<div class="scheme-item">YAN / живлення дріжджів: ${t.yanLevel}</div>`;
+        html += `<div class="scheme-item">SO₂-режим: ${t.so2Protection ?? 50}/100</div>`;
+        html += `<div class="scheme-item">Білкова стабілізація: ${t.proteinStab ?? 50}/100, тартратна: ${t.tartrateStab ?? 50}/100, фільтрація: ${t.filtrationLevel ?? 50}/100</div>`;
+        html += `<div class="scheme-item">Температура бродіння: ${t.fermentationTemp ?? 40}/100, живлення дріжджів: ${t.yeastNutrition ?? 50}/100</div>`;
+        html += `<div class="scheme-item">Контакт з осадом: ${t.leesContact ?? 50}/100, батонаж: ${t.batonnage ?? 40}/100</div>`;
+        html += `<div class="scheme-item">Мікробіологічний ризик: ${t.microRisk ?? 40}/100, ризик леткої: ${t.vaRisk ?? 40}/100</div>`;
+        html += '</div>';
+    }
+    
+    // Автоматично розраховані кондиції вина (якщо є)
     if (data.wine_conditions) {
         html += '<div class="scheme-section">';
-        html += '<h3>Кондиції вина:';
+        html += '<h3>Орієнтовні кондиції готового вина:';
         if (data.color === 'Біле') {
             html += ' <span style="font-size: 0.8em; font-style: italic; color: #667eea;">(розраховано автоматично)</span>';
         }
@@ -67,12 +163,6 @@ async function loadSchemePreview() {
         html += `<div class="scheme-item">Масова концентрація цукру: ${data.wine_conditions.sugar} г/дм³</div>`;
         html += `<div class="scheme-item">Масова концентрація кислоти: ${data.wine_conditions.acidity} г/дм³</div>`;
         html += `<div class="scheme-item">Масова концентрація спирту: ${data.wine_conditions.alcohol}% об.</div>`;
-        html += '</div>';
-    }
-    
-    if (data.wine_description && data.wine_description.length > 0) {
-        html += '<div class="scheme-section"><h3>Опис вина:</h3>';
-        html += `<div class="scheme-item">${data.wine_description.join(', ')}</div>`;
         html += '</div>';
     }
     

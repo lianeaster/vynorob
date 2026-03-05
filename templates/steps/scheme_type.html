@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Вибір - Vynorob{% endblock %}
+{% block title %}Схема - Vynorob{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -21,19 +21,17 @@
 {% block content %}
 <div class="step-page">
     <div class="card">
-        <div style="text-align: center; margin-bottom: 15px;">
-            <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 7 з 7</span>
-        </div>
-        <h1 class="title">Оберіть наступний крок</h1>
-        <p class="subtitle">Ви хочете додати опис вина чи вибрати схему виробництва?</p>
+        <h1 class="title">Схема</h1>
+        <p class="subtitle">Виберіть тип схеми виробництва</p>
         
         <div class="button-group">
-            <button class="btn btn-choice" id="choice-description" onclick="selectChoice('description')" disabled>Опис вина</button>
-            <button class="btn btn-choice" id="choice-scheme" onclick="selectChoice('scheme')">Схема</button>
+            <button class="btn btn-choice" id="choice-Біла" onclick="selectSchemeType('Біла')">Біла</button>
+            <button class="btn btn-choice" id="choice-Червона" onclick="selectSchemeType('Червона')">Червона</button>
+            <button class="btn btn-choice" id="choice-Змішана" onclick="selectSchemeType('Змішана')" disabled>Змішана</button>
         </div>
         
         <div style="display: flex; justify-content: space-between; margin-top: 40px; gap: 15px;">
-            <button class="btn" onclick="window.location.href='/raw-material'" style="background: #e0e0e0; color: #666;">
+            <button class="btn" onclick="window.location.href='/choice'" style="background: #e0e0e0; color: #666;">
                 ← Назад
             </button>
             <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled style="opacity: 0.5;">
@@ -44,10 +42,10 @@
 </div>
 
 <script>
-let selectedPath = null;
+let selectedScheme = null;
 
-async function selectChoice(path) {
-    selectedPath = path;
+async function selectSchemeType(scheme) {
+    selectedScheme = scheme;
     
     // Update button states
     document.querySelectorAll('.btn-choice').forEach(btn => {
@@ -57,7 +55,7 @@ async function selectChoice(path) {
         }
     });
     
-    const selectedBtn = document.getElementById('choice-' + path);
+    const selectedBtn = document.getElementById('choice-' + scheme);
     if (selectedBtn) {
         selectedBtn.style.opacity = '1';
         selectedBtn.style.transform = 'scale(1.05)';
@@ -70,25 +68,20 @@ async function selectChoice(path) {
 }
 
 async function goNext() {
-    if (!selectedPath) {
-        alert('Будь ласка, оберіть наступний крок');
+    if (!selectedScheme) {
+        alert('Будь ласка, оберіть тип схеми');
         return;
     }
     
-    await saveChoice('choice_path', selectedPath);
-    
-    if (selectedPath === 'description') {
-        window.location.href = '/wine-description';
-    } else if (selectedPath === 'scheme') {
-        window.location.href = '/scheme-type';
-    }
+    await saveChoice('scheme_type', selectedScheme);
+    window.location.href = '/summary';
 }
 
 // Load previous choice if exists
 window.addEventListener('DOMContentLoaded', async function() {
     const sessionData = await getSessionData();
-    if (sessionData.choice_path) {
-        selectChoice(sessionData.choice_path);
+    if (sessionData.scheme_type) {
+        selectSchemeType(sessionData.scheme_type);
     }
 });
 </script>
