@@ -45,7 +45,7 @@
                                 {% set choices = [] %}
                                 {% if scheme.color %}{% set _ = choices.append(scheme.color) %}{% endif %}
                                 {% if scheme.style %}{% set _ = choices.append(scheme.style) %}{% endif %}
-                                {% if scheme.style_co2 %}{% set _ = choices.append(scheme.style_co2) %}{% endif %}
+                                {% if scheme.style_co2 %}{% set _ = choices.append(scheme.style_co2.CO2_label if scheme.style_co2 is mapping else scheme.style_co2) %}{% endif %}
                                 {{ choices|join(' • ') if choices else 'Нова схема' }}
                                 {% if scheme.created_at %}
                                     {% set date_parts = scheme.created_at.split('T') %}

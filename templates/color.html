@@ -1,20 +1,56 @@
 {% extends "base.html" %}
 
-{% block title %}Колір вина - Vynorob{% endblock %}
+{% block title %}Сировина і стиль - Vynorob{% endblock %}
 
 {% block extra_css %}
 <style>
-    .btn-choice:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        background: #f0f0f0;
-        color: #999;
-        border-color: #ddd;
-    }
-    .btn-choice:disabled:hover {
-        transform: none;
-        box-shadow: none;
-    }
+    .step-page .card { max-width: 680px; margin: 0 auto; }
+    .block-title { font-size: 1rem; font-weight: 600; color: #3b1022; margin-bottom: 12px; }
+    .slider-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .slider-row label { min-width: 140px; font-size: 0.95rem; color: #555; }
+    .slider-wrap { flex: 1; min-width: 180px; position: relative; }
+    /* Градації на повзунку: сітка tick-ів */
+    .slider-ticks { position: relative; height: 10px; pointer-events: none; margin-top: 2px; }
+    .slider-ticks .tick { position: absolute; width: 2px; height: 10px; background: rgba(59, 16, 34, 0.5); border-radius: 1px; margin-left: -1px; top: 0; }
+    .slider-wrap input[type="range"] { position: relative; z-index: 2; margin-top: 0; }
+    input[type="range"] { width: 100%; height: 8px; -webkit-appearance: none; appearance: none; background: transparent; outline: none; }
+    input[type="range"]::-webkit-slider-runnable-track { height: 8px; background: linear-gradient(90deg, #e8ddd0, #722f3e); border-radius: 4px; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -7px; border-radius: 50%; background: linear-gradient(135deg, #722f3e, #4a1228); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    input[type="range"]::-moz-range-track { height: 8px; background: linear-gradient(90deg, #e8ddd0, #722f3e); border-radius: 4px; }
+    input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #722f3e, #4a1228); cursor: pointer; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .slider-hint { font-size: 12px; color: #6b4c5a; margin-top: 6px; line-height: 1.4; }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-top: 4px; }
+    .slider-anchors { display: flex; justify-content: space-between; font-size: 11px; color: #666; margin-top: 4px; padding: 0 2px; }
+    .slider-anchors span { text-align: center; }
+    .block { margin-bottom: 28px; }
+    /* Кнопки стилів */
+    .style-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
+    .style-btn { padding: 10px 16px; font-size: 0.9rem; border: 2px solid #d4af6e; border-radius: 10px; background: rgba(255,255,255,0.8); color: #3b1022; cursor: pointer; transition: all 0.25s ease; }
+    .style-btn:hover { background: rgba(212, 175, 110, 0.2); border-color: #722f3e; transform: translateY(-1px); }
+    .style-btn.active { background: linear-gradient(135deg, #722f3e, #4a1228); color: #faf5f0; border-color: #722f3e; box-shadow: 0 4px 12px rgba(114, 47, 62, 0.35); }
+    .expected-box { background: linear-gradient(135deg, #faf5f0 0%, #f5ebe0 100%); border: 2px solid #d4af6e; border-radius: 12px; padding: 16px 20px; margin: 20px 0 8px 0; text-align: center; }
+    .expected-label { font-size: 13px; color: #6b4c5a; margin-bottom: 6px; }
+    .expected-value { font-size: 1.35rem; font-weight: 700; color: #3b1022; }
+    .expected-note { font-size: 11px; color: #888; line-height: 1.4; margin-top: 10px; }
+    .warnings-box { margin-top: 16px; padding: 12px 16px; border-radius: 10px; background: rgba(255, 193, 7, 0.12); border: 1px solid rgba(205, 147, 0, 0.4); }
+    .warnings-box.empty { display: none; }
+    .warnings-box .warn-title { font-size: 12px; font-weight: 600; color: #856404; margin-bottom: 6px; }
+    .warnings-box ul { margin: 0; padding-left: 18px; font-size: 12px; color: #6b4c5a; line-height: 1.5; }
+    .warnings-box li { margin-bottom: 4px; }
+    .warnings-box .hint { font-size: 11px; color: #888; margin-top: 4px; }
+    .style-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .style-btn:disabled:hover { background: rgba(255,255,255,0.8); border-color: #d4af6e; }
+    .pressing-inline-tip { font-size: 11px; color: #722f3e; margin-top: 4px; font-style: italic; }
+    .pressing-inline-tip.hidden { display: none; }
+    /* Секція "Розширене" (згортання) */
+    .advanced-section { margin: 20px 0; border: 1px solid rgba(212, 175, 110, 0.5); border-radius: 12px; overflow: hidden; background: rgba(250, 245, 240, 0.6); }
+    .advanced-trigger { width: 100%; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; background: transparent; border: none; cursor: pointer; font-size: 0.95rem; font-weight: 600; color: #3b1022; text-align: left; transition: background 0.2s; }
+    .advanced-trigger:hover { background: rgba(212, 175, 110, 0.15); }
+    .advanced-trigger .chevron { display: inline-block; margin-left: 8px; transition: transform 0.25s ease; color: #722f3e; }
+    .advanced-section.open .advanced-trigger .chevron { transform: rotate(180deg); }
+    .advanced-content { display: none; padding: 20px 24px 24px; border-top: 1px solid rgba(212, 175, 110, 0.3); }
+    .advanced-section.open .advanced-content { display: block; }
+    .nav-buttons { display: flex; justify-content: space-between; margin-top: 32px; gap: 15px; align-items: center; }
 </style>
 {% endblock %}
 
@@ -24,20 +60,98 @@
         <div style="text-align: center; margin-bottom: 15px;">
             <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 1 з 7</span>
         </div>
-        <h1 class="title">Колір</h1>
-        <p class="subtitle">Виберіть колір вина</p>
-        
-        <div class="button-group">
-            <button class="btn btn-choice" id="choice-Біле" onclick="selectColor('Біле')">Біле</button>
-            <button class="btn btn-choice" id="choice-Червоне" onclick="selectColor('Червоне')">Червоне</button>
-            <button class="btn btn-choice" id="choice-Рожеве" onclick="selectColor('Рожеве')" disabled>Рожеве</button>
+        <h1 class="title">Сировина і базовий стиль</h1>
+        <p class="subtitle">Колір винограду, контакт зі шкіркою та пресування</p>
+
+        <!-- Кнопки стилів вина -->
+        <div class="style-buttons" id="styleButtons">
+            <button type="button" class="style-btn" data-style="white" title="Білий виноград, мінімальний контакт">Біле</button>
+            <button type="button" class="style-btn" data-style="orange" title="Білий виноград, довга мацерація">Помаранчеве</button>
+            <button type="button" class="style-btn" data-style="blanc_de_noirs" title="Чорний виноград, мінімальний контакт">Blanc de noirs</button>
+            <button type="button" class="style-btn" data-style="rose" title="Чорний виноград, середній контакт">Рожеве</button>
+            <button type="button" class="style-btn" data-style="red" title="Чорний виноград, повна мацерація">Червоне</button>
         </div>
-        
-        <div style="display: flex; justify-content: space-between; margin-top: 40px; gap: 15px;">
-            <button class="btn" onclick="window.location.href='{{ url_for('welcome_page') }}'" style="background: #e0e0e0; color: #666;">
+
+        <!-- Блок: Очікуваний результат -->
+        <div class="expected-box">
+            <div class="expected-label">Очікуваний колір/стиль:</div>
+            <div class="expected-value" id="expectedStyle">Біле (класика)</div>
+            <p class="expected-note" id="blancNote" style="display: none;">Blanc de noirs: потрібні швидкий віджим, мінімальний час до пресу, відсічення пізніх прес-фракцій — інакше буде рожевіти.</p>
+            <div class="warnings-box empty" id="warningsBox">
+                <div class="warn-title">Попередження / поради</div>
+                <ul id="warningsList"></ul>
+            </div>
+        </div>
+
+        <!-- Розширені налаштування (повзунки) -->
+        <div class="advanced-section" id="advancedSection">
+            <button type="button" class="advanced-trigger" id="advancedTrigger" aria-expanded="false" aria-controls="advancedContent">
+                <span>Розширене</span>
+                <span class="chevron" aria-hidden="true">▼</span>
+            </button>
+            <div class="advanced-content" id="advancedContent" role="region" aria-label="Розширені налаштування">
+                <!-- Блок 1. Колір винограду -->
+                <div class="block">
+                    <div class="block-title">Сировина</div>
+                    <div class="slider-row">
+                        <label for="grapeColor">Колір винограду:</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="grapeColor" name="grapeColor" min="0" max="100" value="0" step="5">
+                            <div class="slider-ticks grape" id="grapeTicks" aria-hidden="true"></div>
+                            <div class="slider-labels">
+                                <span>білий виноград</span>
+                                <span>чорний/червоний виноград</span>
+                            </div>
+                            <p class="slider-hint" id="grapeColorHint">Колір майбутнього вина визначається тим, чи є антоціани у шкірці. Білий виноград не дає червоного кольору без домішок/купажу.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Блок 2. Контакт зі шкіркою -->
+                <div class="block">
+                    <div class="block-title">Екстракція</div>
+                    <div class="slider-row">
+                        <label for="skinContact">Контакт зі шкіркою:</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="skinContact" name="skinContact" min="0" max="100" value="0" step="5">
+                            <div class="slider-ticks skin" id="skinTicks" aria-hidden="true"></div>
+                            <div class="slider-anchors">
+                                <span>0: прямий віджим</span>
+                                <span>30: коротка мацерація</span>
+                                <span>60: rosé style</span>
+                                <span>100: червоне</span>
+                            </div>
+                            <p class="slider-hint">Це визначає скільки кольору/танінів/фенолів перейде зі шкірки та насіння.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Блок 3. Пресування -->
+                <div class="block">
+                    <div class="block-title">Пресування / відбір фракцій</div>
+                    <div class="slider-row">
+                        <label for="pressing">Жорсткість пресування:</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="pressing" name="pressing" min="0" max="100" value="0" step="5">
+                            <div class="slider-ticks pressing" id="pressingTicks" aria-hidden="true"></div>
+                            <div class="slider-anchors">
+                                <span>0: самоплив</span>
+                                <span>50: стандартний прес</span>
+                                <span>100: жорстко + пізні фракції</span>
+                            </div>
+                            <p class="slider-hint">Пізні фракції майже завжди темніші й фенольніші. Для «white from black» — тримати ближче до 0.</p>
+                            <p class="pressing-inline-tip hidden" id="pressingInlineTip">Для білого з чорного краще тримати прес ≤ 30.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button type="button" class="btn" onclick="window.location.href='{{ url_for('welcome_page') }}'" style="background: #e0e0e0; color: #666;">
                 ← Назад
             </button>
-            <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled style="opacity: 0.5;">
+            <button type="button" class="btn btn-primary" id="nextBtn" onclick="goNext()">
                 Далі →
             </button>
         </div>
@@ -45,45 +159,275 @@
 </div>
 
 <script>
-let selectedColor = null;
+const grapeColorEl = document.getElementById('grapeColor');
+const skinContactEl = document.getElementById('skinContact');
+const pressingEl = document.getElementById('pressing');
+const expectedStyleEl = document.getElementById('expectedStyle');
+const blancNoteEl = document.getElementById('blancNote');
+const warningsBox = document.getElementById('warningsBox');
+const warningsList = document.getElementById('warningsList');
+const pressingInlineTip = document.getElementById('pressingInlineTip');
 
-async function selectColor(color) {
-    selectedColor = color;
-    
-    // Update button states
-    document.querySelectorAll('.btn-choice').forEach(btn => {
-        btn.style.opacity = '0.6';
-        btn.style.transform = 'scale(1)';
+// Пороги: G білий ≤25, чорний ≥75; E контакт; P прес
+var G_WHITE = 25, G_BLACK = 75;
+var E_BDN_MAX = 15;   // вище — blanc de noirs недоступний (H2)
+var P_PALE = 70;      // H3: при E>0 і P≥70 не показуємо "біле"
+var P_BDN_SAFE = 30;  // Auto3: порада "для білого з чорного краще ≤ 30"
+var P_RISK_BDN = 40;  // S1: ризик рожевіння при P≥40
+var E_HIGH = 70, P_HIGH = 70;  // S2 фенольна грубість
+var E_ORANGE = 60;    // S3 orange при білому
+var E_WHITE_TEXTURE = 25, P_WHITE_TEXTURE = 50;  // S7
+var E_ROSE_LO = 15, E_ROSE_HI = 45;  // S5 rosé зона
+var E_RED_SOFT = 60, P_SOFT_MAX = 20;  // S6
+
+function G() { return parseInt(grapeColorEl.value, 10); }
+function E() { return parseInt(skinContactEl.value, 10); }
+function P() { return parseInt(pressingEl.value, 10); }
+function isWhite() { return G() <= G_WHITE; }
+function isBlack() { return G() >= G_BLACK; }
+
+// Градації (тіки) на повзунках
+function renderTicks(containerId, values) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    values.forEach(function(v) {
+        var tick = document.createElement('span');
+        tick.className = 'tick';
+        tick.style.left = v + '%';
+        container.appendChild(tick);
     });
-    
-    const selectedBtn = document.getElementById('choice-' + color);
-    if (selectedBtn) {
-        selectedBtn.style.opacity = '1';
-        selectedBtn.style.transform = 'scale(1.05)';
-        selectedBtn.style.boxShadow = '0 8px 16px rgba(114, 47, 62, 0.3)';
+}
+renderTicks('grapeTicks', [0, 25, 50, 75, 100]);
+renderTicks('skinTicks', [0, 30, 60, 100]);
+renderTicks('pressingTicks', [0, 50, 100]);
+
+// Пресети з автокорекцією: [G, E, P]
+var STYLE_PRESETS = {
+    white:         [0, 0, 0],
+    orange:         [20, 65, 40],
+    blanc_de_noirs: [80, 5, 15],
+    rose:           [85, 35, 15],
+    red:            [90, 100, 50]
+};
+
+// ——— Жорсткі обмеження (H1–H3) + логіка індикатора ———
+function getExpectedStyle() {
+    var grape = G(), contact = E(), press = P();
+    var white = isWhite(), black = isBlack();
+    var minContact = contact < E_BDN_MAX;
+    var midContact = contact >= E_ROSE_LO && contact < 45;
+    var highContact = contact >= 45;
+
+    // H1: червоне неможливе з білого винограду; при високому контакті — orange
+    if (white && contact >= E_ORANGE) {
+        return { styleKey: 'orange', label: 'Помаранчеве/бурштинове (skin contact white)', color: 'Помаранчеве', showBlancNote: false };
     }
-    
-    // Enable next button
-    document.getElementById('nextBtn').disabled = false;
-    document.getElementById('nextBtn').style.opacity = '1';
+    if (white && (contact >= E_WHITE_TEXTURE || press >= P_WHITE_TEXTURE)) {
+        return { styleKey: 'white', label: 'Біле з текстурою', color: 'Біле', showBlancNote: false };
+    }
+    if (white) {
+        return { styleKey: 'white', label: 'Біле (класика)', color: 'Біле', showBlancNote: false };
+    }
+
+    // Чорний / змішаний
+    if (black && minContact && contact === 0 && press < P_PALE) {
+        return { styleKey: 'blanc_de_noirs', label: 'Blanc de noirs / дуже бліде', color: 'Біле', showBlancNote: true };
+    }
+    // H3: біле з чорного при E>0 і P≥70 — не показуємо "біле"
+    if (black && minContact && contact > 0 && press >= P_PALE) {
+        return { styleKey: 'pale_tint', label: 'Дуже бліде / з відтінком (pale rosé tint)', color: 'Рожеве', showBlancNote: false };
+    }
+    if (black && minContact) {
+        return { styleKey: 'blanc_de_noirs', label: 'Blanc de noirs / дуже бліде', color: 'Біле', showBlancNote: true };
+    }
+    // H2: середній/високий контакт — не blanc de noirs
+    if (black && contact >= E_BDN_MAX && contact < E_ROSE_HI) {
+        return { styleKey: 'rose', label: 'Рожеве', color: 'Рожеве', showBlancNote: false };
+    }
+    if (black && midContact) {
+        return { styleKey: 'rose', label: 'Рожеве', color: 'Рожеве', showBlancNote: false };
+    }
+    if (black && highContact) {
+        return { styleKey: 'red', label: 'Червоне', color: 'Червоне', showBlancNote: false };
+    }
+    return { styleKey: 'rose', label: 'Рожеве', color: 'Рожеве', showBlancNote: false };
+}
+
+// ——— М'які обмеження (S1–S7): попередження ———
+function getWarnings() {
+    var g = G(), e = E(), p = P();
+    var white = isWhite(), black = isBlack();
+    var list = [];
+
+    // S1: ризик рожевіння для blanc de noirs через прес
+    if (black && e <= E_BDN_MAX && p >= P_RISK_BDN) {
+        list.push({ text: 'Ризик рожевіння зростає через прес/пізні фракції.', hint: 'Залишайтесь ближче до самопливу/перших фракцій, мінімізуйте час до пресу.' });
+    }
+    // S2: висока фенольність при E≥70, P≥70
+    if (e >= E_HIGH && p >= P_HIGH) {
+        list.push({ text: 'Висока фенольність / гіркота / в\'яжучість.', hint: 'Відділяйте фракції пресу, не змішуйте пізні фракції в основну масу без дегустації.' });
+    }
+    // S3: білий + висока екстракція → orange/amber
+    if (white && e >= E_ORANGE) {
+        list.push({ text: 'Це буде orange/amber стиль, а не класичне біле.', hint: 'Контролюйте окиснення, феноли, гіркоту.' });
+    }
+    // S4: білий + жорсткий прес
+    if (white && p >= P_HIGH) {
+        list.push({ text: 'Більше грубих фенолів, потемніння, гіркота.', hint: 'Знизити прес, відсікати пізні фракції, працювати з осадом обережно.' });
+    }
+    // S6: чорний, високий контакт, дуже м\'який прес
+    if (black && e >= E_RED_SOFT && p <= P_SOFT_MAX) {
+        list.push({ text: 'Дуже м\'який відбір може дати легший стиль.', hint: 'Якщо хочеш більш щільне — збільш прес/фракції або тримай мацерацію.' });
+    }
+    // S7: біле вже не "ультра-чистий" при E≥25 або P≥50
+    if (white && (e >= E_WHITE_TEXTURE || p >= P_WHITE_TEXTURE) && e < E_ORANGE) {
+        list.push({ text: 'Це вже не ультра-чистий прямий віджим; з\'явиться текстура/феноли.', hint: null });
+    }
+    // Pset3: на чорному винограді orange/amber не типовий — інфо при середньому/високому контакті
+    if (black && e >= 30) {
+        list.push({ text: 'Orange/amber стиль зазвичай з білого винограду (skin contact); на чорному при такому контакті вийде червоне або рожеве.', hint: null });
+    }
+    // S3.2 (під ігристе): помаранчевий + spumante — фенольність під газом
+    var r = getExpectedStyle();
+    if (r.styleKey === 'orange') {
+        list.push({ text: 'Якщо плануєте ігристе вино: помаранчевий стиль дає високу ймовірність грубої фенольності/гіркоти під газом, стиль специфічний.', hint: 'Рекомендовано нижчий контакт або нижчий рівень CO2.' });
+    }
+    // S3.3 (під ігристе): червоне з високою екстракцією + газ
+    if (r.styleKey === 'red' && e >= 60) {
+        list.push({ text: 'Якщо плануєте перлант/фріззанте/ігристе: газ підсилює в\'яжучість танінів.', hint: 'Рекомендовано м\'якша екстракція або нижчий тиск.' });
+    }
+    return list;
+}
+
+function updateWarnings() {
+    var warnings = getWarnings();
+    warningsList.innerHTML = '';
+    if (warnings.length === 0) {
+        warningsBox.classList.add('empty');
+        return;
+    }
+    warningsBox.classList.remove('empty');
+    warnings.forEach(function(w) {
+        var li = document.createElement('li');
+        li.textContent = w.text;
+        if (w.hint) {
+            var span = document.createElement('span');
+            span.className = 'hint';
+            span.style.display = 'block';
+            span.textContent = w.hint;
+            li.appendChild(span);
+        }
+        warningsList.appendChild(li);
+    });
+}
+
+// Auto3: інлайн-порада біля повзунка пресу
+function updatePressingTip() {
+    if (isBlack() && E() <= E_BDN_MAX && P() > P_BDN_SAFE) {
+        pressingInlineTip.classList.remove('hidden');
+    } else {
+        pressingInlineTip.classList.add('hidden');
+    }
+}
+
+function updateExpectedStyle() {
+    var r = getExpectedStyle();
+    expectedStyleEl.textContent = r.label;
+    blancNoteEl.style.display = r.showBlancNote ? 'block' : 'none';
+    updateWarnings();
+    updatePressingTip();
+    return r.styleKey;
+}
+
+function canUsePreset(styleKey) {
+    var g = G();
+    if (styleKey === 'blanc_de_noirs' || styleKey === 'red') return g >= G_BLACK;
+    if (styleKey === 'orange') return true;
+    return true;
+}
+
+function updateStyleButtons(activeStyleKey) {
+    document.querySelectorAll('.style-btn').forEach(function(btn) {
+        var key = btn.getAttribute('data-style');
+        var disabled = false;
+        if (key === 'blanc_de_noirs') disabled = !canUsePreset('blanc_de_noirs');
+        if (key === 'red') disabled = !canUsePreset('red');
+        btn.disabled = disabled;
+        btn.title = disabled ? (key === 'red' ? 'Щоб зробити червоне, потрібен пігмент у шкірці (чорний виноград).' : 'Blanc de noirs потребує чорного винограду.') : btn.title;
+        btn.classList.toggle('active', !disabled && key === activeStyleKey);
+    });
+}
+
+function applyStyle(styleKey) {
+    if (document.querySelector('.style-btn[data-style="' + styleKey + '"]').disabled) return;
+    var preset = STYLE_PRESETS[styleKey];
+    if (!preset) return;
+    // Автокорекція: при виборі пресету виставляємо рекомендовані значення
+    grapeColorEl.value = preset[0];
+    skinContactEl.value = preset[1];
+    pressingEl.value = preset[2];
+    var styleKeyNow = updateExpectedStyle();
+    updateStyleButtons(styleKeyNow);
+}
+
+function onSlidersChange() {
+    var styleKey = updateExpectedStyle();
+    updateStyleButtons(styleKey);
+}
+
+grapeColorEl.addEventListener('input', onSlidersChange);
+skinContactEl.addEventListener('input', onSlidersChange);
+pressingEl.addEventListener('input', onSlidersChange);
+
+document.querySelectorAll('.style-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { applyStyle(btn.getAttribute('data-style')); });
+});
+
+var advancedSection = document.getElementById('advancedSection');
+var advancedTrigger = document.getElementById('advancedTrigger');
+if (advancedTrigger && advancedSection) {
+    advancedTrigger.addEventListener('click', function() {
+        var isOpen = advancedSection.classList.toggle('open');
+        advancedTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
 }
 
 async function goNext() {
-    if (!selectedColor) {
-        alert('Будь ласка, оберіть колір вина');
-        return;
-    }
-    
-    await saveChoice('color', selectedColor);
+    const grapeColor = parseInt(grapeColorEl.value, 10);
+    const skinContact = parseInt(skinContactEl.value, 10);
+    const pressing = parseInt(pressingEl.value, 10);
+    const r = getExpectedStyle();
+    const { label: expected_style, color, styleKey } = r;
+
+    const choice = {
+        grapeColor,
+        skinContact,
+        pressing,
+        expected_style,
+        color,
+        style_color_out: styleKey
+    };
+    await saveChoice('color', choice);
     window.location.href = '/style';
 }
 
-// Load previous choice if exists
 window.addEventListener('DOMContentLoaded', async function() {
     const sessionData = await getSessionData();
-    if (sessionData.color) {
-        selectColor(sessionData.color);
+    const params = sessionData.color_params;
+    const c = sessionData.color;
+    if (params && typeof params === 'object' && params.grapeColor !== undefined) {
+        grapeColorEl.value = params.grapeColor;
+        skinContactEl.value = params.skinContact ?? 0;
+        pressingEl.value = params.pressing ?? 0;
+    } else if (c && typeof c === 'string') {
+        if (c === 'Біле') { grapeColorEl.value = 0; skinContactEl.value = 0; }
+        else if (c === 'Червоне') { grapeColorEl.value = 100; skinContactEl.value = 100; }
+        else if (c === 'Рожеве') { grapeColorEl.value = 100; skinContactEl.value = 50; }
+        pressingEl.value = 0;
     }
+    var styleKey = updateExpectedStyle();
+    updateStyleButtons(styleKey);
 });
 </script>
 {% endblock %}

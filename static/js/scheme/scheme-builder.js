@@ -43,7 +43,8 @@ class SchemeBuilder {
     getSchemeType() {
         const color = this.wineData.color || '';
         const style = this.wineData.style || '';
-        const styleCO2 = this.wineData.style_co2 || '';
+        const sc2 = this.wineData.style_co2;
+        const styleCO2 = (typeof sc2 === 'object' && sc2 && sc2.CO2_label) ? sc2.CO2_label : (sc2 || '');
         const schemeType = this.wineData.scheme_type || '';
         
         // Validate this is a supported wine type

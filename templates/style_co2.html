@@ -4,17 +4,40 @@
 
 {% block extra_css %}
 <style>
-    .btn-choice:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        background: #f0f0f0;
-        color: #999;
-        border-color: #ddd;
-    }
-    .btn-choice:disabled:hover {
-        transform: none;
-        box-shadow: none;
-    }
+    .step-page .card { max-width: 680px; margin: 0 auto; }
+    .form-row { margin-bottom: 20px; }
+    .form-row label { display: block; font-size: 0.95rem; font-weight: 600; color: #3b1022; margin-bottom: 8px; }
+    .co2-buttons, .packaging-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .co2-btn, .packaging-btn { padding: 8px 14px; font-size: 0.9rem; border-radius: 10px; border: 2px solid #d4af6e; background: rgba(255,255,255,0.95); color: #3b1022; cursor: pointer; transition: all 0.2s; }
+    .co2-btn:hover, .packaging-btn:hover { background: rgba(212, 175, 110, 0.15); border-color: #722f3e; }
+    .co2-btn.active, .packaging-btn.active { background: linear-gradient(135deg, #722f3e, #4a1228); color: #faf5f0; border-color: #722f3e; }
+    .co2-btn:disabled, .packaging-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-box { background: linear-gradient(135deg, #faf5f0 0%, #f5ebe0 100%); border: 2px solid #d4af6e; border-radius: 12px; padding: 16px 20px; margin: 20px 0; }
+    .result-box.ok { border-color: #2e7d32; background: rgba(46, 125, 50, 0.08); }
+    .result-box.conflict { border-color: #b23b25; background: rgba(178, 59, 37, 0.08); }
+    .result-box .status-msg { font-size: 0.95rem; color: #555; margin-top: 8px; }
+    .result-box .warnings-list { margin-top: 8px; font-size: 0.9rem; color: #856404; list-style: none; padding: 0; }
+    .result-box .warnings-list li { margin-bottom: 4px; }
+    .btn-inline { margin-top: 10px; margin-right: 8px; padding: 8px 14px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; border: 1px solid #722f3e; background: #fff; color: #722f3e; }
+    .btn-inline:hover { background: rgba(114, 47, 62, 0.1); }
+    .conflict-actions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .hidden { display: none !important; }
+    .slider-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .slider-wrap { flex: 1; min-width: 200px; }
+    .slider-hint { font-size: 11px; color: #6b4c5a; margin-top: 4px; }
+    .nav-buttons { display: flex; justify-content: space-between; margin-top: 32px; gap: 15px; align-items: center; }
+    select.form-control { width: 100%; max-width: 320px; padding: 10px 12px; font-size: 0.95rem; border: 2px solid rgba(212, 175, 110, 0.6); border-radius: 10px; background: #fff; color: #3b1022; }
+    input[type="number"].form-control { width: 100%; max-width: 120px; padding: 10px 12px; font-size: 0.95rem; border: 2px solid rgba(212, 175, 110, 0.6); border-radius: 10px; }
+    .advanced-section { margin: 20px 0; border: 1px solid rgba(212, 175, 110, 0.5); border-radius: 12px; overflow: hidden; background: rgba(250, 245, 240, 0.6); }
+    .advanced-trigger { width: 100%; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; background: transparent; border: none; cursor: pointer; font-size: 0.95rem; font-weight: 600; color: #3b1022; text-align: left; }
+    .advanced-trigger:hover { background: rgba(212, 175, 110, 0.15); }
+    .advanced-trigger .chevron { transition: transform 0.25s ease; color: #722f3e; }
+    .advanced-section.open .advanced-trigger .chevron { transform: rotate(180deg); }
+    .advanced-content { display: none; padding: 20px 24px 24px; border-top: 1px solid rgba(212, 175, 110, 0.3); }
+    .advanced-section.open .advanced-content { display: block; }
+    .result-box .abv-secondary { font-size: 0.95rem; color: #3b1022; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(212, 175, 110, 0.4); }
+    .result-box .abv-secondary .abv-value { font-weight: 700; }
+    .result-box .abv-secondary .hint { font-size: 0.85rem; color: #6b4c5a; margin-top: 4px; }
 </style>
 {% endblock %}
 
@@ -25,66 +48,456 @@
             <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 3 з 7</span>
         </div>
         <h1 class="title">Стиль за CO2</h1>
-        <p class="subtitle">Виберіть стиль вина за вмістом CO2</p>
-        
-        <div class="button-group">
-            <button class="btn btn-choice" id="choice-Тихе" onclick="selectStyleCO2('Тихе')">Тихе</button>
-            <button class="btn btn-choice" id="choice-Ігристе" onclick="selectStyleCO2('Ігристе')" disabled>Ігристе</button>
+        <p class="subtitle">Тихе, перлант, фріззанте або ігристе — тиск, метод і тара</p>
+
+        <div class="form-row">
+            <label>Рівень CO2</label>
+            <div class="co2-buttons" id="co2Buttons">
+                <button type="button" class="co2-btn" data-co2="still">Тихе</button>
+                <button type="button" class="co2-btn" data-co2="perlant">Перлант</button>
+                <button type="button" class="co2-btn" data-co2="frizzante">Фріззанте</button>
+                <button type="button" class="co2-btn" data-co2="spumante">Ігристе</button>
+            </div>
         </div>
-        
-        <div style="display: flex; justify-content: space-between; margin-top: 40px; gap: 15px;">
-            <button class="btn" onclick="window.location.href='/style'" style="background: #e0e0e0; color: #666;">
-                ← Назад
+
+        <div class="form-row">
+            <label for="pressureSlider">Цільовий тиск (бар, 20°C)</label>
+            <div class="slider-wrap">
+                <input type="range" id="pressureSlider" min="0" max="50" value="0" step="1">
+                <span id="pressureValue" style="font-weight: 600;">0.0 бар</span>
+                <p class="slider-hint">Зони: тихе 0–0.5, перлант 0.5–1, фріззанте 1–2.5, ігристе 3–6.</p>
+            </div>
+        </div>
+
+        <div class="advanced-section" id="advancedSection">
+            <button type="button" class="advanced-trigger" id="advancedTrigger" aria-expanded="false">
+                <span>Розширене</span>
+                <span class="chevron">▼</span>
             </button>
-            <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled style="opacity: 0.5;">
-                Далі →
-            </button>
+            <div class="advanced-content" id="advancedContent">
+                <div class="form-row">
+                    <label for="methodCO2">Метод отримання CO2</label>
+                    <select id="methodCO2" class="form-control">
+                        <option value="natural">Зберегти природний</option>
+                        <option value="carbonation">Карбонізація (ін'єкція)</option>
+                        <option value="tank">Вторинне бродіння в танку (шармат)</option>
+                        <option value="bottle">Вторинне бродіння в пляшці (класика)</option>
+                        <option value="petnat">Пет-нат</option>
+                    </select>
+                </div>
+                <div class="form-row hidden" id="sugarSecondaryRow">
+                    <label for="sugarSecondary">Додатковий цукор на вторинне бродіння (г/дм³)</label>
+                    <input type="number" id="sugarSecondary" class="form-control" min="15" max="30" value="22" step="1">
+                    <p class="slider-hint">Цукор, який ви додаєте у базове вино (доза для тиску); зброджується в CO₂. Не плутати з залишковим цукром (RS). Типово 20–24 г/дм³.</p>
+                </div>
+                <div class="form-row">
+                    <label>Тара / закупорка</label>
+                    <div class="packaging-buttons" id="packagingButtons">
+                        <button type="button" class="packaging-btn" data-pack="still">Тара для тихого</button>
+                        <button type="button" class="packaging-btn" data-pack="sparkling">Тара для ігристого</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-box" id="resultBox">
+            <div class="status-msg" id="statusMsg"></div>
+            <div class="abv-secondary hidden" id="abvSecondaryBlock">
+                <div class="abv-value" id="abvSecondaryValue"></div>
+                <p class="hint" id="abvSecondaryHint">Додатковий цукор зброджується і підвищує міцність приблизно на 1–1,5% об.</p>
+            </div>
+            <ul class="warnings-list hidden" id="warningsList"></ul>
+            <div class="conflict-actions hidden" id="conflictActions"></div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn" type="button" onclick="window.location.href='/style'" style="background: #e0e0e0; color: #666;">← Назад</button>
+            <button class="btn btn-primary" id="nextBtn" type="button">Далі →</button>
         </div>
     </div>
 </div>
 
 <script>
-let selectedStyleCO2 = null;
+(function() {
+var CO2_LEVELS = {
+    still:     { label: 'Тихе',     pMin: 0,   pMax: 0.5 },
+    perlant:   { label: 'Перлант',  pMin: 0.5, pMax: 1 },
+    frizzante: { label: 'Фріззанте', pMin: 1,   pMax: 2.5 },
+    spumante:  { label: 'Ігристе',  pMin: 3,   pMax: 6 }
+};
+var PRESSURE_STEP = 0.1;
+var METHOD_NATURAL = 'natural';
+var METHOD_CARBONATION = 'carbonation';
+var METHOD_TANK = 'tank';
+var METHOD_BOTTLE = 'bottle';
+var METHOD_PETNAT = 'petnat';
+var SECONDARY_METHODS = [METHOD_TANK, METHOD_BOTTLE, METHOD_PETNAT];
+var K_ABV = 16.8;
 
-async function selectStyleCO2(styleCO2) {
-    selectedStyleCO2 = styleCO2;
-    
-    // Update button states
-    document.querySelectorAll('.btn-choice').forEach(btn => {
-        if (!btn.disabled) {
-            btn.style.opacity = '0.6';
-            btn.style.transform = 'scale(1)';
-        }
-    });
-    
-    const selectedBtn = document.getElementById('choice-' + styleCO2);
-    if (selectedBtn) {
-        selectedBtn.style.opacity = '1';
-        selectedBtn.style.transform = 'scale(1.05)';
-        selectedBtn.style.boxShadow = '0 8px 16px rgba(114, 47, 62, 0.3)';
-    }
-    
-    // Enable next button
-    document.getElementById('nextBtn').disabled = false;
-    document.getElementById('nextBtn').style.opacity = '1';
+var co2Buttons = document.querySelectorAll('.co2-btn');
+var packagingButtons = document.querySelectorAll('.packaging-btn');
+var pressureSlider = document.getElementById('pressureSlider');
+var pressureValue = document.getElementById('pressureValue');
+var methodCO2 = document.getElementById('methodCO2');
+var sugarSecondary = document.getElementById('sugarSecondary');
+var sugarSecondaryRow = document.getElementById('sugarSecondaryRow');
+var resultBox = document.getElementById('resultBox');
+var statusMsg = document.getElementById('statusMsg');
+var warningsList = document.getElementById('warningsList');
+var conflictActions = document.getElementById('conflictActions');
+var abvSecondaryBlock = document.getElementById('abvSecondaryBlock');
+var abvSecondaryValue = document.getElementById('abvSecondaryValue');
+
+var co2Level = 'still';
+var packaging = 'still';
+
+function getPressureBar() {
+    var v = parseFloat(pressureSlider.value);
+    return isNaN(v) ? 0 : v / 10;
 }
 
-async function goNext() {
-    if (!selectedStyleCO2) {
-        alert('Будь ласка, оберіть стиль за CO2');
+function setPressureFromBar(bar) {
+    var v = Math.round(bar * 10);
+    pressureSlider.value = v;
+    pressureValue.textContent = (v / 10).toFixed(1) + ' бар';
+}
+
+function snapPressureToZone() {
+    var bar = getPressureBar();
+    var co = CO2_LEVELS[co2Level];
+    if (bar < co.pMin) setPressureFromBar(co.pMin);
+    else if (bar > co.pMax) setPressureFromBar(co.pMax);
+    else if (bar > 2.5 && bar < 3) {
+        setPressureFromBar(co2Level === 'spumante' ? 3 : 2.5);
+    }
+}
+
+function updatePressureSliderRange() {
+    var co = CO2_LEVELS[co2Level];
+    var barNow = getPressureBar();
+    var barClamped = Math.max(co.pMin, Math.min(co.pMax, barNow));
+    if (barClamped > 2.5 && barClamped < 3) barClamped = co2Level === 'spumante' ? 3 : 2.5;
+    pressureSlider.min = Math.round(co.pMin * 10);
+    pressureSlider.max = Math.round(co.pMax * 10);
+    pressureSlider.step = 1;
+    setPressureFromBar(barClamped);
+}
+
+function isSecondaryMethod() {
+    return SECONDARY_METHODS.indexOf(methodCO2.value) >= 0;
+}
+
+function updateSugarSecondaryVisibility() {
+    sugarSecondaryRow.classList.toggle('hidden', !isSecondaryMethod());
+}
+
+function getMethodsForCO2() {
+    if (co2Level === 'still') return ['natural', 'carbonation'];
+    if (co2Level === 'perlant' || co2Level === 'frizzante') return ['natural', 'carbonation', 'tank', 'petnat'];
+    return ['carbonation', 'tank', 'bottle', 'petnat'];
+}
+
+function updateMethodCO2Options() {
+    var allowed = getMethodsForCO2();
+    var cur = methodCO2.value;
+    Array.from(methodCO2.options).forEach(function(opt) {
+        var v = opt.value;
+        opt.disabled = allowed.indexOf(v) < 0;
+        if (opt.disabled && cur === v) methodCO2.value = allowed[0];
+    });
+    updateSugarSecondaryVisibility();
+}
+
+function updatePackagingFromCO2() {
+    if (co2Level === 'spumante') {
+        packaging = 'sparkling';
+        packagingButtons.forEach(function(btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-pack') === 'sparkling');
+            btn.disabled = btn.getAttribute('data-pack') === 'still';
+        });
+    } else {
+        packagingButtons.forEach(function(btn) {
+            btn.disabled = false;
+            btn.classList.toggle('active', btn.getAttribute('data-pack') === packaging);
+        });
+    }
+}
+
+function getSessionStyleParams() {
+    return window._sessionStyleParams || {};
+}
+
+function getSessionColorParams() {
+    return window._sessionColorParams || {};
+}
+
+function getRSFinal() {
+    var sp = getSessionStyleParams();
+    var rs = sp.RS;
+    return rs !== undefined && rs !== null ? parseFloat(rs) : null;
+}
+
+function getStyleColorOut() {
+    var cp = getSessionColorParams();
+    return cp.style_color_out || null;
+}
+
+function getABVTargetRange() {
+    var sp = getSessionStyleParams();
+    var key = sp.alcoholCategory;
+    var ranges = { low: [9, 11], mid: [11, 13], high: [13, 15], very_high: [15, 17] };
+    return key && ranges[key] ? ranges[key] : null;
+}
+
+function getSweetnessCategory() {
+    var sp = getSessionStyleParams();
+    return sp.sweetnessCategory || null;
+}
+
+function isDessert() {
+    return getSweetnessCategory() === 'desert';
+}
+
+function getABVEstFromStep2() {
+    var sp = getSessionStyleParams();
+    var s0 = sp.S0;
+    var rs = sp.RS;
+    if (s0 == null || s0 === undefined || rs == null || rs === undefined) return null;
+    return (parseFloat(s0) - parseFloat(rs)) / K_ABV;
+}
+
+function updateResult() {
+    resultBox.classList.remove('ok', 'conflict');
+    conflictActions.classList.add('hidden');
+    conflictActions.innerHTML = '';
+    warningsList.classList.add('hidden');
+    warningsList.innerHTML = '';
+    statusMsg.textContent = '';
+    if (abvSecondaryBlock) abvSecondaryBlock.classList.add('hidden');
+
+    var pressureBar = getPressureBar();
+
+    // H3.1: тиха тара не дозволяє тиск > 0.5
+    if (packaging === 'still' && pressureBar > 0.5) {
+        resultBox.classList.add('conflict');
+        statusMsg.textContent = 'Тиск вище 0.5 бар небезпечний для тари, не призначеної для тиску. Оберіть «Тара для ігристого» або знизьте тиск.';
+        var btnPack = document.createElement('button');
+        btnPack.type = 'button';
+        btnPack.className = 'btn-inline';
+        btnPack.textContent = 'Перемкнути на тару для ігристого';
+        btnPack.onclick = function() { packaging = 'sparkling'; updatePackagingFromCO2(); updateResult(); packagingButtons.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-pack') === 'sparkling'); }); };
+        conflictActions.appendChild(btnPack);
+        conflictActions.classList.remove('hidden');
         return;
     }
-    
-    await saveChoice('style_co2', selectedStyleCO2);
-    window.location.href = '/raw-material';
+
+    // H3.4: still не дозволяє вторинне бродіння
+    if (co2Level === 'still' && isSecondaryMethod()) {
+        resultBox.classList.add('conflict');
+        statusMsg.textContent = 'Для тихого вина неможливо обрати вторинне бродіння. Оберіть «Зберегти природний» або «Карбонізація».';
+        conflictActions.classList.remove('hidden');
+        return;
+    }
+
+    // H3.3: spumante + вторинне + RS_final > 25
+    var rsFinal = getRSFinal();
+    if (co2Level === 'spumante' && isSecondaryMethod() && rsFinal !== null && rsFinal > 25) {
+        resultBox.classList.add('conflict');
+        statusMsg.textContent = 'При високому залишковому цукрі (' + rsFinal + ' г/дм³) та вторинному бродінні ризик неконтрольованої реферментації. Знизьте RS на кроці 2 до ≤25, оберіть карбонізацію або використовуйте дозаж (розширена модель).';
+        var btnCarb = document.createElement('button');
+        btnCarb.type = 'button';
+        btnCarb.className = 'btn-inline';
+        btnCarb.textContent = 'Перемкнути на карбонізацію';
+        btnCarb.onclick = function() { methodCO2.value = 'carbonation'; updateMethodCO2Options(); updateResult(); };
+        conflictActions.appendChild(btnCarb);
+        conflictActions.classList.remove('hidden');
+        return;
+    }
+
+    resultBox.classList.add('ok');
+    statusMsg.textContent = 'Комбінація допустима.';
+
+    if (abvSecondaryBlock) {
+        if (isSecondaryMethod()) {
+            var abvBase = getABVEstFromStep2();
+            var sugarAdd = parseFloat(sugarSecondary.value) || 22;
+            var abvFromSugar = sugarAdd / K_ABV;
+            abvSecondaryBlock.classList.remove('hidden');
+            if (abvBase !== null && !isNaN(abvBase)) {
+                var abvFinal = abvBase + abvFromSugar;
+                abvSecondaryValue.textContent = 'Орієнтовна міцність після вторинного бродіння: близько ' + abvFinal.toFixed(1) + ' % об. (базове вино ' + abvBase.toFixed(1) + ' % + від додаткового цукру приблизно ' + abvFromSugar.toFixed(1) + ' %)';
+            } else {
+                abvSecondaryValue.textContent = 'Орієнтовна міцність після вторинного бродіння: введіть S0 та RS на кроці 2 для розрахунку. Від ' + sugarAdd + ' г/дм³ додаткового цукру — приблизно +' + abvFromSugar.toFixed(1) + ' % об.';
+            }
+        } else {
+            abvSecondaryBlock.classList.add('hidden');
+        }
+    }
+
+    var warnings = [];
+
+    // S2.1: spumante + ABV 15-17%
+    var abvRange = getABVTargetRange();
+    if (co2Level === 'spumante' && abvRange && abvRange[0] >= 15) {
+        warnings.push('Дуже висока спиртуозність для ігристого: газ підсилює відчуття «тепла», баланс складний.');
+    }
+    // S2.2: spumante + десертне
+    if (co2Level === 'spumante' && isDessert()) {
+        warnings.push('Десертне ігристе — технологічно складно. Потрібна максимальна стабілізація та відповідний метод/тара.');
+    }
+    // S3.1: RS ≥ 30 і CO2 ≥ frizzante
+    if (rsFinal !== null && rsFinal >= 30 && (co2Level === 'frizzante' || co2Level === 'spumante')) {
+        var s = 'Ризик реферментації в упаковці при високому RS та газі. Контроль стабільності обов\'язковий.';
+        if (methodCO2.value === 'carbonation') s += ' Карбонізація не «з\'їдає» ризик повторного бродіння.';
+        warnings.push(s);
+    }
+    // S3.2: orange + spumante
+    var styleColor = getStyleColorOut();
+    if (styleColor === 'orange' && co2Level === 'spumante') {
+        warnings.push('Помаранчевий стиль + ігристе: фенольність і газ часто дають жорсткість/гіркоту, стиль на любителя.');
+    }
+    // S3.3: червоне з високою екстракцією + CO2 ≥ frizzante (спрощено: червоне)
+    if (styleColor === 'red' && (co2Level === 'frizzante' || co2Level === 'spumante')) {
+        warnings.push('Червоне з газом: газ підсилює в\'яжучість танінів; рекомендовано м\'якша екстракція або нижчий тиск.');
+    }
+    // S3.4: ABV 15-17 + CO2 ≥ frizzante
+    if (abvRange && abvRange[0] >= 15 && (co2Level === 'frizzante' || co2Level === 'spumante')) {
+        warnings.push('Висока спиртуозність під газом буде сильніше відчуватись («тепло»).');
+    }
+
+    if (warnings.length > 0) {
+        warningsList.classList.remove('hidden');
+        warnings.forEach(function(t) {
+            var li = document.createElement('li');
+            li.textContent = t;
+            warningsList.appendChild(li);
+        });
+    }
 }
 
-// Load previous choice if exists
-window.addEventListener('DOMContentLoaded', async function() {
-    const sessionData = await getSessionData();
-    if (sessionData.style_co2) {
-        selectStyleCO2(sessionData.style_co2);
-    }
+function onParamsChange() {
+    snapPressureToZone();
+    updateMethodCO2Options();
+    updatePackagingFromCO2();
+    updateResult();
+}
+
+co2Buttons.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        if (btn.disabled) return;
+        co2Level = btn.getAttribute('data-co2');
+        co2Buttons.forEach(function(b) { b.classList.toggle('active', b === btn); });
+        updatePressureSliderRange();
+        updatePackagingFromCO2();
+        onParamsChange();
+    });
 });
+
+packagingButtons.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        if (btn.disabled) return;
+        packaging = btn.getAttribute('data-pack');
+        packagingButtons.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-pack') === packaging); });
+        onParamsChange();
+    });
+});
+
+pressureSlider.addEventListener('input', function() {
+    setPressureFromBar(getPressureBar());
+    snapPressureToZone();
+    updateResult();
+});
+
+methodCO2.addEventListener('change', function() {
+    updateSugarSecondaryVisibility();
+    onParamsChange();
+});
+
+sugarSecondary.addEventListener('input', onParamsChange);
+sugarSecondary.addEventListener('change', onParamsChange);
+
+document.getElementById('advancedTrigger').addEventListener('click', function() {
+    document.getElementById('advancedSection').classList.toggle('open');
+});
+
+function buildChoice() {
+    var pressureBar = getPressureBar();
+    var co2Label = CO2_LEVELS[co2Level] ? CO2_LEVELS[co2Level].label : co2Level;
+    var methodLabels = {
+        natural: 'Зберегти природний',
+        carbonation: 'Карбонізація',
+        tank: 'Вторинне в танку (шармат)',
+        bottle: 'Вторинне в пляшці (класика)',
+        petnat: 'Пет-нат'
+    };
+    var packLabel = packaging === 'sparkling' ? 'Тара для ігристого' : 'Тара для тихого';
+    return {
+        CO2_level: co2Level,
+        CO2_label: co2Label,
+        pressure_target: Math.round(pressureBar * 10) / 10,
+        method_CO2: methodCO2.value,
+        method_CO2_label: methodLabels[methodCO2.value] || methodCO2.value,
+        packaging: packaging,
+        packaging_label: packLabel,
+        sugar_for_secondary: isSecondaryMethod() ? parseFloat(sugarSecondary.value) || 22 : null
+    };
+}
+
+function goNext() {
+    if (packaging === 'still' && getPressureBar() > 0.5) return;
+    if (co2Level === 'still' && isSecondaryMethod()) return;
+    var choice = buildChoice();
+    saveChoice('style_co2', choice).then(function() {
+        window.location.href = '/raw-material';
+    });
+}
+
+document.getElementById('nextBtn').addEventListener('click', goNext);
+
+window.addEventListener('DOMContentLoaded', async function() {
+    var sessionData = await getSessionData();
+    window._sessionStyleParams = sessionData.style_params || {};
+    window._sessionColorParams = sessionData.color_params || {};
+
+    if (sessionData.style_co2 && typeof sessionData.style_co2 === 'object') {
+        var sc = sessionData.style_co2;
+        if (sc.CO2_level && CO2_LEVELS[sc.CO2_level]) {
+            co2Level = sc.CO2_level;
+            co2Buttons.forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-co2') === co2Level);
+            });
+        }
+        if (sc.pressure_target != null) setPressureFromBar(sc.pressure_target);
+        if (sc.method_CO2) methodCO2.value = sc.method_CO2;
+        if (sc.packaging) {
+            packaging = sc.packaging;
+            packagingButtons.forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-pack') === packaging);
+                b.disabled = co2Level === 'spumante' && b.getAttribute('data-pack') === 'still';
+            });
+        }
+        if (sc.sugar_for_secondary != null) sugarSecondary.value = sc.sugar_for_secondary;
+    } else if (sessionData.style_co2 === 'Тихе') {
+        co2Level = 'still';
+        packaging = 'still';
+        co2Buttons.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-co2') === 'still'); });
+        packagingButtons.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-pack') === 'still'); });
+    } else if (sessionData.style_co2 === 'Ігристе') {
+        co2Level = 'spumante';
+        packaging = 'sparkling';
+        co2Buttons.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-co2') === 'spumante'); });
+        packagingButtons.forEach(function(b) {
+            b.classList.toggle('active', b.getAttribute('data-pack') === 'sparkling');
+            b.disabled = b.getAttribute('data-pack') === 'still';
+        });
+    }
+
+    updatePressureSliderRange();
+    updateMethodCO2Options();
+    updatePackagingFromCO2();
+    updateSugarSecondaryVisibility();
+    updateResult();
+});
+})();
 </script>
 {% endblock %}

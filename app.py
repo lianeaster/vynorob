@@ -123,7 +123,10 @@ def find_schema_for_wine(wine_data):
         
         # Check if all parameters match
         for key, value in params.items():
-            if wine_data.get(key) != value:
+            data_val = wine_data.get(key)
+            if key == 'style_co2' and isinstance(data_val, dict):
+                data_val = data_val.get('CO2_label') or data_val.get('CO2_level')
+            if data_val != value:
                 match = False
                 break
         
@@ -341,12 +344,27 @@ def save_choice():
         if 'status' not in session['wine_data']:
             session['wine_data']['status'] = 'in_progress'
         
-        session['wine_data'][step] = choice
-        
-        # Also save to previous_wine_data for "continue" functionality
-        if 'previous_wine_data' not in session:
-            session['previous_wine_data'] = {}
-        session['previous_wine_data'][step] = choice
+        # Step "color" saves an object; store both color_params (for form) and color (string for schema/display)
+        if step == 'color' and isinstance(choice, dict):
+            session['wine_data']['color_params'] = choice
+            session['wine_data']['color'] = choice.get('color') or choice.get('expected_style') or 'Біле'
+            if 'previous_wine_data' not in session:
+                session['previous_wine_data'] = {}
+            session['previous_wine_data']['color_params'] = choice
+            session['previous_wine_data']['color'] = session['wine_data']['color']
+        # Step "style" can also save an object with additional parameters
+        elif step == 'style' and isinstance(choice, dict):
+            session['wine_data']['style_params'] = choice
+            session['wine_data']['style'] = choice.get('style') or 'Сухе'
+            if 'previous_wine_data' not in session:
+                session['previous_wine_data'] = {}
+            session['previous_wine_data']['style_params'] = choice
+            session['previous_wine_data']['style'] = session['wine_data']['style']
+        else:
+            session['wine_data'][step] = choice
+            if 'previous_wine_data' not in session:
+                session['previous_wine_data'] = {}
+            session['previous_wine_data'][step] = choice
         
         # Save to database
         wines = []

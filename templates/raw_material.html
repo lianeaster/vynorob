@@ -4,63 +4,36 @@
 
 {% block extra_css %}
 <style>
-    .form-button-group {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-top: 30px;
-    }
-    
-    .info-icon {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 24px;
-        height: 24px;
-        background: linear-gradient(135deg, #722f3e 0%, #8b3a52 100%);
-        color: white;
-        border-radius: 50%;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: help;
-        font-style: italic;
-    }
-    
-    .info-tooltip {
-        position: absolute;
-        bottom: 35px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: linear-gradient(135deg, #722f3e 0%, #8b3a52 100%);
-        color: white;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 14px;
-        white-space: nowrap;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-        pointer-events: none;
-        z-index: 1000;
-        box-shadow: 0 4px 15px rgba(114, 47, 62, 0.4);
-        border: 1px solid rgba(212, 175, 110, 0.3);
-    }
-    
-    .info-tooltip::after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 6px solid transparent;
-        border-top-color: #722f3e;
-    }
-    
-    .info-icon:hover .info-tooltip {
-        opacity: 1;
-        visibility: visible;
-    }
+    .step-page .card { max-width: 680px; margin: 0 auto; }
+    .form-row { margin-bottom: 20px; }
+    .form-row label { display: block; font-size: 0.95rem; font-weight: 600; color: #3b1022; margin-bottom: 8px; }
+    .form-row select, .form-row input[type="number"] { width: 100%; max-width: 320px; padding: 12px 14px; font-size: 0.95rem; border: 2px solid rgba(212, 175, 110, 0.6); border-radius: 10px; background: #fff; color: #3b1022; }
+    .form-row select:focus, .form-row input:focus { outline: none; border-color: #722f3e; }
+    .result-box { background: linear-gradient(135deg, #faf5f0 0%, #f5ebe0 100%); border: 2px solid #d4af6e; border-radius: 12px; padding: 16px 20px; margin: 20px 0; }
+    .result-box.ok { border-color: #2e7d32; background: rgba(46, 125, 50, 0.08); }
+    .result-box.warning { border-color: #d4a017; background: rgba(212, 160, 23, 0.1); }
+    .result-box.conflict { border-color: #b23b25; background: rgba(178, 59, 37, 0.08); }
+    .result-box .status-msg { font-size: 0.95rem; color: #555; margin-top: 8px; }
+    .result-box .plan-ta { font-size: 0.95rem; font-weight: 600; color: #3b1022; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(212, 175, 110, 0.4); }
+    .result-box .warnings-list { margin-top: 8px; font-size: 0.9rem; color: #856404; list-style: none; padding: 0; }
+    .result-box .warnings-list li { margin-bottom: 4px; }
+    .btn-inline { margin-top: 10px; margin-right: 8px; padding: 8px 14px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; border: 1px solid #722f3e; background: #fff; color: #722f3e; }
+    .btn-inline:hover { background: rgba(114, 47, 62, 0.1); }
+    .conflict-actions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .hidden { display: none !important; }
+    .slider-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .slider-wrap { flex: 1; min-width: 200px; }
+    .slider-wrap input[type="range"] { width: 100%; height: 8px; -webkit-appearance: none; appearance: none; background: transparent; outline: none; }
+    .slider-wrap input[type="range"]::-webkit-slider-runnable-track { height: 8px; background: linear-gradient(90deg, #e8ddd0, #722f3e); border-radius: 4px; }
+    .slider-wrap input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -6px; border-radius: 50%; background: linear-gradient(135deg, #722f3e, #4a1228); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .slider-wrap input[type="range"]::-moz-range-track { height: 8px; background: linear-gradient(90deg, #e8ddd0, #722f3e); border-radius: 4px; }
+    .slider-wrap input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #722f3e, #4a1228); cursor: pointer; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .slider-hint { font-size: 11px; color: #6b4c5a; margin-top: 4px; }
+    .nav-buttons { display: flex; justify-content: space-between; margin-top: 32px; gap: 15px; align-items: center; }
+    .checkbox-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+    .checkbox-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #722f3e; }
+    .correction-options label { font-weight: 500; margin-right: 16px; }
+    .correction-options input { margin-right: 6px; }
 </style>
 {% endblock %}
 
@@ -71,109 +44,394 @@
             <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 4 з 7</span>
         </div>
         <h1 class="title">Кондиції сировини</h1>
-        <p class="subtitle">Введіть параметри сировини</p>
-        
-        <form id="rawMaterialForm" class="form">
-            <div class="form-group">
-                <label for="sugar">Масова концентрація цукру (г/дм³)</label>
-                <input type="number" id="sugar" name="sugar" step="0.1" min="170" required class="form-input" placeholder="Мінімум 170">
-                <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">Мінімальне значення: 170 г/дм³ (для отримання сухого вина)</small>
+        <p class="subtitle">Кислотність: поточна, цільова та план корекції</p>
+
+        <p style="font-size: 13px; color: #6b4c5a; margin-bottom: 20px;">Цукровість сировини задана на кроці 2 (стиль). Тут — титрована кислотність (TA) на винну кислоту.</p>
+
+        <div class="form-row">
+            <label for="referenceNorm">Референс-норма кислотності</label>
+            <select id="referenceNorm">
+                <option value="still_norm">ДСТУ 4806 — як для тихого (3–7 г/дм³)</option>
+                <option value="spumante_norm">ДСТУ 4807 — як для ігристого (5–8 г/дм³)</option>
+                <option value="free">Не нормувати (вільно)</option>
+            </select>
+            <p class="slider-hint" id="referenceNormHint">Вибір залежить від стилю за CO2 (крок 3).</p>
+        </div>
+
+        <div class="form-row">
+            <label for="taNow">Поточна TA, г/дм³ (на винну кислоту)</label>
+            <input type="number" id="taNow" step="0.1" min="0" max="15" placeholder="наприклад 5.5">
+            <p class="slider-hint">Виміряне значення титрованої кислотності.</p>
+        </div>
+
+        <div class="form-row">
+            <label for="taTargetSlider">Цільова кислотність TA_target, г/дм³</label>
+            <div class="slider-wrap">
+                <input type="range" id="taTargetSlider" min="30" max="80" value="50" step="1">
+                <span id="taTargetValue" style="font-weight: 600;">5.0 г/дм³</span>
             </div>
-            
-            <div class="form-group">
-                <label for="acidity">Масова концентрація кислоти (г/дм³)</label>
-                <input type="number" id="acidity" name="acidity" step="0.1" min="4" max="12" required class="form-input" placeholder="4-12">
-                <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">Рекомендований діапазон: 5-9 г/дм³</small>
+            <p class="slider-hint" id="taTargetHint">В межах обраної норми. Опорні точки: низька / середня / висока.</p>
+        </div>
+
+        <div class="form-row">
+            <label>Корекція кислотності</label>
+            <div class="correction-options">
+                <label><input type="radio" name="correctionMode" value="none" checked> Не коригуємо</label>
+                <label><input type="radio" name="correctionMode" value="increase_only"> Можна підняти</label>
+                <label><input type="radio" name="correctionMode" value="adjust"> Можна коригувати (підняти/знизити)</label>
             </div>
-            
-            <div class="form-group">
-                <label for="ph">pH</label>
-                <input type="number" id="ph" name="ph" step="0.01" min="0" max="14" disabled class="form-input" style="opacity: 0.5; cursor: not-allowed; background: #f0f0f0;">
+        </div>
+
+        <div class="form-row">
+            <div class="checkbox-row">
+                <input type="checkbox" id="complianceMode" checked>
+                <label for="complianceMode" style="margin-bottom: 0;">Під ДСТУ (цільова TA в межах обраної норми)</label>
             </div>
-            
-            <div style="display: flex; justify-content: space-between; margin-top: 40px; gap: 15px; align-items: center;">
-                <button type="button" class="btn" onclick="window.location.href='/style-co2'" style="background: #e0e0e0; color: #666;">
-                    ← Назад
-                </button>
-                <div class="info-icon">
-                    i
-                    <div class="info-tooltip">
-                        Для сухих вин крок 5 буде пропущено
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary">
-                    Далі →
-                </button>
+        </div>
+
+        <div class="result-box" id="resultBox">
+            <div class="status-msg" id="statusMsg"></div>
+            <div class="plan-ta hidden" id="planTaBlock">
+                <span id="planTaText"></span>
+                <p class="slider-hint" style="margin-top: 4px;">Доза уточнюється пробою/лабораторією.</p>
             </div>
-        </form>
+            <ul class="warnings-list hidden" id="warningsList"></ul>
+            <div class="conflict-actions hidden" id="conflictActions"></div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn" type="button" onclick="window.location.href='/style-co2'" style="background: #e0e0e0; color: #666;">← Назад</button>
+            <button class="btn btn-primary" id="nextBtn" type="button">Далі →</button>
+        </div>
     </div>
 </div>
 
 <script>
-document.getElementById('rawMaterialForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const sugarInput = document.getElementById('sugar');
-    const acidityInput = document.getElementById('acidity');
-    
-    const sugar = parseFloat(sugarInput.value);
-    const acidity = parseFloat(acidityInput.value);
-    
-    // Validate sugar minimum
-    if (sugar < 170) {
-        alert('Помилка: Масова частка цукру повинна бути не менше 170 г/дм³.\n\n' +
-              'Для виробництва сухого вина з мінімальним вмістом спирту 9% об. ' +
-              'необхідна мінімальна цукристість винограду 170 г/дм³.');
-        sugarInput.focus();
+(function() {
+var TOLERANCE = 0.2;
+var NORMS = {
+    still_norm:    { min: 3, max: 7,  label: 'ДСТУ 4806 (3–7)',   snaps: [3.5, 5.0, 6.5] },
+    spumante_norm: { min: 5, max: 8,  label: 'ДСТУ 4807 (5–8)',   snaps: [5.5, 6.5, 7.5] },
+    free:          { min: 2, max: 10, label: 'Вільно',            snaps: [4, 5.5, 7] }
+};
+
+var taNowInput = document.getElementById('taNow');
+var taTargetSlider = document.getElementById('taTargetSlider');
+var taTargetValue = document.getElementById('taTargetValue');
+var referenceNorm = document.getElementById('referenceNorm');
+var referenceNormHint = document.getElementById('referenceNormHint');
+var taTargetHint = document.getElementById('taTargetHint');
+var complianceMode = document.getElementById('complianceMode');
+var resultBox = document.getElementById('resultBox');
+var statusMsg = document.getElementById('statusMsg');
+var planTaBlock = document.getElementById('planTaBlock');
+var planTaText = document.getElementById('planTaText');
+var warningsList = document.getElementById('warningsList');
+var conflictActions = document.getElementById('conflictActions');
+
+function getCo2Class() {
+    var sc = window._sessionStyleCo2;
+    if (!sc) return 'still';
+    if (typeof sc === 'object' && sc.CO2_level) return sc.CO2_level;
+    if (sc === 'Ігристе') return 'spumante';
+    if (sc === 'Тихе') return 'still';
+    return 'still';
+}
+
+function getReferenceNorm() {
+    return referenceNorm.value;
+}
+
+function getNormBounds() {
+    var norm = getReferenceNorm();
+    return NORMS[norm] || NORMS.still_norm;
+}
+
+function getTaNow() {
+    var v = parseFloat(taNowInput.value);
+    return isNaN(v) ? null : v;
+}
+
+function getTaTarget() {
+    var v = parseFloat(taTargetSlider.value);
+    return isNaN(v) ? null : v / 10;
+}
+
+function setTaTarget(val) {
+    var v = Math.round(val * 10);
+    taTargetSlider.value = v;
+    taTargetValue.textContent = (v / 10).toFixed(1) + ' г/дм³';
+}
+
+function getCorrectionMode() {
+    var r = document.querySelector('input[name="correctionMode"]:checked');
+    return r ? r.value : 'none';
+}
+
+function getComplianceMode() {
+    return complianceMode.checked;
+}
+
+function snapToAnchor(val) {
+    var bounds = getNormBounds();
+    var snaps = bounds.snaps;
+    var best = snaps[0];
+    var bestDist = Math.abs(val - best);
+    for (var i = 1; i < snaps.length; i++) {
+        var d = Math.abs(val - snaps[i]);
+        if (d < bestDist) { bestDist = d; best = snaps[i]; }
+    }
+    return best;
+}
+
+function updateTaTargetSliderRange() {
+    var bounds = getNormBounds();
+    var compliance = getComplianceMode();
+    var minVal = compliance ? bounds.min : 2;
+    var maxVal = compliance ? bounds.max : 10;
+    taTargetSlider.min = Math.round(minVal * 10);
+    taTargetSlider.max = Math.round(maxVal * 10);
+    var cur = getTaTarget();
+    if (cur !== null) {
+        var clamped = Math.max(minVal, Math.min(maxVal, cur));
+        setTaTarget(clamped);
+    }
+    taTargetHint.textContent = compliance ? 'В межах обраної норми (' + bounds.min + '–' + bounds.max + '). Опорні: ' + bounds.snaps.join(', ') + ' г/дм³.' : 'Вільний діапазон (норму вимкнено).';
+}
+
+function updateReferenceNormFromCo2() {
+    var co2 = getCo2Class();
+    if (co2 === 'still') {
+        referenceNorm.value = 'still_norm';
+        referenceNorm.options[0].disabled = false;
+        referenceNorm.options[1].disabled = false;
+        referenceNorm.options[2].disabled = false;
+        referenceNormHint.textContent = 'Для тихого вина — ДСТУ 4806 (3–7 г/дм³).';
+    } else if (co2 === 'spumante') {
+        referenceNorm.value = 'spumante_norm';
+        referenceNorm.options[0].disabled = true;
+        referenceNorm.options[1].disabled = false;
+        referenceNorm.options[2].disabled = false;
+        referenceNormHint.textContent = 'Для ігристого — ДСТУ 4807 (5–8 г/дм³).';
+    } else {
+        referenceNorm.options[0].disabled = false;
+        referenceNorm.options[1].disabled = false;
+        referenceNorm.options[2].disabled = false;
+        referenceNormHint.textContent = 'Для перланту/фріззанте оберіть норму: як для тихого, як для ігристого або не нормувати.';
+    }
+    updateTaTargetSliderRange();
+}
+
+function getSweetnessCategory() {
+    var sp = window._sessionStyleParams || {};
+    return sp.sweetnessCategory || null;
+}
+
+function getStyleColorOut() {
+    var cp = window._sessionColorParams || {};
+    return cp.style_color_out || null;
+}
+
+function updateResult() {
+    resultBox.classList.remove('ok', 'warning', 'conflict');
+    conflictActions.classList.add('hidden');
+    conflictActions.innerHTML = '';
+    warningsList.classList.add('hidden');
+    warningsList.innerHTML = '';
+    planTaBlock.classList.add('hidden');
+    statusMsg.textContent = '';
+
+    var taNow = getTaNow();
+    var taTarget = getTaTarget();
+    var correctionMode = getCorrectionMode();
+    var compliance = getComplianceMode();
+    var co2 = getCo2Class();
+    var normKey = getReferenceNorm();
+    var bounds = getNormBounds();
+
+    if (taNow !== null && taNow < 0) {
+        resultBox.classList.add('conflict');
+        statusMsg.textContent = 'Поточна TA не може бути від\'ємною.';
         return;
     }
-    
-    // Validate acidity range
-    if (acidity < 4 || acidity > 12) {
-        if (!confirm('Увага: Масова частка кислоти (' + acidity + ' г/дм³) знаходиться поза рекомендованим діапазоном (4-12 г/дм³).\n\n' +
-                     'Продовжити з цим значенням?')) {
-            acidityInput.focus();
+    if (taTarget !== null && taTarget < 0) {
+        resultBox.classList.add('conflict');
+        statusMsg.textContent = 'Цільова TA не може бути від\'ємною.';
+        return;
+    }
+
+    if (co2 === 'spumante' && normKey === 'still_norm') {
+        resultBox.classList.add('conflict');
+        statusMsg.textContent = 'Для ігристого вина обрано норму для тихого (3–7). Оберіть «ДСТУ 4807 — як для ігристого (5–8)».';
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn-inline';
+        btn.textContent = 'Перемкнути на норму ігристого';
+        btn.onclick = function() { referenceNorm.value = 'spumante_norm'; updateTaTargetSliderRange(); updateResult(); };
+        conflictActions.appendChild(btn);
+        conflictActions.classList.remove('hidden');
+        return;
+    }
+
+    if (taNow === null || taTarget === null) {
+        statusMsg.textContent = 'Введіть поточну TA та переконайтесь, що цільова встановлена.';
+        return;
+    }
+
+    if (correctionMode === 'none') {
+        if (Math.abs(taNow - taTarget) > TOLERANCE) {
+            resultBox.classList.add('conflict');
+            statusMsg.textContent = 'Без корекції поточна TA (' + taNow.toFixed(1) + ') має відповідати цільовій (' + taTarget.toFixed(1) + '). Увімкніть корекцію або змініть цільову.';
             return;
         }
+        resultBox.classList.add('ok');
+        statusMsg.textContent = 'Поточна кислотність відповідає цільовій. Корекція не потрібна.';
+        return;
     }
-    
-    const data = {
+
+    if (correctionMode === 'increase_only' && taTarget < taNow) {
+        resultBox.classList.add('conflict');
+        statusMsg.textContent = 'У режимі «можна тільки підняти» цільова TA не може бути нижчою за поточну. Підніміть цільову або оберіть «коригувати в обидва боки».';
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn-inline';
+        btn.textContent = 'Підняти цільову до поточної';
+        btn.onclick = function() { setTaTarget(taNow); updateTaTargetSliderRange(); updateResult(); };
+        conflictActions.appendChild(btn);
+        conflictActions.classList.remove('hidden');
+        return;
+    }
+
+    var delta = taTarget - taNow;
+    if (correctionMode === 'adjust' && delta < 0) {
+        if (Math.abs(delta) <= TOLERANCE) {
+            resultBox.classList.add('ok');
+            statusMsg.textContent = 'Близько до цілі. Корекція майже не потрібна.';
+        } else {
+            resultBox.classList.add('warning');
+            statusMsg.textContent = 'Потрібна корекція (зниження кислотності).';
+            planTaBlock.classList.remove('hidden');
+            planTaText.textContent = 'Потрібно знизити кислотність на ' + Math.abs(delta).toFixed(1) + ' г/дм³.';
+        }
+    } else if (delta > TOLERANCE) {
+        resultBox.classList.add('warning');
+        statusMsg.textContent = 'Потрібна корекція (підвищення кислотності).';
+        planTaBlock.classList.remove('hidden');
+        planTaText.textContent = 'Потрібно підняти кислотність на ' + delta.toFixed(1) + ' г/дм³.';
+    } else {
+        resultBox.classList.add('ok');
+        statusMsg.textContent = 'Вже в цілі або в межах допуску. Корекція не потрібна.';
+    }
+
+    var warnings = [];
+    if ((co2 === 'frizzante' || co2 === 'spumante') && taTarget >= 7.5 && bounds.max >= 8) {
+        warnings.push('Під газом кислотність відчувається сильніше; може бути різко.');
+    }
+    var cat = getSweetnessCategory();
+    if (cat === 'suhe' && taTarget >= 6.5) {
+        warnings.push('Сухе вино з високою TA може бути різким.');
+    }
+    if ((cat === 'napivsolodke' || cat === 'desert') && taTarget <= 5.5) {
+        warnings.push('Солодке вино з низькою TA може здаватись плоским.');
+    }
+    var styleColor = getStyleColorOut();
+    if ((styleColor === 'orange' || styleColor === 'red') && taTarget >= 6.5) {
+        warnings.push('Кислота разом із фенолами може давати відчуття «сушить».');
+    }
+    if (warnings.length > 0) {
+        warningsList.classList.remove('hidden');
+        warnings.forEach(function(t) {
+            var li = document.createElement('li');
+            li.textContent = t;
+            warningsList.appendChild(li);
+        });
+    }
+}
+
+function onParamsChange() {
+    updateTaTargetSliderRange();
+    updateResult();
+}
+
+referenceNorm.addEventListener('change', onParamsChange);
+complianceMode.addEventListener('change', onParamsChange);
+taNowInput.addEventListener('input', onParamsChange);
+taTargetSlider.addEventListener('input', function() {
+    var v = getTaTarget();
+    if (getCorrectionMode() === 'increase_only') {
+        var taNow = getTaNow();
+        if (taNow !== null && v < taNow) v = taNow;
+    }
+    setTaTarget(v);
+    updateResult();
+});
+taTargetSlider.addEventListener('change', function() {
+    var v = getTaTarget();
+    if (getCorrectionMode() === 'increase_only') {
+        var taNow = getTaNow();
+        if (taNow !== null && v < taNow) v = taNow;
+    }
+    var snapped = snapToAnchor(v);
+    if (Math.abs(v - snapped) > 0.05) setTaTarget(snapped);
+    else setTaTarget(v);
+    updateResult();
+});
+document.querySelectorAll('input[name="correctionMode"]').forEach(function(r) {
+    r.addEventListener('change', onParamsChange);
+});
+
+function goNext() {
+    var taNow = getTaNow();
+    var taTarget = getTaTarget();
+    if (taNow === null || taTarget === null) {
+        alert('Введіть поточну TA та встановіть цільову.');
+        return;
+    }
+    if (taNow < 0 || taTarget < 0) return;
+    var sessionData = window._sessionStyleParams || {};
+    var sugar = (sessionData.sugar != null) ? parseFloat(sessionData.sugar) : 200;
+    var delta = taTarget - taNow;
+    var data = {
         sugar: sugar,
-        acidity: acidity,
-        ph: 0  // pH disabled
+        acidity: taNow,
+        TA_now: taNow,
+        TA_target: taTarget,
+        reference_norm: getReferenceNorm(),
+        correction_mode: getCorrectionMode(),
+        compliance_mode: getComplianceMode(),
+        delta_TA: Math.abs(delta) <= TOLERANCE ? 0 : delta,
+        ph: 0
     };
-    
-    await saveChoice('raw_material', data);
-    // Skip wine conditions page for white wine - go directly to choice page
-    window.location.href = '/choice';
-});
+    saveChoice('raw_material', data).then(function() {
+        window.location.href = '/choice';
+    });
+}
 
-// Add real-time validation feedback
-document.getElementById('sugar').addEventListener('input', function(e) {
-    const value = parseFloat(e.target.value);
-    if (value && value < 170) {
-        e.target.style.borderColor = '#e74c3c';
-    } else {
-        e.target.style.borderColor = '';
-    }
-});
+document.getElementById('nextBtn').addEventListener('click', goNext);
 
-document.getElementById('acidity').addEventListener('input', function(e) {
-    const value = parseFloat(e.target.value);
-    if (value && (value < 4 || value > 12)) {
-        e.target.style.borderColor = '#f39c12';
-    } else {
-        e.target.style.borderColor = '';
-    }
-});
-
-// Load previous values if exists
 window.addEventListener('DOMContentLoaded', async function() {
-    const sessionData = await getSessionData();
+    var sessionData = await getSessionData();
+    window._sessionStyleParams = sessionData.style_params || {};
+    window._sessionColorParams = sessionData.color_params || {};
+    window._sessionStyleCo2 = sessionData.style_co2;
+
+    updateReferenceNormFromCo2();
+
     if (sessionData.raw_material) {
-        document.getElementById('sugar').value = sessionData.raw_material.sugar || '';
-        document.getElementById('acidity').value = sessionData.raw_material.acidity || '';
+        var rm = sessionData.raw_material;
+        if (rm.TA_now != null) taNowInput.value = rm.TA_now;
+        else if (rm.acidity != null) taNowInput.value = rm.acidity;
+        if (rm.TA_target != null) setTaTarget(rm.TA_target);
+        if (rm.reference_norm && NORMS[rm.reference_norm]) referenceNorm.value = rm.reference_norm;
+        if (rm.correction_mode) {
+            var radio = document.querySelector('input[name="correctionMode"][value="' + rm.correction_mode + '"]');
+            if (radio) radio.checked = true;
+        }
+        if (rm.compliance_mode === false) complianceMode.checked = false;
     }
+    updateTaTargetSliderRange();
+    updateResult();
 });
+})();
 </script>
 {% endblock %}

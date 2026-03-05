@@ -46,7 +46,8 @@ async function loadSchemePreview() {
     }
     
     if (data.style_co2) {
-        html += `<div class="scheme-item"><strong>Стиль за CO2:</strong> ${data.style_co2}</div>`;
+        const co2Label = typeof data.style_co2 === 'object' && data.style_co2.CO2_label ? data.style_co2.CO2_label : data.style_co2;
+        if (co2Label) html += `<div class="scheme-item"><strong>Стиль за CO2:</strong> ${co2Label}</div>`;
     }
     
     if (data.raw_material) {
