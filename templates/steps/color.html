@@ -90,6 +90,17 @@
             </div>
         </div>
 
+        <!-- Тип рожевого (тільки якщо обрано Рожеве) -->
+        <div class="block" id="roseTypeBlock" style="display:none;">
+            <div class="block-title">Тип рожевого</div>
+            <div class="scheme-buttons" id="roseTypeButtons">
+                <button type="button" class="scheme-btn active" data-rosetype="classic">Класичне rosé</button>
+                <button type="button" class="scheme-btn" data-rosetype="direct_press">Direct press rosé</button>
+                <button type="button" class="scheme-btn" data-rosetype="saignee">Saignée rosé</button>
+                <button type="button" class="scheme-btn" data-rosetype="natural">Натуральне rosé</button>
+            </div>
+        </div>
+
         <!-- Блок: Схема бродіння / винифікації -->
         <div class="block" id="fermentationBlock">
             <div class="block-title">Схема бродіння / винифікації</div>
@@ -102,6 +113,57 @@
                 <button type="button" class="scheme-btn" data-scheme="blanc_de_noirs">Blanc de noirs</button>
             </div>
             <p class="slider-hint" id="fermentationHint">За замовчуванням схема слідує за повзунками. Щоб зафіксувати вручну, оберіть потрібний варіант.</p>
+        </div>
+
+        <!-- Сорт винограду -->
+        <div class="block">
+            <div class="block-title">Сорт винограду</div>
+            <select id="grapeVariety" style="width:100%;padding:10px 14px;border:2px solid #d4af6e;border-radius:10px;background:#fff;color:#3b1022;font-size:0.95rem;">
+                <option value="unknown">Невідомий / інший</option>
+                <option value="muscat">Muscat</option>
+                <option value="gewurztraminer">Gewürztraminer</option>
+                <option value="riesling">Riesling</option>
+                <option value="sauvignon blanc">Sauvignon Blanc</option>
+                <option value="chardonnay">Chardonnay</option>
+                <option value="pinot gris">Pinot Gris</option>
+                <option value="rkatsiteli">Rkatsiteli</option>
+                <option value="pinot noir">Pinot Noir</option>
+                <option value="pinot meunier">Pinot Meunier</option>
+                <option value="cabernet sauvignon">Cabernet Sauvignon</option>
+                <option value="merlot">Merlot</option>
+                <option value="cabernet franc">Cabernet Franc</option>
+                <option value="malbec">Malbec</option>
+                <option value="syrah">Syrah / Shiraz</option>
+                <option value="grenache">Grenache</option>
+                <option value="tempranillo">Tempranillo</option>
+                <option value="sangiovese">Sangiovese</option>
+                <option value="nebbiolo">Nebbiolo</option>
+                <option value="gamay">Gamay</option>
+                <option value="saperavi">Saperavi</option>
+            </select>
+        </div>
+
+        <!-- Стан грона -->
+        <div class="block">
+            <div class="block-title">Стан грона</div>
+            <div class="scheme-buttons" id="grapeConditionButtons">
+                <button type="button" class="scheme-btn active" data-condition="healthy">Здорове</button>
+                <button type="button" class="scheme-btn" data-condition="damaged">Частково пошкоджене</button>
+                <button type="button" class="scheme-btn" data-condition="overripe">Перестиглий</button>
+                <button type="button" class="scheme-btn" data-condition="rot">Гниль</button>
+            </div>
+        </div>
+
+        <!-- Стан гребеня -->
+        <div class="block" id="stemBlock" style="display:none;">
+            <div class="block-title">Стан гребеня</div>
+            <p class="slider-hint">Актуально якщо планується часткове або повне включення гребенів (whole-cluster).</p>
+            <div class="scheme-buttons" id="stemConditionButtons">
+                <button type="button" class="scheme-btn" data-stem="unknown">Невідомо</button>
+                <button type="button" class="scheme-btn" data-stem="green">Зелений</button>
+                <button type="button" class="scheme-btn active" data-stem="partial">Частково lignified</button>
+                <button type="button" class="scheme-btn" data-stem="brown">Коричневий і сухий</button>
+            </div>
         </div>
 
         <!-- Розширені налаштування (повзунки) -->
@@ -361,6 +423,7 @@ function updateFermentationScheme(styleKey) {
             : 'За замовчуванням схема слідує за повзунками. Щоб зафіксувати вручну, оберіть потрібний варіант.';
     }
     updateFermentationButtons(fermentationScheme);
+    updateStemBlockVisibility();
 }
 
 // ——— М'які обмеження (S1–S7): попередження ———
@@ -447,6 +510,7 @@ function updateExpectedStyle() {
     updateWarnings();
     updatePressingTip();
     updateFermentationScheme(r.styleKey);
+    updateRoseTypeVisibility();
     return r.styleKey;
 }
 
@@ -505,6 +569,56 @@ fermentationButtons.forEach(function(btn) {
     });
 });
 
+// --- Rose type buttons ---
+var roseType = 'classic';
+document.querySelectorAll('#roseTypeButtons .scheme-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        roseType = btn.getAttribute('data-rosetype');
+        document.querySelectorAll('#roseTypeButtons .scheme-btn').forEach(function(b) {
+            b.classList.toggle('active', b === btn);
+        });
+    });
+});
+
+function updateRoseTypeVisibility() {
+    var roseBlock = document.getElementById('roseTypeBlock');
+    if (roseBlock) {
+        var r = getExpectedStyle();
+        roseBlock.style.display = (r.styleKey === 'rose') ? 'block' : 'none';
+    }
+}
+
+// --- Grape condition buttons ---
+var grapeCondition = 'healthy';
+document.querySelectorAll('#grapeConditionButtons .scheme-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        grapeCondition = btn.getAttribute('data-condition');
+        document.querySelectorAll('#grapeConditionButtons .scheme-btn').forEach(function(b) {
+            b.classList.toggle('active', b === btn);
+        });
+    });
+});
+
+// --- Stem condition buttons ---
+var stemCondition = 'partial';
+document.querySelectorAll('#stemConditionButtons .scheme-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        stemCondition = btn.getAttribute('data-stem');
+        document.querySelectorAll('#stemConditionButtons .scheme-btn').forEach(function(b) {
+            b.classList.toggle('active', b === btn);
+        });
+    });
+});
+
+// Show stem block when red fermentation scheme (whole-cluster possible)
+function updateStemBlockVisibility() {
+    var stemBlock = document.getElementById('stemBlock');
+    if (stemBlock) {
+        var show = fermentationScheme && fermentationScheme !== 'white' && fermentationScheme !== 'blanc_de_noirs';
+        stemBlock.style.display = show ? 'block' : 'none';
+    }
+}
+
 var advancedSection = document.getElementById('advancedSection');
 var advancedTrigger = document.getElementById('advancedTrigger');
 if (advancedTrigger && advancedSection) {
@@ -532,7 +646,11 @@ async function goNext() {
         expected_style,
         color,
         style_color_out: styleKey,
-        fermentation_scheme: fermentationScheme
+        fermentation_scheme: fermentationScheme,
+        grapeVariety: document.getElementById('grapeVariety').value,
+        grapeCondition: grapeCondition,
+        stemCondition: stemCondition,
+        roseType: roseType
     };
     await saveChoice('color', choice);
     window.location.href = '/style';
@@ -555,6 +673,30 @@ window.addEventListener('DOMContentLoaded', async function() {
         else if (c === 'Червоне') { grapeColorEl.value = 100; skinContactEl.value = 100; }
         else if (c === 'Рожеве') { grapeColorEl.value = 100; skinContactEl.value = 50; }
         pressingEl.value = 0;
+    }
+    // Restore new fields
+    if (params && typeof params === 'object') {
+        if (params.grapeVariety) {
+            document.getElementById('grapeVariety').value = params.grapeVariety;
+        }
+        if (params.grapeCondition) {
+            grapeCondition = params.grapeCondition;
+            document.querySelectorAll('#grapeConditionButtons .scheme-btn').forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-condition') === grapeCondition);
+            });
+        }
+        if (params.stemCondition) {
+            stemCondition = params.stemCondition;
+            document.querySelectorAll('#stemConditionButtons .scheme-btn').forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-stem') === stemCondition);
+            });
+        }
+        if (params.roseType) {
+            roseType = params.roseType;
+            document.querySelectorAll('#roseTypeButtons .scheme-btn').forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-rosetype') === roseType);
+            });
+        }
     }
     var styleKey = updateExpectedStyle();
     updateStyleButtons(styleKey);

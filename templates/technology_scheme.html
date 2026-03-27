@@ -123,23 +123,25 @@ script.onload = function() {
 
 async function loadWineData() {
     try {
-        // Fetch schema data for current wine
-        const response = await fetch('/api/schema-for-wine');
-        
+        const response = await fetch('/api/technology-steps');
+
         if (!response.ok) {
             const error = await response.json();
-            alert('Помилка: ' + (error.error || 'Не вдалося знайти схему для цього вина'));
+            if (error.session_expired) {
+                window.location.href = error.redirect || '/auth/login';
+                return;
+            }
+            alert('Помилка: ' + (error.error || 'Не вдалося побудувати технологічні кроки'));
             return;
         }
-        
+
         const data = await response.json();
-        const { schema, blocks, wine_data } = data;
-        
-        // Initialize renderer with canvas, schema blocks, and wine data
-        renderer = new SchemeRenderer(canvas, wine_data, blocks, schema);
-        renderer.drawScheme();
+        const { steps, wine_data } = data;
+
+        renderer = new SchemeRenderer(canvas, wine_data);
+        renderer.drawTechnologySteps(steps);
     } catch (error) {
-        console.error('Error loading schema:', error);
+        console.error('Error loading technology steps:', error);
         alert('Помилка завантаження схеми: ' + error.message);
     }
 }

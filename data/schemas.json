@@ -2,12 +2,16 @@
   {
     "id": "schema_white_dry_still",
     "name": "Біле сухе тихе вино (біла схема)",
+    "base_route": "white_classic_dry_still",
     "parameters": {
       "color": "Біле",
       "style": "Сухе",
       "style_co2": "Тихе",
-      "scheme_type": "Біла"
+      "scheme_type": "Біла",
+      "sweetness_category": "suhe",
+      "alcohol_category": "mid"
     },
+    "modules": [],
     "blocks": [
       "block_1",
       "block_2",
@@ -25,12 +29,16 @@
   {
     "id": "schema_red_dry_still",
     "name": "Червоне сухе тихе вино (червона схема)",
+    "base_route": "red_classic_dry_still",
     "parameters": {
       "color": "Червоне",
       "style": "Сухе",
       "style_co2": "Тихе",
-      "scheme_type": "Червона"
+      "scheme_type": "Червона",
+      "sweetness_category": "suhe",
+      "alcohol_category": "mid"
     },
+    "modules": [],
     "blocks": [
       "block_1",
       "block_10",

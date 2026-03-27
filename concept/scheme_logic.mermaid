@@ -1,0 +1,985 @@
+flowchart TB
+    %% ══════ 1. ВХІДНІ ПАРАМЕТРИ ══════
+    RHYME["Вхідні параметри:<br>цукристість<br>титрована кислотність<br>pH<br>стан грона<br>сорт<br>мікробіологічний ризик<br>ароматична інтенсивність<br>тіолові / терпенові<br>танінність<br>тіло<br>кремовість<br>oxidation<br>MLF бажаність"] --> AWARE["Прийомка і вибраковка"]
+    AWARE -- Брак --> RECALL["Утилізація"]
+    AWARE --> CAREFUL{"Оцінка pH та<br>стану грона"}
+    CAREFUL -- "pH ≤ 3.2 і здорове гроно" --> GAME["Додати SO2 20–30 мг/л"]
+    CAREFUL -- "pH 3.2–3.4 і здорове<br>гроно" --> AGAIN["Додати SO2 30–40 мг/л"]
+    CAREFUL -- "pH 3.4–3.6 або<br>частково пошкоджене<br>гроно" --> SANG["Додати SO2 40–50 мг/л"]
+    CAREFUL -- "pH 3.6–3.8 або<br>перестиглий виноград" --> GO["Додати SO2 50–60 мг/л"]
+    CAREFUL -- "pH > 3.8 або гниль" --> MET["Додати SO2 60–75 мг/л"]
+    GAME --> GAS["Гребневідділення"]
+    AGAIN --> GAS
+    SANG --> GAS
+    GO --> GAS
+    MET --> GAS
+
+    %% ══════ 1 → 2 ══════
+    GAS --> ROOT
+
+    %% ══════ 2. СТИЛЬ / ТИП ВИНА ══════
+    ROOT{"Стиль /<br>тип вина?"} -- Біле --> SETTLE["Базове обмеження: 0%"]
+    ROOT -- Помаранчеве --> SCENE["Базове обмеження:<br>0–50%"]
+    ROOT -- Червоне --> APPROPRIATE["Базове обмеження:<br>0–40%"]
+    ROOT -- Blanc de Noir --> BECOMING["Базове обмеження: 100%"]
+    ROOT -- Рожеве --> OUR{"Тип<br>rosé?"}
+    OUR -- Класичне rosé --> EITHER["Базове обмеження: 0%"]
+    OUR -- Direct press rosé --> STRIKE["Базове обмеження: 100%"]
+    OUR -- Saignée rosé --> COLONY["Базове обмеження: 100%"]
+    OUR -- Натуральне rosé --> GRANDFATHER["Базове обмеження:<br>0–20%"]
+    SETTLE --> DEAR{"Сорт<br>відомий?"}
+    SCENE --> WARM{"Сорт<br>відомий?"}
+    APPROPRIATE --> DAMAGE_V6{"Сорт<br>відомий?"}
+    BECOMING --> AFTERNOON{"Сорт<br>відомий?"}
+    EITHER --> DAMAGE{"Стан гребеня<br>відомий?"}
+    STRIKE --> DAMAGE
+    COLONY --> DAMAGE
+    GRANDFATHER --> DAMAGE
+    DEAR -- Так --> GLOBE{"Сорт"}
+    DEAR -- Ні --> DAMAGE
+    GLOBE -- "Muscat / Gewürztraminer /<br>Sauvignon Blanc / Riesling" --> SHOOT["Уточнення: 0%"]
+    GLOBE -- Chardonnay --> HEAVY["Уточнення: 5–10%"]
+    GLOBE -- "Інший сорт для білого<br>стилю" --> CLUB["Уточнення: 0%"]
+    WARM -- Так --> GRASS{"Сорт"}
+    WARM -- Ні --> DAMAGE
+    GRASS -- Sauvignon Blanc --> APPLE["Уточнення: 0–10%"]
+    GRASS -- "Chardonnay / Pinot Gris" --> SAD["Уточнення: 0–20%"]
+    GRASS -- Rkatsiteli --> ATTACK["Уточнення: 10–50%"]
+    GRASS -- Інший сорт --> CHEST["Уточнення: 0–50%"]
+    DAMAGE_V6 -- Так --> SHALL{"Сорт"}
+    DAMAGE_V6 -- Ні --> DAMAGE
+    SHALL -- "Nebbiolo / Cabernet Sauvignon /<br>Merlot / Malbec" --> SUIT["Уточнення: 0–10%"]
+    SHALL -- Tempranillo --> WINDOW["Уточнення: 0–15%"]
+    SHALL -- "Sangiovese / Cabernet Franc" --> SWIM["Уточнення: 0–20%"]
+    SHALL -- Pinot Noir --> FASTENED["Уточнення: 0–40%"]
+    SHALL -- Grenache --> EXACTLY["Уточнення: 10–30%"]
+    SHALL -- "Syrah / Shiraz" --> BLANK["Уточнення: 10–40%"]
+    SHALL -- Gamay --> TRUTH_V4["Уточнення: 50–100%"]
+    SHALL -- Інший сорт --> EAR["Уточнення: 0–40%"]
+    AFTERNOON -- Так --> CHOOSE{"Сорт"}
+    AFTERNOON -- Ні --> DAMAGE
+    CHOOSE -- "Pinot Noir / Pinot Meunier" --> MATTER["Уточнення: 100%"]
+    CHOOSE -- Saperavi --> HIGHER["Уточнення: 0–100%"]
+    CHOOSE -- Інший сорт --> FINE["Уточнення: 100%"]
+    SHOOT --> DAMAGE
+    HEAVY --> DAMAGE
+    CLUB --> DAMAGE
+    APPLE --> DAMAGE
+    SAD --> DAMAGE
+    ATTACK --> DAMAGE
+    CHEST --> DAMAGE
+    SUIT --> DAMAGE
+    WINDOW --> DAMAGE
+    SWIM --> DAMAGE
+    FASTENED --> DAMAGE
+    EXACTLY --> DAMAGE
+    BLANK --> DAMAGE
+    TRUTH_V4 --> DAMAGE
+    EAR --> DAMAGE
+    MATTER --> DAMAGE
+    HIGHER --> DAMAGE
+    FINE --> DAMAGE
+    DAMAGE -- Ні --> CHANGE["Фінальне обмеження =<br>найжорсткіше з уже<br>відомих"]
+    DAMAGE -- Так --> PITCH{"Стан<br>гребеня"}
+    PITCH -- Зелений --> NOTE["Корекція: 0%"]
+    PITCH -- Частково lignified --> EVERYTHING["Корекція: не більше<br>10–20%"]
+    PITCH -- "Коричневий і сухий" --> DISCOVER["Корекція: без<br>додаткового звуження"]
+    NOTE --> CHANGE
+    EVERYTHING --> CHANGE
+    DISCOVER --> CHANGE
+    DAMAGE --> CHANGE
+
+    %% ══════ 2 → 3 ══════
+    CHANGE --> STREET
+
+    %% ══════ 3. СИРОВИНА І КОЛІР (передбродильна мацерація) ══════
+    STREET{"Сировина<br>і колір"} -- Біле --> CAPITAL{"Схема<br>бродіння"}
+    STREET -- Блан де нуар --> ACCIDENT_V7["Передбродильна<br>мацерація не проводиться"]
+    STREET -- Рожеве --> PLUS_V2{"Схема<br>бродіння"}
+    STREET -- Помаранчеве --> TRUNK{"Схема<br>бродіння"}
+    STREET -- Червоне --> EAGER{"Схема<br>бродіння"}
+    CAPITAL -- Біла --> HE{"pH > 3.5<br>або<br>мікробіологічний<br>ризик > 60?"}
+    CAPITAL -- Інша --> WERE["Перевірити вхідні<br>параметри"]
+    HE -- Так --> PURPLE["Передбродильна<br>мацерація не проводиться"]
+    HE -- Ні --> SECRET{"Ароматична<br>інтенсивність >=<br>60 або<br>тіолові/терпенові<br>>= 50?"}
+    SECRET -- Ні --> PURPLE
+    SECRET -- Так --> YEAR{"Ігристе?"}
+    YEAR -- Так --> PORCH["Кріомацерація<br>2-6 год<br>5-8°C<br>Холодоактивна пектиназа<br>2-3 г/гл"]
+    YEAR -- Ні --> CHEMICAL["Кріомацерація<br>4-12 год<br>5-10°C<br>Холодоактивна пектиназа<br>2-4 г/гл"]
+    PLUS_V2 -- Біла --> ANGLE{"Ігристе<br>або танінність<br><= 30 і гіркота<br><= 30?"}
+    PLUS_V2 -- Інша --> CUTTING["Перевірити вхідні<br>параметри"]
+    ANGLE -- Так --> UPPER["Передбродильна<br>мацерація не проводиться"]
+    ANGLE -- Ні --> EQUIPMENT{"pH > 3.5<br>або<br>мікробіологічний<br>ризик > 60?"}
+    EQUIPMENT -- Так --> AVERAGE["Коротка мацерація<br>2-4 год<br>8-12°C<br>Пектиназа 1.5-3 г/гл"]
+    EQUIPMENT -- Ні --> WILLING{"Ароматична<br>інтенсивність<br>>= 60?"}
+    WILLING -- Так --> COMPANY["Кріомацерація<br>4-12 год<br>5-10°C<br>Холодоактивна пектиназа<br>2-3 г/гл"]
+    WILLING -- Ні --> STRONG["Коротка мацерація<br>2-8 год<br>8-12°C<br>Пектиназа 1.5-3 г/гл"]
+    TRUNK -- Біла --> PASS["Передбродильна<br>мацерація<br>як окремий етап не<br>проводиться"]
+    TRUNK -- Інша --> NONE["Перевірити вхідні<br>параметри"]
+    EAGER -- Червона --> TUBE{"Ароматична<br>інтенсивність >=<br>60 і pH <= 3.6<br>і мікробіологічний<br>ризик <= 60?"}
+    EAGER -- Інша --> GIRL["Перевірити вхідні<br>параметри"]
+    TUBE -- Ні --> ANYWAY["Передбродильна<br>мацерація не проводиться"]
+    TUBE -- Так --> ACCIDENT{"Танінність<br>>= 60<br>або тіло<br>>= 60?"}
+    ACCIDENT -- Так --> THUMB["Кріомацерація<br>1-3 доби<br>5-10°C<br>Пектиназа 1-2 г/гл"]
+    ACCIDENT -- Ні --> YET["Кріомацерація<br>1-2 доби<br>5-10°C<br>Без пектинази"]
+
+    %% ══════ 3 → 4 ══════
+    ACCIDENT_V7 --> SO
+    PURPLE --> SO
+    PORCH --> SO
+    CHEMICAL --> SO
+    UPPER --> SO
+    AVERAGE --> SO
+    COMPANY --> SO
+    STRONG --> SO
+    PASS --> SO
+    ANYWAY --> SO
+    THUMB --> SO
+    YET --> SO
+    WERE --> SO
+    CUTTING --> SO
+    NONE --> SO
+    GIRL --> SO
+
+    %% ══════ 4. ПЕРЕДБРОДИЛЬНЕ ПРЕСУВАННЯ ══════
+    SO["Передбродильне<br>пресування"] --> OF{"Сировина<br>і колір"}
+    OF -- Біле --> PACKAGE{"Схема<br>бродіння"}
+    OF -- Блан де нуар --> BEGUN["Пресування цілих грон до<br>бродіння"]
+    OF -- Рожеве --> LENGTH{"Схема<br>бродіння"}
+    OF -- Помаранчеве --> ORIGIN["Пресування до бродіння<br>не проводиться"]
+    OF -- Червоне --> KNOW{"Схема<br>бродіння"}
+    PACKAGE -- Біла --> WORTH["Пресування до бродіння"]
+    PACKAGE -- Інша --> JOURNEY["Перевірити вхідні<br>параметри"]
+    LENGTH -- Біла --> FIRST{"Передбродильна<br>мацерація<br>проводилась?"}
+    LENGTH -- Інша --> VEGETABLE["Перевірити вхідні<br>параметри"]
+    FIRST -- Так --> ACRES["Пресування до бродіння"]
+    FIRST -- Ні --> DEEP{"Ігристе<br>або низька<br>танінність і<br>низька гіркота?"}
+    DEEP -- Так --> GASOLINE["Пряме пресування до<br>бродіння"]
+    DEEP -- Ні --> ACRES
+    KNOW -- Червона --> FLOW["Пресування до бродіння<br>не проводиться"]
+    KNOW -- Інша --> HE_V8["Перевірити вхідні<br>параметри"]
+    WORTH --> HUNGRY["Далі: освітлення сусла /<br>відстоювання → бродіння"]
+    BEGUN --> HUNGRY
+    ACRES --> HUNGRY
+    GASOLINE --> HUNGRY
+
+    %% ══════ 5. ОСВІТЛЕННЯ СУСЛА ══════
+    HUNGRY --> UNDER{"Мацерація<br>була?"}
+    UNDER -- Ні --> GONE{"pH ≤ 3.2<br>і гроно<br>здорове?"}
+    GONE -- Так --> WOULD["Відстоювання сусла (дебурбаж):<br>10–12°C<br>12–18 год<br>без додаткових<br>сорбентів<br>зняття з грубого<br>осаду<br>цільова мутність<br>120–180 NTU"]
+    GONE -- Ні --> TAKEN{"pH 3.2–3.4<br>і гроно<br>здорове?"}
+    TAKEN -- Так --> CORNER["Відстоювання сусла (дебурбаж):<br>10–12°C<br>10–16 год<br>без додаткових<br>сорбентів<br>зняття з грубого<br>осаду<br>цільова мутність<br>100–150 NTU"]
+    TAKEN -- Ні --> TOWER{"pH 3.4–3.6<br>або гроно<br>частково<br>пошкоджене?"}
+    TOWER -- Так --> GIVING_V5["Відстоювання сусла (дебурбаж):<br>8–10°C<br>10–14 год<br>PVPP 10–20 г/гл<br>зняття з грубого<br>осаду<br>цільова мутність<br>90–130 NTU"]
+    TOWER -- Ні --> THAT{"pH 3.6–3.8<br>або<br>виноград<br>перестиглий?"}
+    THAT -- Так --> CELL["Відстоювання сусла (дебурбаж):<br>6–8°C<br>8–12 год<br>PVPP 15–25 г/гл<br>швидке зняття з<br>грубого осаду<br>цільова мутність<br>70–110 NTU"]
+    THAT -- Ні --> SAIL["Відстоювання сусла (дебурбаж):<br>6–8°C<br>6–10 год<br>PVPP 20–30 г/гл<br>за високої колоїдної<br>мутності:<br>бентоніт 20–40 г/гл<br>негайне зняття з<br>грубого осаду<br>цільова мутність<br>50–90 NTU"]
+    UNDER -- Так --> BASEBALL{"pH ≤ 3.2<br>і гроно<br>здорове?"}
+    BASEBALL -- Так --> ARRANGEMENT["Відстоювання сусла (дебурбаж):<br>8–10°C<br>12–16 год<br>без додаткових<br>сорбентів<br>зняття з грубого<br>осаду<br>цільова мутність<br>100–140 NTU"]
+    BASEBALL -- Ні --> SEARCH{"pH 3.2–3.4<br>і гроно<br>здорове?"}
+    SEARCH -- Так --> SLOW["Відстоювання сусла (дебурбаж):<br>8–10°C<br>10–14 год<br>PVPP 10–15 г/гл<br>зняття з грубого<br>осаду<br>цільова мутність<br>90–130 NTU"]
+    SEARCH -- Ні --> BROAD{"pH 3.4–3.6<br>або гроно<br>частково<br>пошкоджене?"}
+    BROAD -- Так --> FOREIGN_V9["Відстоювання сусла (дебурбаж):<br>6–8°C<br>8–12 год<br>PVPP 15–25 г/гл<br>зняття з грубого<br>осаду<br>цільова мутність<br>70–110 NTU"]
+    BROAD -- Ні --> MARK{"pH 3.6–3.8<br>або<br>виноград<br>перестиглий?"}
+    MARK -- Так --> STRONGER["Відстоювання сусла (дебурбаж):<br>6–8°C<br>6–10 год<br>PVPP 20–30 г/гл<br>бентоніт 20–40 г/гл<br>швидке зняття з<br>грубого осаду<br>цільова мутність<br>60–100 NTU"]
+    MARK -- Ні --> SLIGHT["Відстоювання сусла (дебурбаж):<br>4–6°C<br>4–8 год<br>PVPP 25–40 г/гл<br>бентоніт 30–50 г/гл<br>негайне зняття з<br>грубого осаду<br>цільова мутність<br>50–80 NTU"]
+    WOULD --> TRAIN
+    CORNER --> TRAIN
+    GIVING_V5 --> TRAIN
+    CELL --> TRAIN
+    SAIL --> TRAIN
+    ARRANGEMENT --> TRAIN
+    SLOW --> TRAIN
+    FOREIGN_V9 --> TRAIN
+    STRONGER --> TRAIN
+    SLIGHT --> TRAIN
+
+    %% ══════ 6. КОРЕКЦІЯ ЦУКРИСТОСТІ І pH ══════
+    TRAIN["Корекція цукристості і pH"] --> MEASURE{"pH ><br>3.50 ?"}
+    MEASURE -- Так --> POTATOES["Розрахунок дози кислоти<br>за pH:<br>доза_pH =<br>#40;pH_поточний -<br>pH_цільовий#41; / 0.1"]
+    MEASURE -- Ні --> SPECIFIC{"TA_поточна<br>< TA_цільова?"}
+    SPECIFIC -- Так --> TA_DOSE["Розрахунок дози кислоти за TA:<br>доза_TA = TA_цільова - TA_поточна"]
+    SPECIFIC -- Ні --> FIND["Корекція кислотності не<br>потрібна"]
+    FIND --> RUBBER
+    POTATOES --> DOUBT["Стартова доза винної<br>кислоти:<br>доза = max#40;доза_pH,<br>доза_TA#41;"]
+    TA_DOSE --> DOUBT
+    DOUBT --> RUBBER{"S0 достатній<br>для цільової<br>спиртуозності?"}
+    RUBBER -- Так --> SAID["Корекція цукру не<br>потрібна"]
+    RUBBER -- Ні --> ME["Потрібний цукор для<br>бродіння:<br>цукор_потрібний =<br>ABV_ціль × 17 + RS"]
+    ME --> FOREIGN["Дефіцит цукру:<br>цукор_додати =<br>max#40;0, цукор_потрібний - S0#41;"]
+    SAID --> EVIDENCE["Сусло готове до бродіння"]
+    FOREIGN --> EVIDENCE
+    FLOW --> TRAIN
+    ORIGIN --> TRAIN
+    JOURNEY --> HUNGRY
+    VEGETABLE --> HUNGRY
+    HE_V8 --> TRAIN
+
+    %% ══════ 7. ВИБІР ДРІЖДЖІВ ══════
+    EVIDENCE --> YEAST_A{"Сировина<br>і колір"}
+
+    %% БІЛЕ
+    YEAST_A -- Біле --> YEAST_WHITE{"Сорт<br>відомий?"}
+    YEAST_WHITE -- Ні --> YEAST_WHITE_STYLE{"Ароматична<br>інтенсивність >= 60<br>або тіолові / терпенові >= 50?"}
+    YEAST_WHITE -- Так --> YEAST_WHITE_SORT{"Сорт"}
+    YEAST_WHITE_SORT -- "Muscat / Gewürztraminer / Riesling / Sauvignon Blanc" --> YEAST_WHITE_AROM["Дріжджі:<br>ароматозберігаючі<br>Saccharomyces cerevisiae<br>або sequential<br>non-Saccharomyces + Saccharomyces"]
+    YEAST_WHITE_SORT -- "Chardonnay / Pinot Gris / інший нейтральний білий" --> YEAST_WHITE_NEUTRAL["Дріжджі:<br>нейтральний / чистий профіль<br>Saccharomyces cerevisiae"]
+    YEAST_WHITE_STYLE -- Так --> YEAST_WHITE_AROM
+    YEAST_WHITE_STYLE -- Ні --> YEAST_WHITE_NEUTRAL
+
+    %% BDN
+    YEAST_A -- Блан де нуар --> YEAST_BDN["Дріжджі:<br>чистий редуктивний профіль<br>Saccharomyces cerevisiae<br>або низькотемпературний<br>Saccharomyces"]
+
+    %% РОЖЕВЕ
+    YEAST_A -- Рожеве --> YEAST_ROSE{"Схема<br>бродіння"}
+    YEAST_ROSE -- Біла --> YEAST_ROSE_W{"Ароматична<br>інтенсивність >= 60?"}
+    YEAST_ROSE_W -- Так --> YEAST_ROSE_AROM["Дріжджі:<br>ароматозберігаючі<br>Saccharomyces cerevisiae<br>або sequential<br>non-Saccharomyces + Saccharomyces"]
+    YEAST_ROSE_W -- Ні --> YEAST_ROSE_CLEAN["Дріжджі:<br>чистий фруктовий профіль<br>Saccharomyces cerevisiae"]
+    YEAST_ROSE -- Інша --> YEAST_ROSE_SKIN{"Танінність >= 50<br>або тіло >= 50?"}
+    YEAST_ROSE_SKIN -- Так --> YEAST_ROSE_STRUCT["Дріжджі:<br>структуроутворюючі<br>Saccharomyces cerevisiae"]
+    YEAST_ROSE_SKIN -- Ні --> YEAST_ROSE_CLEAN
+
+    %% ПОМАРАНЧЕВЕ
+    YEAST_A -- Помаранчеве --> YEAST_ORANGE{"Танінність >= 60<br>або MLF >= 50?"}
+    YEAST_ORANGE -- Так --> YEAST_ORANGE_STRUCT["Дріжджі:<br>структуроутворюючі<br>Saccharomyces cerevisiae"]
+    YEAST_ORANGE -- Ні --> YEAST_ORANGE_COMPLEX["Дріжджі:<br>complex profile<br>sequential<br>non-Saccharomyces + Saccharomyces"]
+
+    %% ЧЕРВОНЕ
+    YEAST_A -- Червоне --> YEAST_RED{"Сорт<br>відомий?"}
+    YEAST_RED -- Ні --> YEAST_RED_STYLE{"Танінність >= 60<br>або тіло >= 60?"}
+    YEAST_RED -- Так --> YEAST_RED_SORT{"Сорт"}
+    YEAST_RED_SORT -- "Pinot Noir / Gamay" --> YEAST_RED_DEL["Дріжджі:<br>делікатний червоний профіль<br>Saccharomyces cerevisiae"]
+    YEAST_RED_SORT -- "Cabernet Sauvignon / Merlot / Malbec / Nebbiolo / Syrah / Saperavi" --> YEAST_RED_STRUCT["Дріжджі:<br>структуроутворюючі<br>Saccharomyces cerevisiae"]
+    YEAST_RED_SORT -- "Grenache / Tempranillo / Sangiovese / Cabernet Franc / інший сорт" --> YEAST_RED_MID["Дріжджі:<br>універсальний червоний профіль<br>Saccharomyces cerevisiae"]
+    YEAST_RED_STYLE -- Так --> YEAST_RED_STRUCT
+    YEAST_RED_STYLE -- Ні --> YEAST_RED_MID
+
+    %% ІГРИСТЕ
+    YEAST_A -- Ігристе --> YEAST_SPARK{"Етап?"}
+    YEAST_SPARK -- "Первинне бродіння базового вина" --> YEAST_SPARK_BASE["Дріжджі:<br>чистий нейтральний профіль<br>Saccharomyces cerevisiae<br>або низькотемпературний<br>Saccharomyces"]
+    YEAST_SPARK -- "Вторинне бродіння" --> YEAST_SPARK_SEC["Дріжджі:<br>вторинне бродіння /<br>тискостійкі Saccharomyces"]
+
+    %% ЗВЕДЕННЯ ДРІЖДЖІВ → РОЗБРОДЖЕННЯ
+    YEAST_WHITE_AROM --> REHY_A
+    YEAST_WHITE_NEUTRAL --> REHY_A
+    YEAST_BDN --> REHY_A
+    YEAST_ROSE_AROM --> REHY_A
+    YEAST_ROSE_CLEAN --> REHY_A
+    YEAST_ROSE_STRUCT --> REHY_A
+    YEAST_ORANGE_STRUCT --> REHY_A
+    YEAST_ORANGE_COMPLEX --> REHY_B
+    YEAST_RED_DEL --> REHY_A
+    YEAST_RED_STRUCT --> REHY_A
+    YEAST_RED_MID --> REHY_A
+    YEAST_SPARK_BASE --> REHY_A
+    YEAST_SPARK_SEC --> REHY_A
+
+    %% РОЗБРОДЖЕННЯ S. CEREVISIAE
+    REHY_A["Розбродження Saccharomyces:<br>вода 35–40°C<br>вода : дріжджі = 10 : 1<br>20 хв<br>далі поступово додавати сусло<br>до різниці температур <= 10°C"] --> INOC_A["Внести розброджені дріжджі в сусло"]
+
+    %% РОЗБРОДЖЕННЯ NON-SACCHAROMYCES
+    REHY_B["Розбродження non-Saccharomyces:<br>вода 20–30°C<br>вода : дріжджі = 10 : 1<br>15 хв<br>далі поступово додавати сусло<br>до різниці температур <= 10°C"] --> INOC_B["Внести non-Saccharomyces у сусло"]
+
+    INOC_B --> SEQ_A["Після старту ароматоутворення:<br>внести Saccharomyces<br>за стандартною схемою розбродження"]
+
+    SEQ_A --> INOC_A
+
+    %% ══════ 8. ВИБІР ПОСУДУ ТА МАТЕРІАЛУ ══════
+    INOC_A --> SKIN{"Бродіння<br>на шкірці / м'яззі?"}
+
+    %% ВІДКРИТІСТЬ
+    SKIN -- Ні --> CLOSED["Режим:<br>закрита ємність<br>мінімізація контакту з киснем"]
+    SKIN -- Так --> OPEN["Режим:<br>відкрита / напіввідкрита ємність<br>доступ до шапки"]
+
+    %% ВИБІР МАТЕРІАЛУ — БЕЗ ШКІРКИ
+    CLOSED --> MAT_C{"Потрібно зберегти<br>ароматику >= 60<br>або тіолові/терпенові >= 50?"}
+    MAT_C -- Так --> STEEL_C["Посуд:<br>нержавіюча сталь<br>інертне середовище<br>контроль температури"]
+    MAT_C -- Ні --> MAT_C2{"Кремовість >= 50<br>або MLF >= 50?"}
+    MAT_C2 -- Так --> CLAY_C["Посуд:<br>глина #40;амфора / квеврі#41;<br>мікрооксидація<br>округлення структури"]
+    MAT_C2 -- Ні --> STEEL_C
+
+    %% ВИБІР МАТЕРІАЛУ — ЗІ ШКІРКОЮ
+    OPEN --> MAT_O{"Танінність >= 60<br>або тіло >= 60?"}
+    MAT_O -- Так --> CLAY_O["Посуд:<br>глина #40;амфора / квеврі#41;<br>мікрооксидація<br>стабілізація танінів"]
+    MAT_O -- Ні --> MAT_O2{"Ароматична інтенсивність >= 60?"}
+    MAT_O2 -- Так --> STEEL_O["Посуд:<br>нержавіюча сталь<br>збереження фруктового профілю"]
+    MAT_O2 -- Ні --> CLAY_O
+
+    %% ФІНАЛ
+    STEEL_C --> AF["Первинне бродіння"]
+    CLAY_C --> AF
+    STEEL_O --> AF
+    CLAY_O --> AF
+
+    %% ══════ 9. ТЕМПЕРАТУРА БРОДІННЯ ══════
+    AF --> TEMP_COLOR{"Сировина<br>і колір"}
+
+    TEMP_COLOR -- Біле --> TEMP_W{"Ароматична інтенсивність >= 60<br>або тіолові/терпенові >= 50?"}
+    TEMP_W -- Так --> TEMP_COLD["Холодне бродіння<br>12-16°C<br>редуктивний стиль"]
+    TEMP_W -- Ні --> TEMP_MOD_W["Помірне бродіння<br>16-18°C"]
+
+    TEMP_COLOR -- "Блан де нуар" --> TEMP_COLD
+
+    TEMP_COLOR -- Рожеве --> TEMP_ROSE{"Ароматична інтенсивність >= 60?"}
+    TEMP_ROSE -- Так --> TEMP_COLD
+    TEMP_ROSE -- Ні --> TEMP_MOD_ROSE["Помірне бродіння<br>16-20°C"]
+
+    TEMP_COLOR -- Помаранчеве --> TEMP_WARM_O["Тепле бродіння<br>20-28°C"]
+
+    TEMP_COLOR -- Червоне --> TEMP_RED{"Тіло >= 60<br>або танінність >= 60?"}
+    TEMP_RED -- Так --> TEMP_WARM_R["Тепле бродіння<br>22-28°C<br>екстракція, складність"]
+    TEMP_RED -- Ні --> TEMP_RED_A{"Ароматична інтенсивність >= 60?"}
+    TEMP_RED_A -- Так --> TEMP_MOD_R["Помірне бродіння<br>18-22°C"]
+    TEMP_RED_A -- Ні --> TEMP_MOD_R2["Помірне бродіння<br>20-25°C"]
+
+    TEMP_COLOR -- Ігристе --> TEMP_COLD
+
+    %% ══════ 9б. ТЕМПЕРАТУРНИЙ ПРОФІЛЬ ══════
+
+    %% ХОЛОДНЕ БРОДІННЯ — профіль
+    TEMP_COLD --> PROF_THIOL{"Тіолові/терпенові >= 50?"}
+    PROF_THIOL -- Так --> PROF_CONST_COLD["Профіль: константа<br>12-14°C від початку до кінця<br>максимальне збереження тіолів"]
+    PROF_THIOL -- Ні --> PROF_COLD_RISE["Профіль: холодний старт → підйом<br>12-14°C до 50-70% збродження<br>потім підйом до 16-18°C<br>для завершення"]
+
+    %% ПОМІРНЕ БІЛЕ — профіль
+    TEMP_MOD_W --> PROF_MW{"Тіло >= 50?"}
+    PROF_MW -- Так --> PROF_MW_RISE["Профіль: помірний з підйомом<br>16°C → поступово до 18-20°C<br>до середини бродіння → утримання"]
+    PROF_MW -- Ні --> PROF_MW_CONST["Профіль: константа<br>16-18°C протягом всього бродіння"]
+
+    %% ПОМІРНЕ РОЖЕВЕ — профіль
+    TEMP_MOD_ROSE --> PROF_ROSE_CONST["Профіль: константа<br>16-20°C протягом всього бродіння"]
+
+    %% ТЕПЛЕ ПОМАРАНЧЕВЕ — профіль
+    TEMP_WARM_O --> PROF_O{"Танінність >= 50?"}
+    PROF_O -- Так --> PROF_O_RISE["Профіль: м'який підйом<br>22°C → пік 28°C на день 3-5<br>утримання до кінця"]
+    PROF_O -- Ні --> PROF_O_CONST["Профіль: тепла константа<br>22-26°C протягом всього бродіння"]
+
+    %% ТЕПЛЕ ЧЕРВОНЕ — профіль
+    TEMP_WARM_R --> PROF_RH{"Танінність >= 60?"}
+    PROF_RH -- Так --> PROF_PROG["Профіль: прогресивний нагрів<br>старт 20-22°C → пік 28-30°C день 3-5<br>утримання → зниження до 22-24°C<br>останні 20% бродіння"]
+    PROF_RH -- Ні --> PROF_MOD_PEAK["Профіль: помірний пік<br>старт 22°C → пік 26-28°C<br>утримання до кінця"]
+
+    %% ПОМІРНЕ ЧЕРВОНЕ АРОМАТИЧНЕ — профіль
+    TEMP_MOD_R --> PROF_RA_CONST["Профіль: константа<br>22-25°C протягом всього бродіння<br>уникати піків для збереження ароматики"]
+
+    %% ПОМІРНЕ ЧЕРВОНЕ НЕЙТРАЛЬНЕ — профіль
+    TEMP_MOD_R2 --> PROF_RN{"Тіло >= 50?"}
+    PROF_RN -- Так --> PROF_RN_RISE["Профіль: м'який підйом<br>20°C → поступово до 25°C<br>утримання до кінця"]
+    PROF_RN -- Ні --> PROF_RN_CONST["Профіль: константа<br>20-22°C протягом всього бродіння"]
+
+    %% Усі профілі → робота з шапкою
+    PROF_CONST_COLD --> CAP_CHECK
+    PROF_COLD_RISE --> CAP_CHECK
+    PROF_MW_RISE --> CAP_CHECK
+    PROF_MW_CONST --> CAP_CHECK
+    PROF_ROSE_CONST --> CAP_CHECK
+    PROF_O_RISE --> CAP_CHECK
+    PROF_O_CONST --> CAP_CHECK
+    PROF_PROG --> CAP_CHECK
+    PROF_MOD_PEAK --> CAP_CHECK
+    PROF_RA_CONST --> CAP_CHECK
+    PROF_RN_RISE --> CAP_CHECK
+    PROF_RN_CONST --> CAP_CHECK
+
+    %% ══════ 10. РОБОТА З ШАПКОЮ ТА МІКРООКСИГЕНАЦІЯ ══════
+    CAP_CHECK{"Бродіння<br>на шкірці?"}
+
+    CAP_CHECK -- Ні --> CAP_SKIP["Робота з шапкою не потрібна"] --> STYLE
+
+    CAP_CHECK -- Так --> CAP_TAN{"Танінність >= 60?"}
+
+    CAP_TAN -- Так --> CAP_PIGEAGE["Pigeage #40;занурення шапки#41;<br>1-2 рази/добу<br>м'яке, без надмірної екстракції<br>помірна аерація"]
+    CAP_TAN -- Ні --> CAP_BODY{"Тіло >= 60?"}
+    CAP_BODY -- Так --> CAP_REMONTAGE["Remontage #40;перекачування#41;<br>2-3 рази/добу<br>через шапку<br>помірна аерація"]
+    CAP_BODY -- Ні --> CAP_AROM{"Ароматична інтенсивність >= 60?"}
+    CAP_AROM -- Так --> CAP_DELESTAGE["Délestage або м'який remontage<br>1 раз/добу<br>мінімальна аерація"]
+    CAP_AROM -- Ні --> CAP_DEFAULT["Remontage<br>1-2 рази/добу<br>стандартний режим"]
+
+    %% МІКРООКСИГЕНАЦІЯ
+    CAP_PIGEAGE --> MICROOX{"Танінність >= 50<br>і окислювальний стиль<br>#40;oxidation >= 50#41;?"}
+    CAP_REMONTAGE --> MICROOX
+    CAP_DELESTAGE --> MICROOX
+    CAP_DEFAULT --> MICROOX
+
+    MICROOX -- Так --> MICROOX_YES["Додаткова аерація:<br>délestage 1 раз на 2-3 доби<br>або rack-and-return<br>пом'якшення танінів"]
+    MICROOX -- Ні --> MICROOX_NO["Мінімальна аерація:<br>лише через ремонтаж"]
+
+    MICROOX_YES --> STYLE
+    MICROOX_NO --> STYLE
+
+    %% ══════ 11. ЗНЯТТЯ З М'ЯЗГИ ══════
+    STYLE{"Солодкість вина"}
+
+    STYLE -- Сухе --> DRY_SKIN{"Бродіння на м'яззі"}
+    STYLE -- "Не сухе" --> SWEET_SKIN{"Бродіння на м'яззі"}
+
+    %% ЗНЯТТЯ — СУХЕ
+    DRY_SKIN -- Ні --> NO_PRESS["Зняття з м'язги не застосовується"]
+    DRY_SKIN -- Так --> DRY_STRUCT{"Тіло 60+ або танінність 60+"}
+    DRY_STRUCT -- Так --> DRY_LATE["Зняття з м'язги:<br>майже повне збродження<br>орієнтир 0-2 Brix<br>або SG 0.996-1.000"]
+    DRY_STRUCT -- Ні --> DRY_AROM{"Ароматична інтенсивність 60+"}
+    DRY_AROM -- Так --> DRY_EARLY["Зняття з м'язги:<br>ранній віджим<br>орієнтир 1.020-1.030<br>або 5-7 Brix"]
+    DRY_AROM -- Ні --> DRY_MID["Зняття з м'язги:<br>середній режим<br>орієнтир 1.010-1.020<br>або 2.5-5 Brix"]
+
+    %% ЗНЯТТЯ — НЕ СУХЕ
+    SWEET_SKIN -- Ні --> NO_PRESS_2["Зняття з м'язги не застосовується"]
+    SWEET_SKIN -- Так --> SWEET_RS{"RS більше 30 г/дм3"}
+    SWEET_RS -- Так --> SWEET_EARLY["Зняття з м'язги:<br>ранній віджим<br>орієнтир 1.030-1.050<br>або 7-12 Brix"]
+    SWEET_RS -- Ні --> SEMI_EARLY["Зняття з м'язги:<br>помірно ранній віджим<br>орієнтир 1.020-1.030<br>або 5-7 Brix"]
+
+    %% ══════ 12. ПІДКОРМКА ДРІЖДЖІВ ══════
+    NO_PRESS --> FEED_START
+    DRY_LATE --> FEED_START
+    DRY_EARLY --> FEED_START
+    DRY_MID --> FEED_START
+    NO_PRESS_2 --> FEED_START
+    SWEET_EARLY --> FEED_START
+    SEMI_EARLY --> FEED_START
+
+    FEED_START{"YAN відомий"} --> LEES{"Є дріжджовий осад<br>з попередніх бродінь"}
+
+    %% Є ОСАД
+    LEES -- Так --> LEES_STYLE{"Солодкість вина"}
+    LEES_STYLE -- Сухе --> LEES_DRY["Підкормка:<br>дріжджовий осад<br>10-20 г/гл<br>за потреби:<br>комплексна підкормка 5-10 г/гл<br>до 1/3 бродіння"]
+    LEES_STYLE -- "Не сухе" --> LEES_SWEET["Підкормка:<br>дріжджовий осад<br>5-10 г/гл<br>без комплексної підкормки"]
+
+    %% НЕМАЄ ОСАДУ
+    LEES -- Ні --> CLASSIC{"YAN відомий"}
+
+    %% YAN ВІДОМИЙ
+    CLASSIC -- Так --> KNOWN_STYLE{"Солодкість вина"}
+
+    KNOWN_STYLE -- Сухе --> YAN_DRY_LOW{"YAN менше 180 мг/л"}
+    YAN_DRY_LOW -- Так --> DRY_FEED_FULL["Підкормка:<br>дріжджовий осад або інактивовані дріжджі<br>20-30 г/гл<br>комплексна підкормка<br>15-25 г/гл<br>вносити до 1/3 збродження"]
+    YAN_DRY_LOW -- Ні --> YAN_DRY_MID{"YAN 180-250 мг/л"}
+    YAN_DRY_MID -- Так --> DRY_FEED_PART["Підкормка:<br>дріжджовий осад або інактивовані дріжджі<br>15-25 г/гл<br>комплексна підкормка не обов'язкова<br>або 5-10 г/гл<br>до 1/3 збродження"]
+    YAN_DRY_MID -- Ні --> DRY_FEED_SKIP["Підкормка не потрібна"]
+
+    KNOWN_STYLE -- "Не сухе" --> YAN_SWEET_LOW{"YAN менше 180 мг/л"}
+    YAN_SWEET_LOW -- Так --> SWEET_FEED_SOFT["Підкормка:<br>дріжджовий осад або інактивовані дріжджі<br>10-20 г/гл<br>без комплексної підкормки<br>або максимум 5-10 г/гл<br>тільки до 1/4-1/3 збродження"]
+    YAN_SWEET_LOW -- Ні --> SWEET_FEED_SKIP["Підкормка не потрібна<br>або лише дріжджовий осад<br>5-10 г/гл за ознак стресу"]
+
+    %% YAN НЕВІДОМИЙ
+    CLASSIC -- Ні --> UNKNOWN_STYLE{"Солодкість вина"}
+
+    UNKNOWN_STYLE -- Сухе --> UNKNOWN_DRY["Підкормка:<br>дріжджовий осад або інактивовані дріжджі<br>20-30 г/гл<br>комплексна підкормка<br>10-20 г/гл<br>до 1/3 збродження"]
+    UNKNOWN_STYLE -- "Не сухе" --> UNKNOWN_SWEET["Підкормка:<br>дріжджовий осад або інактивовані дріжджі<br>10-15 г/гл<br>без комплексної підкормки<br>або максимум 5 г/гл<br>тільки за ознак слабкого старту"]
+
+    %% ФІНАЛ ПІДКОРМКИ → КОНТРОЛЬ БРОДІННЯ
+    LEES_DRY --> CTRL_START
+    LEES_SWEET --> CTRL_START
+    DRY_FEED_FULL --> CTRL_START
+    DRY_FEED_PART --> CTRL_START
+    DRY_FEED_SKIP --> CTRL_START
+    SWEET_FEED_SOFT --> CTRL_START
+    SWEET_FEED_SKIP --> CTRL_START
+    UNKNOWN_DRY --> CTRL_START
+    UNKNOWN_SWEET --> CTRL_START
+
+    %% ══════ 13. КОНТРОЛЬ ПЕРВИННОГО БРОДІННЯ ══════
+    CTRL_START["Контроль первинного бродіння"] --> CTRL_STYLE{"Солодкість вина"}
+
+    %% СУХІ
+    CTRL_STYLE -- Сухе --> DRY_STABLE{"Бродіння стабільне"}
+    DRY_STABLE -- Так --> DRY_CONTINUE["Продовжити бродіння<br>до SG 0.996-1.000"]
+    DRY_STABLE -- Ні --> DRY_STAGE{"Стадія бродіння до 2/3"}
+    DRY_STAGE -- Так --> DRY_CTRL_FEED["Підкормка:<br>інактивовані дріжджі<br>10-20 г/гл"]
+    DRY_STAGE -- Ні --> DRY_NOFEED["Підкормка не проводиться"]
+    DRY_CTRL_FEED --> DRY_CONTINUE
+    DRY_NOFEED --> DRY_CONTINUE
+    DRY_CONTINUE --> FINAL
+
+    %% НЕ СУХІ
+    CTRL_STYLE -- "Не сухе" --> SWEET_TYPE{"Тип вина"}
+    SWEET_TYPE -- Напівсухе --> SEMI_DRY
+    SWEET_TYPE -- Напівсолодке --> SEMI_SWEET
+    SWEET_TYPE -- Солодке --> SWEET
+
+    %% НАПІВСУХЕ
+    SEMI_DRY --> SD_RS{"RS досяг цілі"}
+    SD_RS -- Ні --> SD_FLOW{"Бродіння стабільне"}
+    SD_FLOW -- Так --> SD_WAIT["Продовжити бродіння"]
+    SD_FLOW -- Ні --> SD_FEED["Підкормка:<br>інактивовані дріжджі<br>5-10 г/гл"]
+    SD_FEED --> SD_WAIT
+    SD_RS -- Так --> SD_STOP["Зупинка:<br>охолодження 2-4°C<br>SO2 30-50 мг/л"]
+    SD_WAIT --> SD_RS
+    SD_STOP --> FINAL
+
+    %% НАПІВСОЛОДКЕ
+    SEMI_SWEET --> SS_RS{"RS досяг цілі"}
+    SS_RS -- Ні --> SS_FLOW{"Бродіння стабільне"}
+    SS_FLOW -- Так --> SS_WAIT["Продовжити бродіння"]
+    SS_FLOW -- Ні --> SS_FEED["Підкормка:<br>інактивовані дріжджі<br>5-10 г/гл"]
+    SS_FEED --> SS_WAIT
+    SS_RS -- Так --> SS_STOP["Зупинка:<br>охолодження 0-2°C<br>SO2 40-60 мг/л<br>стерильна фільтрація"]
+    SS_WAIT --> SS_RS
+    SS_STOP --> FINAL
+
+    %% СОЛОДКЕ
+    SWEET --> SW_RS{"RS досяг цілі"}
+    SW_RS -- Ні --> SW_FLOW{"Бродіння стабільне"}
+    SW_FLOW -- Так --> SW_WAIT["Продовжити бродіння"]
+    SW_FLOW -- Ні --> SW_FEED["Підкормка:<br>інактивовані дріжджі<br>до 5 г/гл"]
+    SW_FEED --> SW_WAIT
+    SW_RS -- Так --> SW_STOP["Зупинка:<br>охолодження 0°C<br>SO2 50-70 мг/л<br>стерильна фільтрація"]
+    SW_WAIT --> SW_RS
+    SW_STOP --> FINAL
+
+    %% ФІНАЛ
+    FINAL["Первинне бродіння завершено"]
+
+    %% ══════ 14. ПОСТФЕРМЕНТАЦІЙНА МАЦЕРАЦІЯ ══════
+    FINAL --> EXT_CHECK{"Бродіння було<br>на шкірці?"}
+
+    EXT_CHECK -- Ні --> POST_DONE["Перехід до наступного етапу"]
+
+    EXT_CHECK -- Так --> EXT_TAN{"Танінність >= 60<br>і тіло >= 60?"}
+
+    EXT_TAN -- Так --> EXT_LONG["Тривала постферментаційна мацерація:<br>1-4 тижні<br>температура 20-25°C<br>контроль танінів щоденно<br>дегустація кожні 2-3 дні"]
+    EXT_TAN -- Ні --> EXT_TAN2{"Танінність >= 40?"}
+    EXT_TAN2 -- Так --> EXT_SHORT["Коротка постферментаційна мацерація:<br>3-7 днів<br>температура 20-25°C"]
+    EXT_TAN2 -- Ні --> EXT_SKIP["Без постферментаційної мацерації:<br>зняти з м'язги одразу"]
+
+    EXT_LONG --> EXT_PRESS["Пресування:<br>зібрати самоток<br>потім легке пресування<br>окремо зберігати фракції"]
+    EXT_SHORT --> EXT_PRESS
+    EXT_SKIP --> EXT_PRESS
+
+    EXT_PRESS --> POST_DONE
+
+    %% ══════ 15. РОЗГАЛУЖЕННЯ ЗА ТИПОМ ВИНА ══════
+    POST_DONE --> POST_TYPE{"Тип вина"}
+    POST_TYPE -- Тихе --> POST_SWEET{"Солодкість вина"}
+    POST_TYPE -- Ігристе --> SPARK_METHOD{"Метод<br>виробництва"}
+    POST_SWEET -- Сухе --> MLF_COLOR
+    POST_SWEET -- "Не сухе" --> NS_START["Постферментація:<br>тихе не-сухе вино"]
+
+    %% ═══════════════════════════════════════════
+    %% ══  ГІЛКА А: ТИХЕ СУХЕ ВИНО             ══
+    %% ═══════════════════════════════════════════
+
+    %% ══════ 15А. МЛБ (МАЛОЛАКТИЧНЕ БРОДІННЯ) ══════
+    MLF_COLOR{"Сировина<br>і колір"}
+
+    %% БІЛЕ / БЛАН ДЕ НУАР — МЛБ
+    MLF_COLOR -- Біле --> MLF_W{"Тіло >= 60<br>або oxidation >= 50?"}
+    MLF_COLOR -- "Блан де нуар" --> MLF_W
+    MLF_W -- Так --> MLF_W_YES["МЛБ: так<br>інокуляція або спонтанне<br>температура 18-22°C"]
+    MLF_W -- Ні --> MLF_W_AROM{"Ароматична<br>інтенсивність >= 60?"}
+    MLF_W_AROM -- Так --> MLF_W_NO["МЛБ: ні<br>зберегти свіжість і кислотність<br>SO2 одразу після бродіння"]
+    MLF_W_AROM -- Ні --> MLF_W_OPT["МЛБ: необов'язково<br>часткове або повне<br>за результатами дегустації"]
+
+    %% РОЖЕВЕ — МЛБ
+    MLF_COLOR -- Рожеве --> MLF_ROSE["МЛБ: ні<br>зберегти свіжість і кислотність<br>SO2 після бродіння"]
+
+    %% ЧЕРВОНЕ — МЛБ
+    MLF_COLOR -- Червоне --> MLF_RED{"Спонтанне<br>чи інокуляція?"}
+    MLF_RED -- Спонтанне --> MLF_RED_SP["МЛБ: спонтанне<br>температура 18-22°C<br>контроль яблучної кислоти<br>тривалість 2-8 тижнів"]
+    MLF_RED -- Інокуляція --> MLF_RED_IN["МЛБ: інокуляція<br>Oenococcus oeni<br>температура 18-22°C<br>тривалість 2-4 тижні"]
+
+    %% ПОМАРАНЧЕВЕ — МЛБ
+    MLF_COLOR -- Помаранчеве --> MLF_O["МЛБ: спонтанне<br>зазвичай проходить<br>під час або після АБ<br>контроль яблучної кислоти"]
+
+    %% ══════ 16. ПЕРШЕ ЗНЯТТЯ З ОСАДУ + SO2 ══════
+
+    %% БІЛЕ
+    MLF_W_YES --> RACK_W["Зняття з осаду:<br>після завершення МЛБ<br>SO2 25-35 мг/л вільного"]
+    MLF_W_NO --> RACK_W_EARLY["Зняття з осаду:<br>SO2 30-40 мг/л вільного<br>одразу після АБ"]
+    MLF_W_OPT --> RACK_W
+
+    %% РОЖЕВЕ
+    MLF_ROSE --> RACK_ROSE["Зняття з осаду:<br>SO2 30-40 мг/л вільного<br>одразу після АБ"]
+
+    %% ЧЕРВОНЕ
+    MLF_RED_SP --> RACK_RED["Зняття з осаду:<br>після завершення МЛБ<br>SO2 20-30 мг/л вільного"]
+    MLF_RED_IN --> RACK_RED
+
+    %% ПОМАРАНЧЕВЕ
+    MLF_O --> RACK_O["Зняття з осаду:<br>SO2 0-20 мг/л<br>або без SO2<br>мінімальне втручання"]
+
+    %% ══════ 17. ВИТРИМКА ══════
+
+    %% БІЛЕ — витримка
+    RACK_W --> AGE_W{"Oxidation >= 50<br>і тіло >= 60?"}
+    RACK_W_EARLY --> AGE_W
+    AGE_W -- Так --> AGE_W_OAK["Витримка: дуб<br>барік 225л або 500л<br>новий або б/в<br>4-12 місяців"]
+    AGE_W -- Ні --> AGE_W_BODY{"Тіло >= 50?"}
+    AGE_W_BODY -- Так --> AGE_W_LARGE["Витримка: великий дуб<br>або акація<br>4-8 місяців"]
+    AGE_W_BODY -- Ні --> AGE_W_STEEL["Витримка: сталь<br>інертне середовище<br>2-6 місяців"]
+
+    %% РОЖЕВЕ — витримка
+    RACK_ROSE --> AGE_ROSE["Витримка: сталь<br>1-3 місяці<br>зберегти свіжість"]
+
+    %% ЧЕРВОНЕ — витримка
+    RACK_RED --> AGE_RED_TAN{"Танінність >= 60<br>і тіло >= 60?"}
+    AGE_RED_TAN -- Так --> AGE_RED_NEW["Витримка: новий дуб барік<br>225л<br>12-24 місяці"]
+    AGE_RED_TAN -- Ні --> AGE_RED_TAN2{"Танінність >= 50?"}
+    AGE_RED_TAN2 -- Так --> AGE_RED_USED["Витримка: б/в дуб барік<br>225л<br>6-18 місяців"]
+    AGE_RED_TAN2 -- Ні --> AGE_RED_BODY{"Тіло >= 50?"}
+    AGE_RED_BODY -- Так --> AGE_RED_LARGE["Витримка: великий дуб<br>500-2000л<br>6-12 місяців"]
+    AGE_RED_BODY -- Ні --> AGE_RED_AROM{"Ароматична<br>інтенсивність >= 60?"}
+    AGE_RED_AROM -- Так --> AGE_RED_LT_OAK["Витримка: б/в дуб<br>або великий дуб<br>6-12 місяців"]
+    AGE_RED_AROM -- Ні --> AGE_RED_STEEL["Витримка: сталь<br>2-4 місяці<br>або мінімальний дуб"]
+
+    %% ПОМАРАНЧЕВЕ — витримка
+    RACK_O --> AGE_O{"Oxidation >= 50?"}
+    AGE_O -- Так --> AGE_O_AMPH["Витримка: амфора<br>або великий дуб<br>3-12 місяців"]
+    AGE_O -- Ні --> AGE_O_STEEL["Витримка: сталь<br>або амфора<br>3-6 місяців"]
+
+    %% ══════ 18. БАТОНАЖ ══════
+
+    %% БІЛЕ — батонаж
+    AGE_W_OAK --> BAT_W{"Тіло >= 50?"}
+    AGE_W_LARGE --> BAT_W
+    AGE_W_STEEL --> BAT_W_TH{"Тіолові/терпенові >= 50?"}
+    BAT_W_TH -- Так --> BAT_W_NO["Без батонажу:<br>редуктивна витримка<br>зберегти тіоли"]
+    BAT_W_TH -- Ні --> BAT_W_LIGHT["Легкий батонаж:<br>1 раз/тиждень<br>1-2 місяці"]
+    BAT_W -- Так --> BAT_W_FULL["Батонаж:<br>1-2 рази/тиждень<br>2-6 місяців<br>складність, текстура"]
+    BAT_W -- Ні --> BAT_W_LIGHT
+
+    %% РОЖЕВЕ — батонаж
+    AGE_ROSE --> BAT_ROSE["Без батонажу<br>або мінімальний"]
+
+    %% ЧЕРВОНЕ — графік зняття з осаду
+    AGE_RED_NEW --> BAT_RED["Зняття з осаду<br>кожні 3-4 місяці<br>контроль SO2"]
+    AGE_RED_USED --> BAT_RED
+    AGE_RED_LARGE --> BAT_RED
+    AGE_RED_LT_OAK --> BAT_RED
+    AGE_RED_STEEL --> BAT_RED_MIN["Зняття з осаду<br>1-2 рази за витримку"]
+
+    %% ПОМАРАНЧЕВЕ — батонаж
+    AGE_O_AMPH --> BAT_O["Батонаж:<br>за бажанням<br>1 раз/тиждень або рідше"]
+    AGE_O_STEEL --> BAT_O
+
+    %% ══════ 19. ОСВІТЛЕННЯ ══════
+
+    %% БІЛЕ — освітлення
+    BAT_W_FULL --> CLAR_W{"Оклейка<br>потрібна?"}
+    BAT_W_NO --> CLAR_W
+    BAT_W_LIGHT --> CLAR_W
+
+    CLAR_W -- Так --> CLAR_W_TYPE{"Основна<br>каламуть"}
+    CLAR_W -- Ні --> CLAR_W_SELF["Самоосвітлення:<br>відстоювання 2-4 тижні<br>зняття з осаду"]
+
+    CLAR_W_TYPE -- "Білкова каламуть" --> CLAR_W_BENT["Бентоніт:<br>20-60 г/гл<br>видалення білків + освітлення"]
+    CLAR_W_TYPE -- "Фенольна каламуть" --> CLAR_W_PVPP["PVPP 20-40 г/гл<br>+ бентоніт 20-40 г/гл"]
+    CLAR_W_TYPE -- "Окислені феноли" --> CLAR_W_CAS["Казеїн 5-20 г/гл<br>або активоване вугілля<br>+ бентоніт 20-40 г/гл"]
+
+    %% РОЖЕВЕ — освітлення
+    BAT_ROSE --> CLAR_ROSE{"Оклейка<br>потрібна?"}
+    CLAR_ROSE -- Так --> CLAR_ROSE_BENT["Бентоніт 20-50 г/гл<br>+ казеїн 5-15 г/гл<br>за потреби корекції кольору"]
+    CLAR_ROSE -- Ні --> CLAR_ROSE_SELF["Самоосвітлення:<br>відстоювання 2-3 тижні"]
+
+    %% ЧЕРВОНЕ — освітлення
+    BAT_RED --> CLAR_RED{"Оклейка<br>потрібна?"}
+    BAT_RED_MIN --> CLAR_RED
+    CLAR_RED -- Так --> CLAR_RED_TYPE{"Метод оклейки"}
+    CLAR_RED -- Ні --> CLAR_RED_SKIP["Без оклейки:<br>самоосвітлення"]
+    CLAR_RED_TYPE -- "Яєчний білок" --> CLAR_RED_EGG["Яєчний білок:<br>3-5 шт/барік<br>пом'якшення танінів<br>зняття з осаду через 2-3 тижні"]
+    CLAR_RED_TYPE -- Желатин --> CLAR_RED_GEL["Желатин:<br>5-10 г/гл<br>видалення грубих танінів<br>зняття з осаду через 1-2 тижні"]
+    CLAR_RED_TYPE -- PVPP --> CLAR_RED_PVPP["PVPP:<br>20-40 г/гл<br>видалення окислених фенолів"]
+
+    %% ПОМАРАНЧЕВЕ — освітлення
+    BAT_O --> CLAR_O["Мінімальне освітлення<br>або без оклейки<br>самоосвітлення"]
+
+    %% ══════ 20. СТАБІЛІЗАЦІЯ ══════
+
+    %% БІЛЕ — стабілізація
+    CLAR_W_SELF --> STAB_W["Холодна стабілізація:<br>-4°C протягом 5-10 днів<br>тартрати"]
+    CLAR_W_BENT --> STAB_W
+    CLAR_W_PVPP --> STAB_W
+    CLAR_W_CAS --> STAB_W
+
+    %% РОЖЕВЕ — стабілізація
+    CLAR_ROSE_BENT --> STAB_ROSE["Холодна стабілізація:<br>-4°C протягом 5-10 днів<br>тартрати"]
+    CLAR_ROSE_SELF --> STAB_ROSE
+
+    %% ЧЕРВОНЕ — стабілізація
+    CLAR_RED_EGG --> STAB_RED_COLD{"Холодна<br>стабілізація?"}
+    CLAR_RED_GEL --> STAB_RED_COLD
+    CLAR_RED_PVPP --> STAB_RED_COLD
+    CLAR_RED_SKIP --> STAB_RED_COLD
+    STAB_RED_COLD -- Так --> STAB_RED_C_YES["Холодна стабілізація:<br>-4°C протягом 5-10 днів"]
+    STAB_RED_COLD -- Ні --> STAB_RED_C_NO["Без холодної стабілізації"]
+
+    %% ПОМАРАНЧЕВЕ — стабілізація
+    CLAR_O --> STAB_O["Мінімальна стабілізація<br>або без"]
+
+    %% ══════ 21. ФІЛЬТРАЦІЯ ══════
+
+    %% БІЛЕ
+    STAB_W --> FILT_W["Фільтрація:<br>cross-flow або пластинчаста<br>0.45-1.0 мкм"]
+
+    %% РОЖЕВЕ
+    STAB_ROSE --> FILT_ROSE["Щільна фільтрація:<br>cross-flow або пластинчаста<br>0.45 мкм<br>зберегти колір і свіжість"]
+
+    %% ЧЕРВОНЕ
+    STAB_RED_C_YES --> FILT_RED{"Фільтрація?"}
+    STAB_RED_C_NO --> FILT_RED
+    FILT_RED -- Так --> FILT_RED_YES["Фільтрація:<br>пластинчаста 1-3 мкм<br>або cross-flow"]
+    FILT_RED -- Ні --> FILT_RED_NO["Без фільтрації:<br>unfined / unfiltered"]
+
+    %% ПОМАРАНЧЕВЕ
+    STAB_O --> FILT_O{"Фільтрація?"}
+    FILT_O -- Так --> FILT_O_YES["Делікатна фільтрація:<br>3-5 мкм"]
+    FILT_O -- Ні --> FILT_O_NO["Без фільтрації"]
+
+    %% ══════ 22А. РОЗЛИВ (СУХЕ) ══════
+    FILT_W --> BOTTLING["Розлив"]
+    FILT_ROSE --> BOTTLING
+    FILT_RED_YES --> BOTTLING
+    FILT_RED_NO --> BOTTLING
+    FILT_O_YES --> BOTTLING
+    FILT_O_NO --> BOTTLING
+
+    %% ═══════════════════════════════════════════
+    %% ══  ГІЛКА Б: ТИХЕ НЕ-СУХЕ ВИНО         ══
+    %% ═══════════════════════════════════════════
+
+    %% ══════ 15Б. МЛБ ДЛЯ НЕ-СУХИХ ══════
+    NS_START --> NS_MLF_COLOR{"Сировина<br>і колір"}
+
+    NS_MLF_COLOR -- Біле --> NS_MLF_NO_W["МЛБ: ні<br>блокувати SO2<br>зберегти кислотність<br>і залишковий цукор"]
+    NS_MLF_COLOR -- "Блан де нуар" --> NS_MLF_NO_W
+    NS_MLF_COLOR -- Рожеве --> NS_MLF_NO_ROSE["МЛБ: ні<br>блокувати SO2<br>зберегти свіжість"]
+
+    NS_MLF_COLOR -- Червоне --> NS_MLF_RED{"Напівсухе<br>і танінність >= 50?"}
+    NS_MLF_RED -- Так --> NS_MLF_RED_PART["МЛБ: часткове<br>зупинити після 50% конверсії<br>SO2 для блокування<br>пом'якшити танінну структуру"]
+    NS_MLF_RED -- Ні --> NS_MLF_NO_RED["МЛБ: ні<br>блокувати SO2<br>зберегти кислотність"]
+
+    NS_MLF_COLOR -- Помаранчеве --> NS_MLF_O{"Спонтанне МЛБ<br>вже почалось?"}
+    NS_MLF_O -- Так --> NS_MLF_O_PART["Дозволити завершити<br>або зупинити SO2<br>контроль яблучної кислоти"]
+    NS_MLF_O -- Ні --> NS_MLF_NO_O["МЛБ: ні<br>SO2 для блокування"]
+
+    %% ══════ 16Б. ЗНЯТТЯ З ОСАДУ + SO2 (НЕ-СУХЕ) ══════
+    NS_MLF_NO_W --> NS_RACK_SW{"Солодкість"}
+    NS_MLF_NO_ROSE --> NS_RACK_SW
+    NS_MLF_RED_PART --> NS_RACK_SW
+    NS_MLF_NO_RED --> NS_RACK_SW
+    NS_MLF_O_PART --> NS_RACK_SW
+    NS_MLF_NO_O --> NS_RACK_SW
+
+    NS_RACK_SW -- Напівсухе --> NS_RACK_SD["Зняття з осаду:<br>SO2 35-50 мг/л вільного"]
+    NS_RACK_SW -- Напівсолодке --> NS_RACK_SS["Зняття з осаду:<br>SO2 40-60 мг/л вільного"]
+    NS_RACK_SW -- Солодке --> NS_RACK_SWEET["Зняття з осаду:<br>SO2 50-80 мг/л вільного"]
+
+    %% ══════ 17Б. ВИТРИМКА (НЕ-СУХЕ) ══════
+
+    NS_RACK_SD --> NS_AGE_COLOR{"Сировина<br>і колір"}
+    NS_RACK_SS --> NS_AGE_COLOR
+    NS_RACK_SWEET --> NS_AGE_COLOR
+
+    %% БІЛЕ / РОЖЕВЕ / БЛАН ДЕ НУАР — сталь
+    NS_AGE_COLOR -- Біле --> NS_AGE_W["Витримка: сталь<br>1-4 місяці<br>зберегти свіжість і фруктовість"]
+    NS_AGE_COLOR -- "Блан де нуар" --> NS_AGE_W
+    NS_AGE_COLOR -- Рожеве --> NS_AGE_ROSE["Витримка: сталь<br>1-2 місяці<br>мінімальна витримка"]
+
+    %% ЧЕРВОНЕ — сталь або короткий дуб
+    NS_AGE_COLOR -- Червоне --> NS_AGE_RED{"Танінність >= 50<br>і напівсухе?"}
+    NS_AGE_RED -- Так --> NS_AGE_RED_OAK["Витримка: б/в дуб<br>або великий дуб<br>3-6 місяців"]
+    NS_AGE_RED -- Ні --> NS_AGE_RED_ST["Витримка: сталь<br>1-3 місяці"]
+
+    %% ПОМАРАНЧЕВЕ — амфора або сталь
+    NS_AGE_COLOR -- Помаранчеве --> NS_AGE_O{"Oxidation >= 50?"}
+    NS_AGE_O -- Так --> NS_AGE_O_AMPH["Витримка: амфора<br>або великий дуб<br>2-6 місяців"]
+    NS_AGE_O -- Ні --> NS_AGE_O_ST["Витримка: сталь<br>1-3 місяці"]
+
+    %% ══════ 18Б. СТАБІЛІЗАЦІЯ ЗАЛИШКОВОГО ЦУКРУ ══════
+
+    NS_AGE_W --> NS_STAB_RS{"Метод стабілізації RS"}
+    NS_AGE_ROSE --> NS_STAB_RS
+    NS_AGE_RED_OAK --> NS_STAB_RS
+    NS_AGE_RED_ST --> NS_STAB_RS
+    NS_AGE_O_AMPH --> NS_STAB_RS
+    NS_AGE_O_ST --> NS_STAB_RS
+
+    NS_STAB_RS -- "Сорбінова кислота + SO2" --> NS_SORB["Сорбінова кислота:<br>150-200 мг/л<br>+ SO2 вільний >= 30 мг/л<br>блокує повторне бродіння"]
+    NS_STAB_RS -- "Стерильна фільтрація" --> NS_STERILE_ONLY["Без сорбінової кислоти:<br>стерильна фільтрація 0.45 мкм<br>забезпечить мікробну стабільність"]
+    NS_STAB_RS -- "Обидва методи" --> NS_BOTH["Сорбінова кислота 150-200 мг/л<br>+ стерильна фільтрація<br>максимальна стабільність"]
+
+    %% ══════ 19Б. ОСВІТЛЕННЯ (НЕ-СУХЕ) ══════
+
+    NS_SORB --> NS_CLAR_COLOR{"Сировина<br>і колір"}
+    NS_STERILE_ONLY --> NS_CLAR_COLOR
+    NS_BOTH --> NS_CLAR_COLOR
+
+    NS_CLAR_COLOR -- Біле --> NS_CLAR_W["Бентоніт:<br>20-50 г/гл<br>освітлення + білкова стабілізація"]
+    NS_CLAR_COLOR -- "Блан де нуар" --> NS_CLAR_W
+    NS_CLAR_COLOR -- Рожеве --> NS_CLAR_ROSE["Бентоніт:<br>20-40 г/гл<br>освітлення + білкова стабілізація"]
+    NS_CLAR_COLOR -- Червоне --> NS_CLAR_RED{"Оклейка<br>потрібна?"}
+    NS_CLAR_RED -- Так --> NS_CLAR_RED_GEL["Желатин 5-10 г/гл<br>або казеїн 5-15 г/гл"]
+    NS_CLAR_RED -- Ні --> NS_CLAR_RED_SELF["Самоосвітлення:<br>відстоювання"]
+    NS_CLAR_COLOR -- Помаранчеве --> NS_CLAR_O["Мінімальне освітлення<br>або без"]
+
+    %% ══════ 20Б. СТАБІЛІЗАЦІЯ (НЕ-СУХЕ) ══════
+
+    NS_CLAR_W --> NS_COLD["Холодна стабілізація:<br>-4°C протягом 5-10 днів<br>тартрати"]
+    NS_CLAR_ROSE --> NS_COLD
+    NS_CLAR_RED_GEL --> NS_COLD
+    NS_CLAR_RED_SELF --> NS_COLD
+    NS_CLAR_O --> NS_COLD
+
+    %% ══════ 21Б. ФІЛЬТРАЦІЯ (НЕ-СУХЕ) ══════
+
+    NS_COLD --> NS_FILT_ROUTE{"Сировина<br>і колір"}
+
+    NS_FILT_ROUTE -- Біле --> NS_FILT["Стерильна фільтрація:<br>cross-flow або мембранна<br>0.45 мкм<br>обов'язкова для RS стабільності"]
+    NS_FILT_ROUTE -- "Блан де нуар" --> NS_FILT
+    NS_FILT_ROUTE -- Рожеве --> NS_FILT
+    NS_FILT_ROUTE -- Червоне --> NS_FILT_RED_NS{"Фільтрація?"}
+    NS_FILT_ROUTE -- Помаранчеве --> NS_FILT_O_NS{"Фільтрація?"}
+
+    NS_FILT_RED_NS -- Так --> NS_FILT_RED["Фільтрація:<br>пластинчаста 0.45-1.0 мкм"]
+    NS_FILT_RED_NS -- Ні --> NS_FILT_RED_NO["Без фільтрації:<br>лише якщо стабілізовано<br>сорбіновою кислотою + SO2"]
+
+    NS_FILT_O_NS -- Так --> NS_FILT_O_DONE["Делікатна фільтрація:<br>1.0-3.0 мкм"]
+    NS_FILT_O_NS -- Ні --> NS_FILT_O_DONE_NO["Без фільтрації:<br>лише якщо стабілізовано<br>сорбіновою кислотою + SO2"]
+
+    %% ══════ 22Б. РОЗЛИВ (НЕ-СУХЕ) ══════
+    NS_FILT --> BOTTLING
+    NS_FILT_RED --> BOTTLING
+    NS_FILT_RED_NO --> BOTTLING
+    NS_FILT_O_DONE --> BOTTLING
+    NS_FILT_O_DONE_NO --> BOTTLING
+
+    %% ═══════════════════════════════════════════
+    %% ══  ГІЛКА В: ІГРИСТЕ ВИНО               ══
+    %% ═══════════════════════════════════════════
+
+    %% ══════ 15В. ВИБІР МЕТОДУ ══════
+    SPARK_METHOD -- Шампенуаз --> CHAMP_START["Méthode Traditionnelle"]
+    SPARK_METHOD -- Трансфер --> TRANS_ENTRY["Transfer method"]
+    SPARK_METHOD -- Шарма --> CHARMAT_START["Méthode Charmat"]
+    SPARK_METHOD -- "Пет-нат" --> PETNAT_START["Méthode Ancestrale"]
+
+    %% ══════════════════════════════════════════════════
+    %% ШАМПЕНУАЗ + ТРАНСФЕР — спільні кроки 1-6
+    %% ══════════════════════════════════════════════════
+
+    %% 16В-1. МЛБ БАЗОВОГО ВИНА
+    CHAMP_START --> CT_MLF{"МЛБ?"}
+    TRANS_ENTRY --> CT_MLF
+
+    CT_MLF -- Так --> CT_MLF_YES["МЛБ: так<br>інокуляція Oenococcus oeni<br>температура 18-22°C<br>складність, м'якість кислотності"]
+    CT_MLF -- Ні --> CT_MLF_NO["МЛБ: ні<br>зберегти кислотність<br>SO2 після АБ"]
+    CT_MLF -- Часткове --> CT_MLF_PART["МЛБ: часткове<br>зупинити після 30-50% конверсії<br>баланс кислотності і складності"]
+
+    %% 16В-2. АССАМБЛЯЖ
+    CT_MLF_YES --> CT_ASSEM{"Ассамбляж"}
+    CT_MLF_NO --> CT_ASSEM
+    CT_MLF_PART --> CT_ASSEM
+
+    CT_ASSEM -- Моновінтаж --> CT_ASSEM_MONO["Моновінтажне базове вино<br>один урожай"]
+    CT_ASSEM -- Мультивінтаж --> CT_ASSEM_MULTI["Мультивінтажний купаж<br>резервні вина різних років<br>стабільність стилю"]
+    CT_ASSEM -- "Моносорт" --> CT_ASSEM_VAR["Моносортове базове вино"]
+    CT_ASSEM -- "Купаж сортів" --> CT_ASSEM_BLEND["Купаж сортів<br>складність, баланс"]
+
+    %% 17В. ОСВІТЛЕННЯ БАЗОВОГО ВИНА
+    CT_ASSEM_MONO --> CT_CLAR["Освітлення базового вина:<br>бентоніт 20-40 г/гл<br>холодна стабілізація -4°C<br>фільтрація 0.45-1.0 мкм"]
+    CT_ASSEM_MULTI --> CT_CLAR
+    CT_ASSEM_VAR --> CT_CLAR
+    CT_ASSEM_BLEND --> CT_CLAR
+
+    %% 18В. ТИРАЖ
+    CT_CLAR --> CT_TIRAGE["Тираж #40;liqueur de tirage#41;:<br>цукор 20-24 г/л<br>дріжджі для вторинного бродіння<br>бентоніт #40;для ремюажу#41;<br>розлив у пляшки з кронен-пробкою"]
+
+    %% 18В-2. ВТОРИННЕ БРОДІННЯ В ПЛЯШЦІ
+    CT_TIRAGE --> CT_PRISE["Prise de mousse:<br>вторинне бродіння в пляшці<br>температура 12-14°C<br>тривалість 6-8 тижнів<br>цільовий тиск 5-6 атм"]
+
+    %% 18В-3. ВИТРИМКА НА ОСАДІ
+    CT_PRISE --> CT_AGING{"Рівень<br>витримки"}
+    CT_AGING -- Базовий --> CT_AGE_BASE["Витримка sur lie:<br>мінімум 12 місяців<br>автоліз дріжджів"]
+    CT_AGING -- Вінтаж --> CT_AGE_VINT["Витримка sur lie:<br>мінімум 36 місяців<br>глибокий автоліз"]
+    CT_AGING -- Престиж --> CT_AGE_PREST["Витримка sur lie:<br>60+ місяців<br>максимальна складність"]
+
+    %% РОЗГАЛУЖЕННЯ: ШАМПЕНУАЗ vs ТРАНСФЕР
+    CT_AGE_BASE --> CT_SPLIT{"Метод<br>виробництва"}
+    CT_AGE_VINT --> CT_SPLIT
+    CT_AGE_PREST --> CT_SPLIT
+
+    %% ══════════════════════════════════════════════════
+    %% ШАМПЕНУАЗ — кроки 7-10
+    %% ══════════════════════════════════════════════════
+
+    CT_SPLIT -- Шампенуаз --> CT_REM{"Ремюаж<br>#40;remuage#41;"}
+    CT_REM -- Механічний --> CT_REM_MECH["Жиропалет:<br>3-7 днів<br>автоматичне обертання"]
+    CT_REM -- Ручний --> CT_REM_HAND["Пюпітр:<br>6-8 тижнів<br>щоденне повертання вручну"]
+
+    CT_REM_MECH --> CT_DEG["Дегоржаж:<br>заморозити горлечко -25°C<br>видалити крижану пробку з осадом<br>долити SO2 за потреби"]
+    CT_REM_HAND --> CT_DEG
+
+    CT_DEG --> DOSAGE
+
+    %% ══════════════════════════════════════════════════
+    %% ТРАНСФЕР — кроки 7-10
+    %% ══════════════════════════════════════════════════
+
+    CT_SPLIT -- Трансфер --> TR_TANK["Перелив під тиском:<br>вміст пляшок у герметичний танк<br>зберегти CO2"]
+    TR_TANK --> TR_FILT["Фільтрація під тиском:<br>ізобарична фільтрація<br>видалення осаду"]
+    TR_FILT --> DOSAGE
+
+    %% ══════════════════════════════════════════════════
+    %% ШАРМА (CHARMAT)
+    %% ══════════════════════════════════════════════════
+
+    %% 16В. МЛБ
+    CHARMAT_START --> CH_MLF{"Ароматичне<br>вино?"}
+    CH_MLF -- Так --> CH_MLF_NO["МЛБ: ні<br>зберегти ароматику і свіжість"]
+    CH_MLF -- Ні --> CH_MLF_OPT{"МЛБ?"}
+    CH_MLF_OPT -- Так --> CH_MLF_YES["МЛБ: так<br>інокуляція<br>температура 18-22°C"]
+    CH_MLF_OPT -- Ні --> CH_MLF_SKIP["МЛБ: ні"]
+
+    %% 17В. ОСВІТЛЕННЯ БАЗОВОГО ВИНА
+    CH_MLF_NO --> CH_CLAR["Освітлення базового вина:<br>бентоніт 20-40 г/гл<br>фільтрація"]
+    CH_MLF_YES --> CH_CLAR
+    CH_MLF_SKIP --> CH_CLAR
+
+    %% 18В. АВТОКЛАВ + ВТОРИННЕ БРОДІННЯ
+    CH_CLAR --> CH_TANK["Перенос в автоклав<br>#40;герметичний танк#41;"]
+    CH_TANK --> CH_TIRAGE["Liqueur de tirage:<br>цукор 20-24 г/л<br>дріжджі"]
+    CH_TIRAGE --> CH_TYPE{"Тип Шарма"}
+    CH_TYPE -- "Короткий Шарма" --> CH_SHORT["Вторинне бродіння в танку:<br>12-16°C<br>2-4 тижні<br>фруктовість, свіжість"]
+    CH_TYPE -- "Довгий Шарма" --> CH_LONG["Вторинне бродіння в танку:<br>12-14°C<br>3-6 місяців<br>автоліз, складність"]
+
+    %% ОХОЛОДЖЕННЯ + ФІЛЬТРАЦІЯ
+    CH_SHORT --> CH_COOL["Охолодження:<br>зупинка бродіння<br>за потреби"]
+    CH_LONG --> CH_COOL
+    CH_COOL --> CH_FILT["Фільтрація під тиском:<br>ізобарична фільтрація<br>видалення осаду"]
+    CH_FILT --> DOSAGE
+
+    %% ══════════════════════════════════════════════════
+    %% ПЕТ-НАТ (MÉTHODE ANCESTRALE)
+    %% ══════════════════════════════════════════════════
+
+    PETNAT_START --> PN_NOTE["Примітка: вино мало бути<br>розлите в пляшки під час<br>первинного бродіння<br>при SG 1.010-1.020"]
+    PN_NOTE --> PN_FERM["Завершення бродіння в пляшці:<br>температура 12-16°C<br>тиск 2-3 атм<br>природна газація"]
+    PN_FERM --> PN_DEG{"Дегоржаж?"}
+    PN_DEG -- Так --> PN_DEG_YES["Дегоржаж:<br>заморозити горлечко<br>видалити осад<br>прозоре вино"]
+    PN_DEG -- Ні --> PN_DEG_NO["Без дегоржажу:<br>каламутне, натуральне<br>осад залишається"]
+    PN_DEG_YES --> PN_CORK["Закорковування<br>без дозажу"]
+    PN_DEG_NO --> PN_CORK
+    PN_CORK --> BOTTLING
+
+    %% ══════════════════════════════════════════════════
+    %% 20В. ДОЗАЖ (спільний блок)
+    %% ══════════════════════════════════════════════════
+
+    DOSAGE{"Рівень дозажу<br>#40;liqueur d'expédition#41;"}
+
+    DOSAGE -- "Brut Nature" --> DOS_BN["Brut Nature / Zero dosage:<br>0-3 г/л цукру"]
+    DOSAGE -- "Extra Brut" --> DOS_EB["Extra Brut:<br>0-6 г/л цукру"]
+    DOSAGE -- Brut --> DOS_BR["Brut:<br>0-12 г/л цукру"]
+    DOSAGE -- "Extra Dry" --> DOS_ED["Extra Dry:<br>12-17 г/л цукру"]
+    DOSAGE -- Sec --> DOS_SEC["Sec:<br>17-32 г/л цукру"]
+    DOSAGE -- "Demi-Sec" --> DOS_DS["Demi-Sec:<br>32-50 г/л цукру"]
+    DOSAGE -- Doux --> DOS_DX["Doux:<br>50+ г/л цукру"]
+
+    %% 21В. ФІНАЛЬНЕ ЗАКОРКОВУВАННЯ
+    DOS_BN --> SPARK_CORK["Закорковування:<br>коркова пробка + мюзле<br>витримка після дозажу 1-3 міс"]
+    DOS_EB --> SPARK_CORK
+    DOS_BR --> SPARK_CORK
+    DOS_ED --> SPARK_CORK
+    DOS_SEC --> SPARK_CORK
+    DOS_DS --> SPARK_CORK
+    DOS_DX --> SPARK_CORK
+
+    SPARK_CORK --> BOTTLING

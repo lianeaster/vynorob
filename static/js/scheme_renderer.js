@@ -1619,6 +1619,506 @@ class SchemeRenderer {
     }
 
     /**
+     * Draw technology steps from decision tree traversal.
+     * @param {Array} steps - Array of {id, section, label, label_clean, type}
+     */
+    _isStemLimitStep(step) {
+        const id = step.id;
+        return id === 'SETTLE' || id === 'HEAVY' || id === 'CHANGE'
+            || id === 'SHOOT' || id === 'SUIT' || id === 'APPROPRIATE'
+            || id === 'EVERYTHING' || id === 'DISCOVER';
+    }
+
+    _computeStemLimit(steps) {
+        const changeStep = steps.find(s => s.id === 'CHANGE');
+        if (changeStep) {
+            const m = changeStep.label_clean.match(/=\s*(.+)/);
+            if (m) return m[1].trim();
+        }
+        return '0%';
+    }
+
+    _isSideInput(step) {
+        const id = step.id;
+        const label = (step.label_clean || '').toLowerCase();
+
+        if (id === 'AGAIN' || id === 'GAME' || id === 'SANG') return true;
+        if (id === 'FOREIGN') return true;
+        if (id === 'DOUBT' || id === 'TA_DOSE') return true;
+        if (id.startsWith('YEAST_')) return true;
+        if (id.startsWith('REHY_')) return true;
+        if (id.startsWith('INOC_')) return true;
+        if (id.includes('FEED') || label.startsWith('підкормка')) return true;
+        if (id.startsWith('CLAR_') || id.startsWith('NS_CLAR')) return true;
+        if (id === 'NS_BOTH') return true;
+        if (id === 'MLF_RED_IN') return true;
+        if (id === 'CT_TIRAGE') return true;
+        if (id.startsWith('DOS_')) return true;
+
+        if (id === 'CLOSED' || id === 'OPEN') return true;
+        if (id.startsWith('CLAY_') || id.startsWith('STEEL_')) return true;
+        if (id.startsWith('TEMP_')) return true;
+        if (id.startsWith('PROF_')) return true;
+        if (id.startsWith('CAP_')) return true;
+        if (id === 'NO_PRESS' || id === 'NO_PRESS_2') return true;
+        if (id.startsWith('MICROOX_')) return true;
+
+        if (step.type === 'side_input') return true;
+
+        if (label.startsWith('додати')) return true;
+        if (label.startsWith('внести')) return true;
+        if (label.includes('дефіцит цукру')) return true;
+        if (label.includes('шаптелізація')) return true;
+        if (label.includes('сорбінова')) return true;
+        if (label.includes('пектиназа')) return true;
+
+        return false;
+    }
+
+    _sideLabel(step) {
+        const lines = step.label_clean.split('\n').filter(l => l.trim());
+        return lines.join('\n');
+    }
+
+    _hasTempControl(group) {
+        const check = text => /(?:t\s*=|°C)/.test(text);
+        if (check(group.process.label_clean)) return true;
+        return group.sideInputs.some(si => check(si.label_clean || ''));
+    }
+
+    _drawBidiArrow(x1, y, x2) {
+        const ctx = this.ctx;
+        const headLen = this.config.dimensions.arrowHeadLength;
+        const headW = this.config.dimensions.arrowHeadWidth;
+
+        ctx.save();
+        this.applyLineStyle();
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+        ctx.stroke();
+
+        ctx.fillStyle = this.config.colors.line;
+        ctx.beginPath();
+        ctx.moveTo(x2, y);
+        ctx.lineTo(x2 - headLen, y - headW);
+        ctx.lineTo(x2 - headLen, y + headW);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x1 + headLen, y - headW);
+        ctx.lineTo(x1 + headLen, y + headW);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    drawTechnologySteps(steps) {
+        if (!steps || steps.length === 0) {
+            console.error('No technology steps to render');
+            return;
+        }
+
+        const ctx = this.ctx;
+        const boxWidth = 420;
+        const arrowLen = 40;
+        const padV = 14;
+        const fontSize = 14;
+        const lineHeight = 20;
+        const cornerRadius = 10;
+        const topPad = 40;
+        const bottomPad = 40;
+        const headerFontSize = 15;
+        const headerLineH = 22;
+        const sideFontSize = 12;
+        const sideLineH = 16;
+        const sideArrowLen = 40;
+        const sideTextGap = 6;
+
+        const filteredSteps = steps.filter(s => s.id !== 'RHYME');
+
+        let yeastBranch = null;
+        const groups = [];
+        let pendingSide = [];
+        let pendingStemLimit = [];
+        for (const step of filteredSteps) {
+            if (step.type === 'side_branch') {
+                yeastBranch = step;
+                continue;
+            }
+            if (this._isStemLimitStep(step)) {
+                pendingStemLimit.push(step);
+                if (step.id === 'CHANGE' && groups.length > 0) {
+                    const limit = this._computeStemLimit(pendingStemLimit);
+                    const last = groups[groups.length - 1];
+                    last.process = {
+                        ...last.process,
+                        label_clean: last.process.label_clean + '\nОбмеження = ' + limit
+                    };
+                    pendingStemLimit = [];
+                }
+            } else if (this._isSideInput(step)) {
+                pendingSide.push(step);
+            } else {
+                groups.push({ process: step, sideInputs: [...pendingSide] });
+                pendingSide = [];
+            }
+        }
+        if (pendingSide.length > 0 && groups.length > 0) {
+            groups[groups.length - 1].sideInputs.push(...pendingSide);
+        }
+
+        const branchBoxW = 220;
+        const branchGap = 60;
+        const sideInputEstimate = 220;
+
+        let canvasWidth, centerX;
+        if (yeastBranch) {
+            const leftExtent = sideInputEstimate + boxWidth / 2;
+            const rightExtent = boxWidth / 2 + branchGap + branchBoxW;
+            const contentW = leftExtent + rightExtent;
+            canvasWidth = contentW + 100;
+            centerX = 50 + leftExtent;
+        } else {
+            canvasWidth = 900;
+            centerX = canvasWidth / 2;
+        }
+
+        this.canvas.width = canvasWidth;
+
+        groups.forEach(g => {
+            if (this._hasTempControl(g)) {
+                g.sideInputs.unshift({
+                    id: '_COOLANT',
+                    label_clean: 'Хладогент',
+                    type: 'coolant_bidi',
+                });
+            }
+        });
+
+        const headerLines = this._buildInputConditionsLines();
+        const footerLines = this._buildOutputConditionsLines();
+
+        ctx.font = `${fontSize}px Arial`;
+
+        const measured = groups.map(g => {
+            const lines = g.process.label_clean.split('\n').filter(l => l.trim());
+            const textH = lines.length * lineHeight;
+            const sideItems = g.sideInputs.map(si => ({
+                text: this._sideLabel(si),
+                bidi: si.type === 'coolant_bidi',
+            }));
+            let totalSideLines = 0;
+            sideItems.forEach(si => { totalSideLines += si.text.split('\n').length; });
+            const sideH = totalSideLines * sideLineH + Math.max(0, g.sideInputs.length - 1) * 6;
+            const boxH = Math.max(textH + padV * 2, sideH + padV * 2);
+            return { lines, boxH, group: g, sideItems };
+        });
+
+        const headerH = headerLines.length * headerLineH;
+        const footerH = footerLines.length * headerLineH;
+
+        let corrIdx = -1, afIdx = -1;
+        measured.forEach((m, i) => {
+            if (m.group.process.id === 'CORR_MAIN') corrIdx = i;
+            if (m.group.process.id === 'AF') afIdx = i;
+        });
+
+        let yeastExtraGap = 0;
+        const branchInnerArrow = 30;
+        if (yeastBranch && corrIdx >= 0 && afIdx >= 0) {
+            const _branchLines = (t) => t.split('\n').filter(l => l.trim()).length;
+            const b1H = _branchLines(yeastBranch.branch.box1) * lineHeight + padV * 2;
+            const b2H = _branchLines(yeastBranch.branch.box2) * lineHeight + padV * 2;
+            const branchTotalH = b1H + branchInnerArrow + b2H;
+            const corrH = measured[corrIdx].boxH;
+            const neededGap = branchTotalH - corrH + branchInnerArrow;
+            yeastExtraGap = Math.max(0, neededGap - arrowLen);
+        }
+
+        let totalH = topPad + bottomPad;
+        totalH += headerH + arrowLen;
+        measured.forEach((m, i) => {
+            totalH += m.boxH;
+            if (i < measured.length - 1) totalH += arrowLen;
+        });
+        totalH += arrowLen + footerH;
+        totalH += yeastExtraGap;
+        this.canvas.height = totalH;
+
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvasWidth, totalH);
+
+        let currentY = topPad;
+
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        headerLines.forEach((line, i) => {
+            ctx.font = i === 0 ? `bold ${headerFontSize}px Arial` : `${headerFontSize}px Arial`;
+            ctx.fillText(line, centerX, currentY + i * headerLineH);
+        });
+        currentY += headerH;
+
+        this.drawArrow(centerX, currentY, centerX, currentY + arrowLen);
+        currentY += arrowLen;
+
+        const boxLeft = centerX - boxWidth / 2;
+        const boxPositions = {};
+
+        measured.forEach((m, idx) => {
+            const { lines, boxH, group, sideItems } = m;
+
+            this.drawRoundedRect(boxLeft, currentY, boxWidth, boxH, cornerRadius);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            this.applyLineStyle();
+            ctx.stroke();
+
+            ctx.font = `${fontSize}px Arial`;
+            ctx.fillStyle = '#000';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const textTotalH = lines.length * lineHeight;
+            const textStartY = currentY + (boxH - textTotalH) / 2 + lineHeight / 2;
+            lines.forEach((line, li) => {
+                ctx.fillText(line, centerX, textStartY + li * lineHeight);
+            });
+
+            if (sideItems.length > 0) {
+                ctx.font = `${sideFontSize}px Arial`;
+                let allSideLines = [];
+                sideItems.forEach((si, idx2) => {
+                    const parts = si.text.split('\n');
+                    parts.forEach(p => allSideLines.push(p));
+                    if (idx2 < sideItems.length - 1) allSideLines.push(null);
+                });
+
+                const contentLines = allSideLines.filter(l => l !== null);
+                const totalSideH = contentLines.length * sideLineH +
+                    allSideLines.filter(l => l === null).length * 6;
+                let sideY = currentY + (boxH - totalSideH) / 2;
+
+                const arrowEndX = boxLeft;
+                const arrowStartX = arrowEndX - sideArrowLen;
+
+                allSideLines.forEach(line => {
+                    if (line === null) {
+                        sideY += 6;
+                        return;
+                    }
+                    const ly = sideY + sideLineH / 2;
+
+                    ctx.font = `${sideFontSize}px Arial`;
+                    ctx.fillStyle = '#000';
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(line, arrowStartX - sideTextGap, ly);
+
+                    sideY += sideLineH;
+                });
+
+                let ay = currentY + (boxH - totalSideH) / 2;
+                sideItems.forEach((si) => {
+                    const parts = si.text.split('\n');
+                    const blockH = parts.length * sideLineH;
+                    const arrowY = ay + blockH / 2;
+                    if (si.bidi) {
+                        this._drawBidiArrow(arrowStartX, arrowY, arrowEndX, arrowY);
+                    } else {
+                        this.drawArrow(arrowStartX, arrowY, arrowEndX, arrowY);
+                    }
+                    ay += blockH + 6;
+                });
+            }
+
+            boxPositions[group.process.id] = {
+                top: currentY, bottom: currentY + boxH, centerY: currentY + boxH / 2,
+            };
+
+            currentY += boxH;
+
+            if (idx < measured.length - 1) {
+                let gap = arrowLen;
+                if (idx === corrIdx) gap += yeastExtraGap;
+                this.drawArrow(centerX, currentY, centerX, currentY + gap);
+                currentY += gap;
+            }
+        });
+
+        if (yeastBranch && yeastBranch.branch) {
+            this._drawYeastBranch(ctx, yeastBranch.branch, boxPositions, {
+                centerX, boxWidth, boxLeft, cornerRadius, fontSize, lineHeight,
+                padV, arrowLen: branchInnerArrow, sideFontSize, sideLineH,
+                branchBoxW, branchGap,
+            });
+        }
+
+        currentY += arrowLen;
+        this.drawArrow(centerX, currentY - arrowLen, centerX, currentY);
+
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        footerLines.forEach((line, i) => {
+            ctx.font = i === 0 ? `bold ${headerFontSize}px Arial` : `${headerFontSize}px Arial`;
+            ctx.fillText(line, centerX, currentY + i * headerLineH);
+        });
+    }
+
+    _drawYeastBranch(ctx, branch, boxPositions, cfg) {
+        const { centerX, boxWidth, cornerRadius, fontSize, lineHeight, padV, arrowLen, sideFontSize, sideLineH, branchBoxW, branchGap } = cfg;
+
+        const corrPos = boxPositions['CORR_MAIN'];
+        const afPos = boxPositions['AF'];
+        if (!corrPos || !afPos) return;
+
+        const mainRight = centerX + boxWidth / 2;
+        const branchCenterX = mainRight + branchGap + branchBoxW / 2;
+        const branchLeft = branchCenterX - branchBoxW / 2;
+
+        const _measureBox = (text) => {
+            const lines = text.split('\n').filter(l => l.trim());
+            return { lines, h: lines.length * lineHeight + padV * 2 };
+        };
+
+        const _drawBox = (cx, y, w, text) => {
+            const m = _measureBox(text);
+            this.drawRoundedRect(cx - w / 2, y, w, m.h, cornerRadius);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            this.applyLineStyle();
+            ctx.stroke();
+            ctx.font = `${fontSize}px Arial`;
+            ctx.fillStyle = '#000';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const startY = y + (m.h - m.lines.length * lineHeight) / 2 + lineHeight / 2;
+            m.lines.forEach((line, i) => {
+                ctx.fillText(line, cx, startY + i * lineHeight);
+            });
+            return m.h;
+        };
+
+        const box1M = _measureBox(branch.box1);
+        const box2M = _measureBox(branch.box2);
+
+        const box1Top = corrPos.top;
+        const box1Bot = box1Top + box1M.h;
+        const box2Top = box1Bot + arrowLen;
+        const box2Bot = box2Top + box2M.h;
+        const box2CenterY = box2Top + box2M.h / 2;
+
+        _drawBox(branchCenterX, box1Top, branchBoxW, branch.box1);
+        _drawBox(branchCenterX, box2Top, branchBoxW, branch.box2);
+
+        this.drawArrow(branchCenterX, box1Bot, branchCenterX, box2Top);
+
+        const mustExitX = centerX + boxWidth / 4;
+        ctx.save();
+        this.applyLineStyle();
+        ctx.beginPath();
+        ctx.moveTo(mustExitX, corrPos.bottom);
+        ctx.lineTo(mustExitX, box2CenterY);
+        ctx.lineTo(branchLeft, box2CenterY);
+        ctx.stroke();
+        this.drawArrowheadRight(branchLeft, box2CenterY);
+
+        ctx.font = `${sideFontSize}px Arial`;
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(branch.must_label || 'Сусло 100 мл', (mustExitX + branchLeft) / 2, box2CenterY - 4);
+        ctx.restore();
+
+        const returnY = afPos.top + 20;
+        ctx.save();
+        this.applyLineStyle();
+        ctx.beginPath();
+        ctx.moveTo(branchCenterX, box2Bot);
+        ctx.lineTo(branchCenterX, returnY);
+        ctx.lineTo(mainRight, returnY);
+        ctx.stroke();
+        this.drawArrowheadLeft(mainRight, returnY);
+        ctx.restore();
+
+        if (branch.top_inputs && branch.top_inputs.length > 0) {
+            ctx.save();
+            const inputCount = branch.top_inputs.length;
+            const spacing = branchBoxW / (inputCount + 1);
+            const inputArrowH = 25;
+
+            branch.top_inputs.forEach((input, i) => {
+                const ix = branchLeft + spacing * (i + 1);
+                const lines = input.split('\n');
+                const textH = lines.length * sideLineH;
+                const arrowTopY = box1Top - inputArrowH;
+
+                this.applyLineStyle();
+                this.drawArrow(ix, arrowTopY, ix, box1Top);
+
+                ctx.font = `${sideFontSize}px Arial`;
+                ctx.fillStyle = '#000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                lines.forEach((line, li) => {
+                    ctx.fillText(line, ix, arrowTopY - textH + (li + 1) * sideLineH);
+                });
+            });
+            ctx.restore();
+        }
+    }
+
+    _buildInputConditionsLines() {
+        const wd = this.wineData || {};
+        const sp = wd.style_params || {};
+        const rm = wd.raw_material || {};
+        const tech = wd.style_tech || {};
+        const color = wd.color_params || wd.color || {};
+
+        const sugar = sp.S0 || sp.sugar || rm.sugar || '—';
+        const acidity = rm.TA_now || rm.acidity || '—';
+        const pH = tech.pH || rm.ph || '—';
+
+        const colorLabel = (typeof color === 'string' ? color : color.color) || '';
+        const variety = (typeof color === 'object' && color.grapeVariety) || '';
+        const title = variety && variety !== 'unknown'
+            ? `Виноград (${variety}):`
+            : 'Виноград:';
+
+        const lines = [title];
+        if (sugar !== '—') lines.push(`Сц = ${sugar} г/дм³`);
+        if (acidity !== '—') lines.push(`Стк = ${acidity} г/дм³`);
+        if (pH !== '—') lines.push(`pH = ${pH}`);
+        return lines;
+    }
+
+    _buildOutputConditionsLines() {
+        const wd = this.wineData || {};
+        const sp = wd.style_params || {};
+        const rm = wd.raw_material || {};
+        const co2 = wd.style_co2 || {};
+
+        const s0 = parseFloat(sp.S0 || sp.sugar || 200);
+        const rs = parseFloat(sp.RS || 0);
+        const abv = ((s0 - rs) / 16.83).toFixed(1);
+        const taTarget = rm.TA_target || rm.ta_target || '—';
+
+        const coType = co2.CO2_level || co2.co2Type || 'still';
+        const isStill = coType === 'still' || coType === 'тихе';
+        const productName = isStill ? 'Виноматеріал' : 'Виноматеріал (ігристе)';
+
+        const lines = [`${productName} на оброблення та розлив:`];
+        lines.push(`Сц = ${rs} г/дм³`);
+        lines.push(`Ссп = ${abv} % об.`);
+        if (taTarget !== '—') lines.push(`Стк = ${taTarget} г/дм³`);
+        return lines;
+    }
+
+    /**
      * Download scheme as PNG
      */
     downloadPNG() {

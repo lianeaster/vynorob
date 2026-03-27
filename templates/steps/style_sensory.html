@@ -129,6 +129,13 @@
                             <input type="range" id="spice" min="0" max="100" value="40" step="5">
                         </div>
                     </div>
+                    <div class="slider-row">
+                        <label for="thiolTerpene">Тіолові / терпенові</label>
+                        <div class="slider-wrap">
+                            <input type="range" id="thiolTerpene" min="0" max="100" value="30" step="5">
+                            <p class="slider-hint">0 – нейтральний профіль, 50 – виражений, 100 – домінуючий тіоловий/терпеновий характер.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="block">
@@ -307,7 +314,7 @@ function onParamsChange() {
 
 ['perceivedAcidity','alcoholWarmth','bitterness','body','tannins',
  'aromaIntensity','fruitiness','berry','tropical','floral','spice',
- 'oak','oxidation','malolactic','creaminess'].forEach(function(id) {
+ 'thiolTerpene','oak','oxidation','malolactic','creaminess'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) {
         el.addEventListener('input', onParamsChange);
@@ -334,7 +341,8 @@ function buildChoice() {
         oak: getValue('oak'),
         oxidation: getValue('oxidation'),
         malolactic: getValue('malolactic'),
-        creaminess: getValue('creaminess')
+        creaminess: getValue('creaminess'),
+        thiolTerpene: getValue('thiolTerpene')
     };
 }
 

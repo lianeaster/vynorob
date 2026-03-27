@@ -113,24 +113,147 @@ def load_schemas():
             return json.load(f)
     return []
 
+
+def normalize_wine_attributes(wine_data):
+    """
+    Build a normalized attribute set from all wizard steps.
+    These attributes are used for schema selection and optional module activation.
+    """
+    attrs = {}
+
+    # Color-related attributes
+    color_params = wine_data.get('color_params') or {}
+    color_label = (
+        wine_data.get('color')
+        or color_params.get('color')
+        or color_params.get('expected_style')
+    )
+    if color_label:
+        attrs['color'] = color_label
+    if color_params.get('style_color_out'):
+        attrs['style_color_out'] = color_params.get('style_color_out')
+
+    # Style (sweetness / alcohol) attributes
+    style_params = wine_data.get('style_params') or {}
+    style_label = wine_data.get('style') or style_params.get('style')
+    if style_label:
+        attrs['style'] = style_label
+    if style_params.get('sweetnessCategory'):
+        attrs['sweetness_category'] = style_params.get('sweetnessCategory')
+    if style_params.get('alcoholCategory'):
+        attrs['alcohol_category'] = style_params.get('alcoholCategory')
+
+    # CO2 style attributes
+    style_co2 = wine_data.get('style_co2')
+    if isinstance(style_co2, dict):
+        attrs['style_co2'] = (
+            style_co2.get('CO2_label')
+            or wine_data.get('style_co2')
+        )
+        if style_co2.get('CO2_level'):
+            attrs['CO2_level'] = style_co2.get('CO2_level')
+        if style_co2.get('method_CO2'):
+            attrs['CO2_method'] = style_co2.get('method_CO2')
+        if style_co2.get('packaging'):
+            attrs['packaging_type'] = style_co2.get('packaging')
+    elif style_co2:
+        attrs['style_co2'] = style_co2
+
+    # TA / acidity profile attributes
+    raw_material = wine_data.get('raw_material') or {}
+    ta_now = raw_material.get('TA_now')
+    if ta_now is None:
+        ta_now = raw_material.get('acidity')
+    ta_target = raw_material.get('TA_target')
+    ta_profile = None
+    if ta_now is not None and ta_target is not None:
+        delta = ta_target - ta_now
+        if delta > 0.3:
+            ta_profile = 'low'   # need to increase acidity
+        elif delta < -0.3:
+            ta_profile = 'high'  # need to decrease acidity
+        else:
+            ta_profile = 'normal'
+    elif ta_now is not None:
+        if ta_now > 7:
+            ta_profile = 'high'
+        elif ta_now < 4:
+            ta_profile = 'low'
+        else:
+            ta_profile = 'normal'
+    if ta_profile:
+        attrs['TA_profile'] = ta_profile
+    if raw_material.get('correction_mode'):
+        attrs['correction_mode'] = raw_material.get('correction_mode')
+
+    # Sensory profile tags (high-level)
+    sensory = wine_data.get('style_sensory') or {}
+    sensory_tags = []
+    if sensory.get('oak', 0) >= 70:
+        sensory_tags.append('high_oak')
+    if sensory.get('tropical', 0) >= 70:
+        sensory_tags.append('thiol_driven')
+    if sensory.get('oxidation', 0) >= 70:
+        sensory_tags.append('oxidative')
+    if sensory_tags:
+        attrs['sensory_profile_tags'] = sensory_tags
+
+    # Technical profile tags (stability / risk)
+    tech = wine_data.get('style_tech') or {}
+    tech_tags = []
+    if tech.get('proteinStab', 50) >= 80:
+        tech_tags.append('needs_protein_stab')
+    if tech.get('tartrateStab', 50) >= 80:
+        tech_tags.append('needs_cold_stab')
+    if tech.get('filtrationLevel', 50) >= 80:
+        tech_tags.append('high_filtration')
+    if tech.get('microRisk', 40) >= 70:
+        tech_tags.append('high_micro_risk')
+    if tech.get('vaRisk', 40) >= 70:
+        tech_tags.append('high_va_risk')
+    if tech_tags:
+        attrs['tech_profile_tags'] = tech_tags
+
+    # Explicit scheme type step (if present)
+    if wine_data.get('scheme_type'):
+        attrs['scheme_type'] = wine_data.get('scheme_type')
+
+    return attrs
+
+
+def schema_matches_attributes(schema, wine_data, attrs):
+    """
+    Determine if a schema matches given wine data and normalized attributes.
+
+    It supports both legacy exact key matching (color, style, style_co2, scheme_type)
+    and extended attributes (sweetness_category, CO2_level, etc.).
+    """
+    params = schema.get('parameters', {})
+    if not params:
+        return False
+
+    for key, expected in params.items():
+        if key in attrs:
+            data_val = attrs.get(key)
+        else:
+            data_val = wine_data.get(key)
+            if key == 'style_co2' and isinstance(data_val, dict):
+                data_val = (
+                    data_val.get('CO2_label')
+                    or data_val.get('CO2_level')
+                )
+        if data_val != expected:
+            return False
+
+    return True
+
 def find_schema_for_wine(wine_data):
     """Find the appropriate schema based on wine parameters"""
     schemas = load_schemas()
+    attrs = normalize_wine_attributes(wine_data)
     
     for schema in schemas:
-        params = schema.get('parameters', {})
-        match = True
-        
-        # Check if all parameters match
-        for key, value in params.items():
-            data_val = wine_data.get(key)
-            if key == 'style_co2' and isinstance(data_val, dict):
-                data_val = data_val.get('CO2_label') or data_val.get('CO2_level')
-            if data_val != value:
-                match = False
-                break
-        
-        if match:
+        if schema_matches_attributes(schema, wine_data, attrs):
             return schema
     
     return None
@@ -153,6 +276,139 @@ def get_blocks_for_schema(schema):
             schema_blocks.append(blocks_dict[block_id])
     
     return schema_blocks
+
+
+def build_schema_graph(schema, blocks, wine_data):
+    """
+    Build an abstract graph representation of the technology scheme.
+
+    Graph format:
+      - nodes: { id, type, label, meta }
+      - edges: { from, to, label, kind, side }
+    """
+    if not schema or not blocks:
+        return {'nodes': [], 'edges': []}
+
+    # Map id -> block and main sequence (exclude side branches)
+    block_by_id = {b['id']: b for b in blocks if 'id' in b}
+    main_blocks = [b for b in blocks if not b.get('is_side_branch')]
+
+    nodes = []
+    edges = []
+
+    # Helper to resolve dynamic label from params_schema (if present)
+    def resolve_block_label(block):
+        params_schema = block.get('params_schema') or {}
+        template = params_schema.get('name_template')
+        if not template:
+            return block.get('name', block.get('id'))
+
+        context = {
+            'style_tech': wine_data.get('style_tech') or {},
+            'raw_material': wine_data.get('raw_material') or {},
+            'style_params': wine_data.get('style_params') or {},
+        }
+        bindings = params_schema.get('bindings') or {}
+        values = {}
+        for key, path in bindings.items():
+            parts = path.split('.')
+            current = context.get(parts[0], {})
+            for p in parts[1:]:
+                if isinstance(current, dict):
+                    current = current.get(p)
+                else:
+                    current = None
+                    break
+            if isinstance(current, (int, float)):
+                values[key] = current
+            elif current is not None:
+                values[key] = current
+
+        try:
+            return template.format(**values)
+        except Exception:
+            return block.get('name', block.get('id'))
+
+    # Create nodes for each process block
+    for block in blocks:
+        node_id = block.get('id')
+        if not node_id:
+            continue
+        nodes.append({
+            'id': node_id,
+            'type': 'process',
+            'label': resolve_block_label(block),
+            'meta': {
+                'is_side_branch': bool(block.get('is_side_branch')),
+                'order': block.get('order')
+            }
+        })
+
+    # Connect main flow sequentially
+    for i in range(len(main_blocks) - 1):
+        src = main_blocks[i]
+        dst = main_blocks[i + 1]
+        edges.append({
+            'from': src['id'],
+            'to': dst['id'],
+            'label': src.get('arrow_out_label'),
+            'kind': 'product',
+            'side': 'main'
+        })
+
+    # Side branches (e.g., пресування з блоків м'язги)
+    for block in blocks:
+        if not block.get('is_side_branch'):
+            continue
+        side_id = block['id']
+        from_id = block.get('connects_from')
+        to_id = block.get('connects_to')
+        if from_id and from_id in block_by_id:
+            edges.append({
+                'from': from_id,
+                'to': side_id,
+                'label': None,
+                'kind': 'product',
+                'side': 'side'
+            })
+        if to_id and to_id in block_by_id:
+            edges.append({
+                'from': side_id,
+                'to': to_id,
+                'label': None,
+                'kind': 'product',
+                'side': 'side'
+            })
+
+    return {'nodes': nodes, 'edges': edges}
+
+
+def graph_to_mermaid(graph):
+    """Convert graph representation to a simple mermaid flowchart."""
+    nodes = graph.get('nodes') or []
+    edges = graph.get('edges') or []
+
+    lines = ["flowchart TD"]
+
+    for node in nodes:
+        node_id = node['id']
+        label = node.get('label') or node_id
+        safe_label = label.replace('"', "'")
+        lines.append(f'  {node_id}["{safe_label}"]')
+
+    for edge in edges:
+        src = edge.get('from')
+        dst = edge.get('to')
+        if not src or not dst:
+            continue
+        label = edge.get('label')
+        if label:
+            safe_label = label.replace('"', "'")
+            lines.append(f'  {src} -->|"{safe_label}"| {dst}')
+        else:
+            lines.append(f'  {src} --> {dst}')
+
+    return "\n".join(lines)
 
 def calculate_wine_conditions(raw_material, color, style):
     """Calculate wine conditions for white wine based on raw material"""
@@ -229,7 +485,7 @@ def color_page():
     session.pop('wine_data', None)
     session.pop('previous_wine_data', None)
     session.modified = True
-    return render_template('color.html')
+    return render_template('steps/color.html')
 
 @app.route('/style')
 def style_page():
@@ -255,34 +511,6 @@ def style_sensory_page():
 def style_tech_page():
     """Technical parameters page - Технічні параметри та стабільність"""
     return render_template('steps/style_tech.html')
-
-@app.route('/wine-conditions')
-def wine_conditions_page():
-    """Wine conditions page - Кондиції вина"""
-    return render_template('wine_conditions.html')
-
-@app.route('/choice')
-def choice_page():
-    """Choice page - Опис вина or Схема"""
-    # Calculate wine conditions for white wine automatically
-    wine_data = session.get('wine_data', {})
-    
-    if wine_data.get('color') == 'Біле' and 'wine_conditions' not in wine_data:
-        raw_material = wine_data.get('raw_material', {})
-        style = wine_data.get('style', 'Сухе')
-        
-        # Calculate wine conditions
-        wine_conditions = calculate_wine_conditions(raw_material, 'Біле', style)
-        wine_data['wine_conditions'] = wine_conditions
-        session['wine_data'] = wine_data
-        session.modified = True
-    
-    return render_template('choice.html')
-
-@app.route('/wine-description')
-def wine_description_page():
-    """Wine description page - Опис вина"""
-    return render_template('wine_description.html')
 
 @app.route('/scheme-type')
 def scheme_type_page():
@@ -570,12 +798,63 @@ def get_schema_for_wine():
         return jsonify({'error': 'No matching schema found'}), 404
     
     blocks = get_blocks_for_schema(schema)
+    graph = build_schema_graph(schema, blocks, wine_data)
+    mermaid = graph_to_mermaid(graph)
     
     return jsonify({
         'schema': schema,
         'blocks': blocks,
-        'wine_data': wine_data
+        'wine_data': wine_data,
+        'graph': graph,
+        'mermaid': mermaid
     })
+
+@app.route('/api/technology-steps', methods=['GET'])
+@login_required
+def get_technology_steps_api():
+    """API endpoint: traverse the winemaking decision tree for current wine."""
+    from scheme_engine import get_technology_steps
+
+    wine_data = session.get('wine_data', {})
+    if not wine_data:
+        return jsonify({'error': 'No wine data in session'}), 404
+
+    color_params = wine_data.get('color_params') or {}
+    if isinstance(color_params, dict):
+        if 'color' not in color_params:
+            color_params['color'] = wine_data.get('color', 'Біле')
+    else:
+        color_params = {'color': wine_data.get('color', 'Біле')}
+
+    raw_co2 = wine_data.get('style_co2') or {}
+    if isinstance(raw_co2, dict):
+        co2_level = raw_co2.get('CO2_level', raw_co2.get('co2Type', 'still'))
+        method = raw_co2.get('method_CO2', raw_co2.get('sparklingMethod', ''))
+        method_map = {
+            'bottle': 'champenoise', 'tank': 'charmat',
+            'petnat': 'petnat', 'natural': 'petnat',
+            'carbonation': 'charmat',
+        }
+        engine_co2 = {
+            'co2Type': co2_level,
+            'sparklingMethod': method_map.get(method, method),
+        }
+    else:
+        engine_co2 = {'co2Type': 'still'}
+
+    engine_input = {
+        'color': color_params,
+        'style_params': wine_data.get('style_params', {}),
+        'style_co2': engine_co2,
+        'style_sensory': wine_data.get('style_sensory', {}),
+        'style_tech': wine_data.get('style_tech', {}),
+        'raw_material': wine_data.get('raw_material', {}),
+    }
+
+    steps = get_technology_steps(engine_input)
+
+    return jsonify({'steps': steps, 'wine_data': wine_data})
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

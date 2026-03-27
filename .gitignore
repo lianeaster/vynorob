@@ -31,6 +31,10 @@ instance/
 
 # Database
 data/wines.json
+data/users.json
+
+# Binary concept files
+concept/*.pdf
 
 # IDE
 .vscode/

@@ -57,6 +57,15 @@
             <p class="slider-hint">Чи вистачить дріжджам живлення для чистого і повного бродіння.</p>
         </div>
 
+        <div class="form-row">
+            <label for="hasYeastLees">Чи є дріжджовий осад з попередніх бродінь?</label>
+            <select id="hasYeastLees">
+                <option value="no">Ні</option>
+                <option value="yes">Так</option>
+            </select>
+            <p class="slider-hint">Дріжджовий осад з попередніх партій може використовуватись як натуральна підкормка.</p>
+        </div>
+
         <div class="block">
             <div class="block-title">Захист і стабільність</div>
             <div class="slider-row">
@@ -331,6 +340,7 @@ function buildChoice() {
     return {
         pH: getPh(),
         yanLevel: document.getElementById('yanLevel').value,
+        hasYeastLees: document.getElementById('hasYeastLees').value,
         so2Protection: getValue('so2Protection'),
         proteinStab: getValue('proteinStab'),
         tartrateStab: getValue('tartrateStab'),
@@ -370,6 +380,7 @@ window.addEventListener('DOMContentLoaded', async function() {
     if (tp && typeof tp === 'object') {
         if (tp.pH != null) document.getElementById('phInput').value = tp.pH;
         if (tp.yanLevel) document.getElementById('yanLevel').value = tp.yanLevel;
+        if (tp.hasYeastLees) document.getElementById('hasYeastLees').value = tp.hasYeastLees;
         ['so2Protection','proteinStab','tartrateStab','filtrationLevel',
          'fermentationTemp','yeastNutrition','leesContact','batonnage',
          'microRisk','vaRisk'].forEach(function(id) {

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Логіка побудови технологічної схеми — Vynorob</title>
+  <style>
+    @page {
+      size: A3 landscape;
+      margin: 10mm;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #3b1022;
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #6b4c5a;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
+    }
+    @media print {
+      body { padding: 0; }
+      h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Логіка побудови технологічної схеми виноробства</h1>
+  <p class="subtitle">Vynorob — універсальна діаграма прийняття рішень (кроки 1–6)</p>
+
+  <div class="mermaid">
+flowchart TD
+  raw["ВХІД: S0, TA_now, сорт, стан грона"]
+
+  raw --> color{"Колір?"}
+  color -->|"Біле/BdN"| stemW["Гребеневідділення + подрібнення"]
+  color -->|"Рожеве"| stemW
+  color -->|"Orange"| stemO["Гребеневідділення (або з гребенями)"]
+  color -->|"Червоне"| stemR{"Гребені?"}
+  stemR -->|"ні"| stemW2["Гребеневідділення + подрібнення"]
+  stemR -->|"так"| stemO
+
+  stemW --> so2first["SO₂ на прийомці (75-80 мг/дм³)"]
+  stemO --> so2first
+  stemW2 --> so2first
+
+  so2first --> taQ{"TA корекція?"}
+  taQ -->|"вгору"| taUp["Додавання кислоти"]
+  taQ -->|"вниз"| taDown["Декальцифікація"]
+  taQ -->|"ні"| taOK["Без корекції TA"]
+
+  taUp --> routeQ{"Маршрут?"}
+  taDown --> routeQ
+  taOK --> routeQ
+  routeQ -->|"біле/рожеве"| sepJuice["Відділення сусла-самопливу"]
+  routeQ -->|"червоне/orange"| macer["Мацерація на шкірці"]
+
+  sepJuice --> settling["Відстоювання сусла + матеріали для освітлення"]
+  macer --> macerTime["Мацерація (тривалість за body/tannins)"]
+
+  settling --> fermQ{"t бродіння?"}
+  macerTime --> fermQ
+  fermQ -->|"холодне (tropical/floral high)"| fermCold["Бродіння 12-16°C (редуктивний стиль)"]
+  fermQ -->|"помірне"| fermMid["Бродіння 16-20°C"]
+  fermQ -->|"тепле (body/spice high)"| fermWarm["Бродіння 20-28°C (екстракція, складність)"]
+
+  fermCold --> yanQ{"YAN?"}
+  fermMid --> yanQ
+  fermWarm --> yanQ
+  yanQ -->|"низький"| yanAdd["Додаткове живлення дріжджів (ЧКД)"]
+  yanQ -->|"нормальний/високий"| yanOK["Стандартне живлення"]
+
+  yanAdd --> sweetQ{"Солодкість?"}
+  yanOK --> sweetQ
+  sweetQ -->|"сухе"| dryOK["RS ≤ 4"]
+  sweetQ -->|"не сухе"| sweetHow{"Спосіб?"}
+  sweetHow -->|"зупинка"| stopF["Зупинка бродіння при RS target"]
+  sweetHow -->|"дозаж"| dosage["Збродити насухо + підсолодити"]
+  sweetHow -->|"конц. сировина"| concRaw["Пізній збір / ботрітіс"]
+
+  dryOK --> pressQ{"Потрібне пресування?"}
+  stopF --> pressQ
+  dosage --> pressQ
+  concRaw --> pressQ
+  pressQ -->|"так (червоне/orange)"| press["Пресування"]
+  pressQ -->|"ні (біле по суслу)"| noPress[" "]
+
+  press --> clarify["Освітлення + зняття з осаду"]
+  noPress --> clarify
+
+  clarify --> mlfQ{"MLF (malolactic)?"}
+  mlfQ -->|"≥ 70: робити"| mlfDo["Малолактика (пом'якшення кислотності)"]
+  mlfQ -->|"≤ 30: блокувати"| mlfNo["Блокувати MLF (SO₂ / холод)"]
+  mlfQ -->|"30-70: за потреби"| mlfOpt["MLF часткова"]
+
+  mlfDo --> so2second["SO₂ після MLF (30-50 мг/дм³)"]
+  mlfNo --> so2second
+  mlfOpt --> so2second
+
+  so2second --> equaliz["Егалізація / купажування"]
+
+  equaliz --> oakQ{"oak ≥ 60?"}
+  oakQ -->|"так"| oakDo["Витримка в дубі (бочка/чипси)"]
+  oakQ -->|"ні"| oxQ{"oxidation?"}
+  oakDo --> oxQ
+  oxQ -->|"≥ 70: окиснювальний"| oxStyle["Окиснювальний стиль (контакт з O₂)"]
+  oxQ -->|"≤ 30: редуктивний"| redStyle["Редуктивний стиль (інертний газ)"]
+  oxQ -->|"30-70: нейтральний"| neutralOx[" "]
+
+  oxStyle --> leesQ{"leesContact?"}
+  redStyle --> leesQ
+  neutralOx --> leesQ
+  leesQ -->|"≥ 60 (creaminess high)"| leesLong["Витримка на осаді + батонаж"]
+  leesQ -->|"< 60"| leesShort[" "]
+
+  leesLong --> co2Q{"CO₂?"}
+  leesShort --> co2Q
+  co2Q -->|"тихе"| stillPath[" "]
+  co2Q -->|"фріззанте"| frizzPath["Контроль тиску"]
+  co2Q -->|"ігристе"| sparkQ{"Метод?"}
+  sparkQ -->|"танк"| tank["2-е бродіння в танку"]
+  sparkQ -->|"пляшка"| bottle["2-е бродіння в пляшці"]
+  sparkQ -->|"пет-нат"| petnat["Пет-нат"]
+  sparkQ -->|"карбонізація"| carb["Інжекція CO₂"]
+
+  stillPath --> stabProt{"proteinStab ≥ 50?"}
+  frizzPath --> stabProt
+  tank --> stabProt
+  bottle --> stabProt
+  petnat --> stabProt
+  carb --> stabProt
+
+  stabProt -->|"так"| protDo["Білкова стабілізація (бентоніт)"]
+  stabProt -->|"ні"| coldQ
+
+  protDo --> coldQ{"tartrateStab ≥ 50?"}
+  coldQ -->|"так"| coldDo["Холодова / тартратна стабілізація"]
+  coldQ -->|"ні"| filtQ
+
+  coldDo --> filtQ{"filtrationLevel ≥ 50?"}
+  filtQ -->|"так"| filtDo["Фільтрація (мікробіоконтроль)"]
+  filtQ -->|"ні"| filtMin["Мінімальна фільтрація"]
+
+  filtDo --> so2final["SO₂ фінальне коригування перед розливом"]
+  filtMin --> so2final
+
+  so2final --> storage["Зберігання / витримка"]
+  storage --> outlet["ВИХІД: Cц, Cт.к., Cсп, CO₂, стабільність"]
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis',
+        nodeSpacing: 30,
+        rankSpacing: 40
+      }
+    });
+  </script>
+</body>
+</html>

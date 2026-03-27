@@ -1,0 +1,81 @@
+{
+  "_comment": "Typical YAN (Yeast Assimilable Nitrogen) by grape variety and calculation constants. Sources: Cornell Univ. (Nisbet et al., 2014), AWRI Australia, Aristotle Univ. Greece (Bouloumpasi et al., 2023), MDPI Fermentation 9(8):773.",
+
+  "varieties": {
+    "chardonnay":         { "yan_mg_l": 225, "category": "high" },
+    "pinot noir":         { "yan_mg_l": 210, "category": "high" },
+    "pinot gris":         { "yan_mg_l": 190, "category": "medium" },
+    "pinot meunier":      { "yan_mg_l": 190, "category": "medium" },
+    "sauvignon blanc":    { "yan_mg_l": 175, "category": "medium" },
+    "syrah":              { "yan_mg_l": 170, "category": "medium" },
+    "merlot":             { "yan_mg_l": 145, "category": "medium" },
+    "tempranillo":        { "yan_mg_l": 135, "category": "medium" },
+    "sangiovese":         { "yan_mg_l": 130, "category": "low" },
+    "gamay":              { "yan_mg_l": 140, "category": "medium" },
+    "nebbiolo":           { "yan_mg_l": 120, "category": "low" },
+    "cabernet sauvignon": { "yan_mg_l": 120, "category": "low" },
+    "malbec":             { "yan_mg_l": 130, "category": "low" },
+    "gewurztraminer":     { "yan_mg_l": 125, "category": "low" },
+    "muscat":             { "yan_mg_l": 110, "category": "low" },
+    "grenache":           { "yan_mg_l": 110, "category": "low" },
+    "cabernet franc":     { "yan_mg_l":  90, "category": "low" },
+    "riesling":           { "yan_mg_l":  90, "category": "low" },
+    "rkatsiteli":         { "yan_mg_l": 130, "category": "low" },
+    "saperavi":           { "yan_mg_l": 140, "category": "medium" }
+  },
+
+  "fallback_by_color": {
+    "white":  150,
+    "red":    130,
+    "rose":   140,
+    "orange": 140
+  },
+
+  "yan_targets_mg_l": {
+    "_comment": "Target total YAN for comfortable fermentation by wine color and style",
+    "red_dry":           200,
+    "red_not_dry":       220,
+    "white_dry":         250,
+    "white_not_dry":     220,
+    "white_aromatic":    300,
+    "rose_dry":          200,
+    "rose_not_dry":      220,
+    "orange_dry":        200,
+    "orange_not_dry":    220,
+    "sparkling":         250
+  },
+
+  "aromatic_varieties": [
+    "muscat", "gewurztraminer", "riesling", "sauvignon blanc"
+  ],
+
+  "calculation_constants": {
+    "_comment": "Constants from Deменкова А.В. (2026) adapted for grape winemaking",
+    "complex_nutrient": {
+      "dap_fraction": 0.80,
+      "nh4_from_dap": 0.21,
+      "assimilation_rate_white": 0.25,
+      "assimilation_rate_red": 0.15,
+      "_comment_assimilation": "Red has lower assimilation due to polyphenol binding; white is higher (less tannin interference)"
+    },
+    "yeast_lees": {
+      "protein_fraction": 0.50,
+      "kjeldahl_factor": 0.16,
+      "nitrogen_per_gram": 0.08,
+      "inactivated_accessibility": 0.10,
+      "effective_n_per_gram": 0.008,
+      "_comment": "1g dry inactivated yeast lees → 0.008 g accessible N"
+    },
+    "complex_nutrient_dose_g_dal": {
+      "full":          [20, 30],
+      "with_lees":     [15, 20],
+      "minimal":       [10, 15],
+      "_comment": "g/dal dosage range depending on supplementation strategy"
+    },
+    "lees_max_dose_g_dal": 15,
+    "conversion": {
+      "g_dal_to_mg_l": 100,
+      "_comment": "1 г/дал = 100 мг/л (1 г / 10 л = 0.1 г/л = 100 мг/л)"
+    }
+  }
+}

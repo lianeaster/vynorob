@@ -1,0 +1,442 @@
+{
+  "_comment": "Conditions map for winemaking decision tree. Types: param_match, threshold, compound, cascading, engine, default_edge",
+
+  "CAREFUL": {
+    "type": "cascading",
+    "conditions": [
+      {"expr": "style_tech.pH <= 3.2 and color.grapeCondition == 'healthy'", "edge": "pH ≤ 3.2 і здорове гроно"},
+      {"expr": "style_tech.pH <= 3.4 and color.grapeCondition == 'healthy'", "edge": "pH 3.2–3.4 і здорове\u003cbr\u003eгроно"},
+      {"expr": "style_tech.pH <= 3.6 or color.grapeCondition == 'damaged'", "edge": "pH 3.4–3.6 або\u003cbr\u003eчастково пошкоджене\u003cbr\u003eгроно"},
+      {"expr": "style_tech.pH <= 3.8 or color.grapeCondition == 'overripe'", "edge": "pH 3.6–3.8 або\u003cbr\u003eперестиглий виноград"},
+      {"expr": "style_tech.pH > 3.8 or color.grapeCondition == 'rot'", "edge": "pH > 3.8 або гниль"}
+    ],
+    "default": "pH 3.4–3.6 або\u003cbr\u003eчастково пошкоджене\u003cbr\u003eгроно"
+  },
+
+  "ROOT": {
+    "type": "param_match",
+    "param": "color.color",
+    "mapping": {
+      "Біле": "Біле",
+      "Помаранчеве": "Помаранчеве",
+      "Червоне": "Червоне",
+      "Blanc de Noir": "Blanc de Noir",
+      "Блан де нуар": "Blanc de Noir",
+      "Рожеве": "Рожеве"
+    }
+  },
+
+  "OUR": {
+    "type": "param_match",
+    "param": "color.roseType",
+    "mapping": {
+      "classic": "Класичне rosé",
+      "direct_press": "Direct press rosé",
+      "saignee": "Saignée rosé",
+      "natural": "Натуральне rosé",
+      "_default": "Класичне rosé"
+    }
+  },
+
+  "DEAR":     {"type": "engine", "resolver": "grape_variety_known"},
+  "WARM":     {"type": "engine", "resolver": "grape_variety_known"},
+  "DAMAGE_V6":{"type": "engine", "resolver": "grape_variety_known"},
+  "AFTERNOON":{"type": "engine", "resolver": "grape_variety_known"},
+
+  "GLOBE": {
+    "type": "engine", "resolver": "grape_variety_white"
+  },
+  "GRASS": {
+    "type": "engine", "resolver": "grape_variety_orange"
+  },
+  "SHALL": {
+    "type": "engine", "resolver": "grape_variety_red"
+  },
+  "CHOOSE": {
+    "type": "engine", "resolver": "grape_variety_bdn"
+  },
+
+  "DAMAGE": {
+    "type": "engine", "resolver": "stem_condition_known"
+  },
+  "PITCH": {
+    "type": "param_match",
+    "param": "color.stemCondition",
+    "mapping": {
+      "green": "Зелений",
+      "partial": "Частково lignified",
+      "brown": "Коричневий і сухий",
+      "_default": "Частково lignified"
+    }
+  },
+
+  "STREET": {
+    "type": "engine", "resolver": "raw_color"
+  },
+  "OF": {
+    "type": "engine", "resolver": "raw_color"
+  },
+
+  "CAPITAL":  {"type": "engine", "resolver": "fermentation_scheme_bw"},
+  "PACKAGE":  {"type": "engine", "resolver": "fermentation_scheme_bw"},
+  "LENGTH":   {"type": "engine", "resolver": "fermentation_scheme_bw"},
+  "PLUS_V2":  {"type": "engine", "resolver": "fermentation_scheme_bw"},
+  "TRUNK":    {"type": "engine", "resolver": "fermentation_scheme_bw"},
+
+  "EAGER":    {"type": "engine", "resolver": "fermentation_scheme_rc"},
+  "KNOW":     {"type": "engine", "resolver": "fermentation_scheme_rc"},
+
+  "HE": {
+    "type": "compound",
+    "params": {"pH": "style_tech.pH", "risk": "style_tech.microRisk"},
+    "conditions": [{"expr": "pH > 3.5 or risk > 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "EQUIPMENT": {
+    "type": "compound",
+    "params": {"pH": "style_tech.pH", "risk": "style_tech.microRisk"},
+    "conditions": [{"expr": "pH > 3.5 or risk > 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+
+  "SECRET": {
+    "type": "compound",
+    "params": {"a": "style_sensory.aromaIntensity", "t": "style_sensory.thiolTerpene"},
+    "conditions": [{"expr": "a >= 60 or t >= 50", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "YEAR": {
+    "type": "engine", "resolver": "is_sparkling"
+  },
+  "ANGLE": {
+    "type": "engine", "resolver": "angle_check"
+  },
+  "WILLING": {"type": "threshold", "param": "style_sensory.aromaIntensity", "value": 60},
+  "TUBE": {
+    "type": "compound",
+    "params": {"a": "style_sensory.aromaIntensity", "pH": "style_tech.pH", "risk": "style_tech.microRisk"},
+    "conditions": [{"expr": "a >= 60 and pH <= 3.6 and risk <= 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "ACCIDENT": {
+    "type": "compound",
+    "params": {"t": "style_sensory.tannins", "b": "style_sensory.body"},
+    "conditions": [{"expr": "t >= 60 or b >= 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+
+  "GONE": {
+    "type": "cascading",
+    "conditions": [
+      {"expr": "style_tech.pH <= 3.2 and color.grapeCondition == 'healthy'", "edge": "Так"}
+    ],
+    "default": "Ні"
+  },
+  "TAKEN": {
+    "type": "cascading",
+    "conditions": [
+      {"expr": "style_tech.pH <= 3.4 and color.grapeCondition == 'healthy'", "edge": "Так"}
+    ],
+    "default": "Ні"
+  },
+  "TOWER": {
+    "type": "cascading",
+    "conditions": [
+      {"expr": "style_tech.pH <= 3.6 or color.grapeCondition == 'damaged'", "edge": "Так"}
+    ],
+    "default": "Ні"
+  },
+  "THAT": {
+    "type": "cascading",
+    "conditions": [
+      {"expr": "style_tech.pH <= 3.8 or color.grapeCondition == 'overripe'", "edge": "Так"}
+    ],
+    "default": "Ні"
+  },
+  "BASEBALL": {
+    "type": "cascading",
+    "conditions": [
+      {"expr": "style_tech.pH <= 3.2 and color.grapeCondition == 'healthy'", "edge": "Так"}
+    ],
+    "default": "Ні"
+  },
+  "SEARCH": {
+    "type": "cascading",
+    "conditions": [
+      {"expr": "style_tech.pH <= 3.4 and color.grapeCondition == 'healthy'", "edge": "Так"}
+    ],
+    "default": "Ні"
+  },
+  "BROAD": {
+    "type": "cascading",
+    "conditions": [
+      {"expr": "style_tech.pH <= 3.6 or color.grapeCondition == 'damaged'", "edge": "Так"}
+    ],
+    "default": "Ні"
+  },
+  "MARK": {
+    "type": "cascading",
+    "conditions": [
+      {"expr": "style_tech.pH <= 3.8 or color.grapeCondition == 'overripe'", "edge": "Так"}
+    ],
+    "default": "Ні"
+  },
+
+  "MEASURE": {"type": "threshold", "param": "style_tech.pH", "op": ">", "value": 3.5},
+  "SPECIFIC": {"type": "engine", "resolver": "ta_check"},
+  "RUBBER":   {"type": "engine", "resolver": "sugar_check"},
+
+  "UNDER":  {"type": "engine", "resolver": "had_maceration"},
+  "FIRST":  {"type": "engine", "resolver": "had_maceration"},
+
+  "DEEP": {"type": "engine", "resolver": "deep_check"},
+
+  "YEAST_A": {
+    "type": "engine", "resolver": "yeast_color"
+  },
+  "YEAST_WHITE":  {"type": "engine", "resolver": "grape_variety_known"},
+  "YEAST_RED":    {"type": "engine", "resolver": "grape_variety_known"},
+  "YEAST_WHITE_STYLE": {
+    "type": "compound",
+    "params": {"a": "style_sensory.aromaIntensity", "t": "style_sensory.thiolTerpene"},
+    "conditions": [{"expr": "a >= 60 or t >= 50", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "YEAST_WHITE_SORT": {"type": "engine", "resolver": "yeast_white_sort"},
+  "YEAST_RED_SORT":   {"type": "engine", "resolver": "yeast_red_sort"},
+  "YEAST_RED_STYLE": {
+    "type": "compound",
+    "params": {"t": "style_sensory.tannins", "b": "style_sensory.body"},
+    "conditions": [{"expr": "t >= 60 or b >= 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "YEAST_ROSE":   {"type": "engine", "resolver": "fermentation_scheme_bw"},
+  "YEAST_ROSE_W": {"type": "threshold", "param": "style_sensory.aromaIntensity", "value": 60},
+  "YEAST_ROSE_SKIN": {
+    "type": "compound",
+    "params": {"t": "style_sensory.tannins", "b": "style_sensory.body"},
+    "conditions": [{"expr": "t >= 50 or b >= 50", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "YEAST_ORANGE": {
+    "type": "compound",
+    "params": {"t": "style_sensory.tannins", "m": "style_sensory.malolactic"},
+    "conditions": [{"expr": "t >= 60 or m >= 50", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "YEAST_SPARK": {"type": "default_edge", "edge": "Первинне бродіння базового вина"},
+
+  "SKIN":  {"type": "engine", "resolver": "skin_fermentation"},
+  "MAT_C": {
+    "type": "compound",
+    "params": {"a": "style_sensory.aromaIntensity", "t": "style_sensory.thiolTerpene"},
+    "conditions": [{"expr": "a >= 60 or t >= 50", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "MAT_C2": {
+    "type": "compound",
+    "params": {"c": "style_sensory.creaminess", "m": "style_sensory.malolactic"},
+    "conditions": [{"expr": "c >= 50 or m >= 50", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "MAT_O": {
+    "type": "compound",
+    "params": {"t": "style_sensory.tannins", "b": "style_sensory.body"},
+    "conditions": [{"expr": "t >= 60 or b >= 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "MAT_O2": {"type": "threshold", "param": "style_sensory.aromaIntensity", "value": 60},
+
+  "TEMP_COLOR": {"type": "engine", "resolver": "temp_color"},
+  "TEMP_W": {
+    "type": "compound",
+    "params": {"a": "style_sensory.aromaIntensity", "t": "style_sensory.thiolTerpene"},
+    "conditions": [{"expr": "a >= 60 or t >= 50", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "TEMP_ROSE": {"type": "threshold", "param": "style_sensory.aromaIntensity", "value": 60},
+  "TEMP_RED": {
+    "type": "compound",
+    "params": {"b": "style_sensory.body", "t": "style_sensory.tannins"},
+    "conditions": [{"expr": "b >= 60 or t >= 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "TEMP_RED_A": {"type": "threshold", "param": "style_sensory.aromaIntensity", "value": 60},
+
+  "PROF_THIOL": {"type": "threshold", "param": "style_sensory.thiolTerpene", "value": 50},
+  "PROF_MW":    {"type": "threshold", "param": "style_sensory.body", "value": 50},
+  "PROF_O":     {"type": "threshold", "param": "style_sensory.tannins", "value": 50},
+  "PROF_RH":    {"type": "threshold", "param": "style_sensory.tannins", "value": 60},
+  "PROF_RN":    {"type": "threshold", "param": "style_sensory.body", "value": 50},
+
+  "CAP_CHECK": {"type": "engine", "resolver": "skin_fermentation"},
+  "CAP_TAN":  {"type": "threshold", "param": "style_sensory.tannins", "value": 60},
+  "CAP_BODY": {"type": "threshold", "param": "style_sensory.body", "value": 60},
+  "CAP_AROM": {"type": "threshold", "param": "style_sensory.aromaIntensity", "value": 60},
+  "MICROOX": {
+    "type": "compound",
+    "params": {"t": "style_sensory.tannins", "o": "style_sensory.oxidation"},
+    "conditions": [{"expr": "t >= 50 and o >= 50", "edge": "Так"}],
+    "default": "Ні"
+  },
+
+  "STYLE": {
+    "type": "engine", "resolver": "sweetness_dry_notdry"
+  },
+  "DRY_SKIN":   {"type": "engine", "resolver": "skin_fermentation"},
+  "SWEET_SKIN":  {"type": "engine", "resolver": "skin_fermentation"},
+  "DRY_STRUCT": {
+    "type": "compound",
+    "params": {"b": "style_sensory.body", "t": "style_sensory.tannins"},
+    "conditions": [{"expr": "b >= 60 or t >= 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "DRY_AROM": {"type": "threshold", "param": "style_sensory.aromaIntensity", "value": 60},
+  "SWEET_RS": {
+    "type": "threshold", "param": "style_params.RS", "value": 30
+  },
+
+  "LEES": {"type": "engine", "resolver": "has_yeast_lees"},
+  "LEES_STYLE":    {"type": "engine", "resolver": "sweetness_dry_notdry"},
+  "CLASSIC":       {"type": "engine", "resolver": "yan_known"},
+  "KNOWN_STYLE":   {"type": "engine", "resolver": "sweetness_dry_notdry"},
+  "UNKNOWN_STYLE": {"type": "engine", "resolver": "sweetness_dry_notdry"},
+
+  "YAN_DRY_LOW":   {"type": "engine", "resolver": "yan_low"},
+  "YAN_DRY_MID":   {"type": "engine", "resolver": "yan_mid"},
+  "YAN_SWEET_LOW": {"type": "engine", "resolver": "yan_low"},
+
+  "CTRL_STYLE": {"type": "engine", "resolver": "sweetness_dry_notdry"},
+  "DRY_STABLE": {"type": "default_edge", "edge": "Так"},
+  "DRY_STAGE":  {"type": "default_edge", "edge": "Ні"},
+  "SWEET_TYPE": {
+    "type": "engine", "resolver": "sweetness_subtype"
+  },
+  "SD_RS": {"type": "default_edge", "edge": "Так"},
+  "SD_FLOW": {"type": "default_edge", "edge": "Так"},
+  "SS_RS": {"type": "default_edge", "edge": "Так"},
+  "SS_FLOW": {"type": "default_edge", "edge": "Так"},
+  "SW_RS": {"type": "default_edge", "edge": "Так"},
+  "SW_FLOW": {"type": "default_edge", "edge": "Так"},
+
+  "EXT_CHECK": {"type": "engine", "resolver": "skin_fermentation"},
+  "EXT_TAN": {
+    "type": "compound",
+    "params": {"t": "style_sensory.tannins", "b": "style_sensory.body"},
+    "conditions": [{"expr": "t >= 60 and b >= 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "EXT_TAN2": {"type": "threshold", "param": "style_sensory.tannins", "value": 40},
+
+  "POST_TYPE": {
+    "type": "engine", "resolver": "wine_type_still_sparkling"
+  },
+  "POST_SWEET": {"type": "engine", "resolver": "sweetness_dry_notdry"},
+
+  "MLF_COLOR": {"type": "engine", "resolver": "raw_color"},
+  "MLF_W": {
+    "type": "compound",
+    "params": {"b": "style_sensory.body", "o": "style_sensory.oxidation"},
+    "conditions": [{"expr": "b >= 60 or o >= 50", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "MLF_W_AROM": {"type": "threshold", "param": "style_sensory.aromaIntensity", "value": 60},
+  "MLF_RED": {"type": "default_edge", "edge": "Інокуляція"},
+
+  "AGE_W": {
+    "type": "compound",
+    "params": {"o": "style_sensory.oxidation", "b": "style_sensory.body"},
+    "conditions": [{"expr": "o >= 50 and b >= 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "AGE_W_BODY": {"type": "threshold", "param": "style_sensory.body", "value": 50},
+  "AGE_RED_TAN": {
+    "type": "compound",
+    "params": {"t": "style_sensory.tannins", "b": "style_sensory.body"},
+    "conditions": [{"expr": "t >= 60 and b >= 60", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "AGE_RED_TAN2": {"type": "threshold", "param": "style_sensory.tannins", "value": 50},
+  "AGE_RED_BODY": {"type": "threshold", "param": "style_sensory.body", "value": 50},
+  "AGE_RED_AROM": {"type": "threshold", "param": "style_sensory.aromaIntensity", "value": 60},
+  "AGE_O": {"type": "threshold", "param": "style_sensory.oxidation", "value": 50},
+
+  "BAT_W":    {"type": "threshold", "param": "style_sensory.body", "value": 50},
+  "BAT_W_TH": {"type": "threshold", "param": "style_sensory.thiolTerpene", "value": 50},
+
+  "CLAR_W":    {"type": "default_edge", "edge": "Так"},
+  "CLAR_W_TYPE": {"type": "default_edge", "edge": "Білкова каламуть"},
+  "CLAR_ROSE": {"type": "default_edge", "edge": "Так"},
+  "CLAR_RED":  {"type": "default_edge", "edge": "Так"},
+  "CLAR_RED_TYPE": {"type": "default_edge", "edge": "Яєчний білок"},
+
+  "STAB_RED_COLD": {"type": "default_edge", "edge": "Так"},
+
+  "FILT_RED": {"type": "default_edge", "edge": "Так"},
+  "FILT_O":   {"type": "default_edge", "edge": "Ні"},
+
+  "NS_MLF_COLOR": {"type": "engine", "resolver": "raw_color"},
+  "NS_MLF_RED": {
+    "type": "compound",
+    "params": {"t": "style_sensory.tannins", "sw": "style_params.sweetnessCategory"},
+    "conditions": [{"expr": "t >= 50 and sw == 'napivsuhe'", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "NS_MLF_O":  {"type": "default_edge", "edge": "Ні"},
+
+  "NS_RACK_SW": {"type": "engine", "resolver": "sweetness_subtype"},
+
+  "NS_AGE_COLOR": {"type": "engine", "resolver": "raw_color"},
+  "NS_AGE_RED": {
+    "type": "compound",
+    "params": {"t": "style_sensory.tannins", "sw": "style_params.sweetnessCategory"},
+    "conditions": [{"expr": "t >= 50 and sw == 'napivsuhe'", "edge": "Так"}],
+    "default": "Ні"
+  },
+  "NS_AGE_O": {"type": "threshold", "param": "style_sensory.oxidation", "value": 50},
+
+  "NS_STAB_RS": {"type": "default_edge", "edge": "Обидва методи"},
+
+  "NS_CLAR_COLOR": {"type": "engine", "resolver": "raw_color"},
+  "NS_CLAR_RED":   {"type": "default_edge", "edge": "Так"},
+
+  "NS_FILT_ROUTE":  {"type": "engine", "resolver": "raw_color"},
+  "NS_FILT_RED_NS": {"type": "default_edge", "edge": "Так"},
+  "NS_FILT_O_NS":   {"type": "default_edge", "edge": "Ні"},
+
+  "SPARK_METHOD": {
+    "type": "param_match",
+    "param": "style_co2.sparklingMethod",
+    "mapping": {
+      "champenoise": "Шампенуаз",
+      "transfer": "Трансфер",
+      "charmat": "Шарма",
+      "petnat": "Пет-нат",
+      "_default": "Шарма"
+    }
+  },
+
+  "CT_MLF":    {"type": "default_edge", "edge": "Так"},
+  "CT_ASSEM":  {"type": "default_edge", "edge": "Моновінтаж"},
+  "CT_AGING":  {"type": "default_edge", "edge": "Базовий"},
+  "CT_SPLIT": {
+    "type": "param_match",
+    "param": "style_co2.sparklingMethod",
+    "mapping": {
+      "champenoise": "Шампенуаз",
+      "transfer": "Трансфер",
+      "_default": "Шампенуаз"
+    }
+  },
+  "CT_REM":    {"type": "default_edge", "edge": "Механічний"},
+
+  "CH_MLF":     {"type": "threshold", "param": "style_sensory.aromaIntensity", "value": 60},
+  "CH_MLF_OPT": {"type": "default_edge", "edge": "Так"},
+  "CH_TYPE":    {"type": "default_edge", "edge": "Короткий Шарма"},
+
+  "PN_DEG":     {"type": "default_edge", "edge": "Так"},
+
+  "DOSAGE": {"type": "default_edge", "edge": "Brut"},
+
+  "CAP_CHECK": {"type": "engine", "resolver": "skin_fermentation"}
+}

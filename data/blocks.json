@@ -2,6 +2,9 @@
   {
     "id": "block_1",
     "name": "Гребеневіддокремлення,\nПодрібнення",
+    "params_schema": {
+      "name_template": "Гребеневіддокремлення,\nПодрібнення"
+    },
     "order": 1,
     "has_top_arrow": true,
     "top_arrow_label": "Умови сировини",
@@ -13,6 +16,9 @@
   {
     "id": "block_2",
     "name": "Відділення\nсусла-самопливу",
+    "params_schema": {
+      "name_template": "Відділення\nсусла-самопливу"
+    },
     "order": 2,
     "arrow_out_label": "Сусло-самоплив"
   },
@@ -31,6 +37,12 @@
   {
     "id": "block_3",
     "name": "Відстоювання сусла:\nt = 14...17°C,\nτ = 12 год",
+    "params_schema": {
+      "name_template": "Відстоювання сусла:\nt = {fermentation_temp_primary}°C,\nτ = 12 год",
+      "bindings": {
+        "fermentation_temp_primary": "style_tech.fermentationTemp"
+      }
+    },
     "order": 3,
     "arrow_out_label": "І фракція",
     "left_inputs": [
@@ -42,11 +54,20 @@
   {
     "id": "block_4",
     "name": "Зняття з осаду",
+    "params_schema": {
+      "name_template": "Зняття з осаду"
+    },
     "order": 4
   },
   {
     "id": "block_5",
     "name": "Бродіння сусла,\nt=14...17°C",
+    "params_schema": {
+      "name_template": "Бродіння сусла,\nt = {fermentation_temp_primary}°C",
+      "bindings": {
+        "fermentation_temp_primary": "style_tech.fermentationTemp"
+      }
+    },
     "order": 5,
     "left_inputs": [
       {"type": "double", "text": "Холодоагент"},
@@ -59,6 +80,12 @@
   {
     "id": "block_6",
     "name": "Освітлення\nвиноматервалу\nt=10...12°C",
+    "params_schema": {
+      "name_template": "Освітлення\nвиноматеріалу\nt = {cold_stab_temp}°C",
+      "bindings": {
+        "cold_stab_temp": "style_tech.fermentationTemp"
+      }
+    },
     "order": 6,
     "left_inputs": [
       {"type": "double", "text": "Холодоагент"}
@@ -70,6 +97,9 @@
   {
     "id": "block_7",
     "name": "Зняття з дріжджів",
+    "params_schema": {
+      "name_template": "Зняття з дріжджів"
+    },
     "order": 7,
     "right_outputs": [
       {"text": "Дріжджові осади"}
@@ -78,6 +108,9 @@
   {
     "id": "block_8",
     "name": "Егалізація",
+    "params_schema": {
+      "name_template": "Егалізація"
+    },
     "order": 8,
     "left_inputs": [
       {"text": "SO₂ \n30...50 мг/дм³"}
@@ -86,6 +119,9 @@
   {
     "id": "block_9",
     "name": "Зберігання",
+    "params_schema": {
+      "name_template": "Зберігання"
+    },
     "order": 9,
     "has_bottom_arrow": true,
     "bottom_arrow_label": "Кондиції вина"
@@ -93,6 +129,9 @@
   {
     "id": "block_10",
     "name": "Бродіння м'язги",
+    "params_schema": {
+      "name_template": "Бродіння м'язги"
+    },
     "order": 10,
     "left_inputs": [
       {"type": "double", "text": "Холодоагент"},
@@ -105,12 +144,18 @@
   {
     "id": "block_11",
     "name": "Стікання м'язги,\nщо бродить",
+    "params_schema": {
+      "name_template": "Стікання м'язги,\nщо бродить"
+    },
     "order": 11,
     "arrow_out_label": "Сусло-самоплив"
   },
   {
     "id": "block_11_1",
     "name": "Пресування",
+    "params_schema": {
+      "name_template": "Пресування"
+    },
     "order": 11.1,
     "connects_from": "block_11",
     "connects_to": "block_12",
@@ -132,6 +177,9 @@
   {
     "id": "block_13",
     "name": "Відпочинок",
+    "params_schema": {
+      "name_template": "Відпочинок"
+    },
     "order": 13,
     "left_inputs": [
       {"type": "double", "text": "Холодоагент"}
