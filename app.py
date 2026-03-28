@@ -27,6 +27,23 @@ USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 # Ensure data directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
 
+
+def _ensure_empty_json_array(path):
+    """Create path as [] if missing (deploy / fresh clone has no local DB files)."""
+    if os.path.exists(path):
+        return
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump([], f, ensure_ascii=False, indent=2)
+
+
+def ensure_runtime_data_files():
+    """users.json and wines.json are gitignored; create empty stores on first run."""
+    _ensure_empty_json_array(USERS_FILE)
+    _ensure_empty_json_array(DB_FILE)
+
+
+ensure_runtime_data_files()
+
 # Session timeout check
 @app.before_request
 def check_session_timeout():
