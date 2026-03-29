@@ -21,8 +21,8 @@ def load_sendgrid_env():
             key, _, val = line.partition('=')
             key = key.strip()
             val = val.strip().strip("'").strip('"')
-            if key and key not in os.environ:
-                os.environ[key] = val
+            if key:
+                os.environ[key] = val  # sendgrid.env always takes priority
 
 
 def sendgrid_api_key():
