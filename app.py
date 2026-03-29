@@ -5,33 +5,11 @@ import os
 import uuid
 from datetime import datetime, timedelta
 
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+from sendgrid_env import load_sendgrid_env
 
+load_sendgrid_env()
 
-def _load_sendgrid_env():
-    """Load sendgrid.env into os.environ if present. Does not override existing vars."""
-    path = os.path.join(_BASE_DIR, 'sendgrid.env')
-    if not os.path.isfile(path):
-        return
-    with open(path, 'r', encoding='utf-8') as f:
-        for raw in f:
-            line = raw.strip()
-            if not line or line.startswith('#'):
-                continue
-            if line.startswith('export '):
-                line = line[7:].strip()
-            if '=' not in line:
-                continue
-            key, _, val = line.partition('=')
-            key = key.strip()
-            val = val.strip().strip("'").strip('"')
-            if key and key not in os.environ:
-                os.environ[key] = val
-
-
-_load_sendgrid_env()
-
-# Import auth module (reads SENDGRID_* at import time)
+# Import auth after env file is merged (e.g. tests that import auth only)
 from auth import init_auth
 
 app = Flask(__name__)

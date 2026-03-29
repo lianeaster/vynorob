@@ -34,7 +34,10 @@
         
         <p style="color: #333; font-size: 16px; line-height: 1.8; text-align: center;">
             Вітаємо, <strong>{{ name }}</strong>!<br><br>
-            {% if email_configured %}
+            {% if email_error %}
+            Лист автоматично не надіслано. Скористайтесь посиланням нижче або перевірте SendGrid (ключ, верифікація відправника).<br>
+            <strong style="color: #722f3e;">{{ email }}</strong>
+            {% elif email_configured %}
             Ми відправили лист з посиланням для підтвердження на адресу:<br>
             <strong style="color: #722f3e;">{{ email }}</strong>
             {% else %}
@@ -43,7 +46,7 @@
             {% endif %}
         </p>
         
-        {% if not email_configured and verification_url %}
+        {% if verification_url %}
         <div style="background: #faf5f0; border: 2px solid #8b3a52; padding: 20px; margin: 30px 0; border-radius: 10px;">
             <p style="color: #333; font-size: 14px; line-height: 1.6; margin-bottom: 15px;">
                 <strong>🔗 Посилання для підтвердження:</strong>

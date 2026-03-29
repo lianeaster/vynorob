@@ -14,12 +14,11 @@ import re
 import json
 import os
 
+from sendgrid_env import load_sendgrid_env, sendgrid_api_key, sender_email
+
 # Create blueprint
 auth_bp = Blueprint('auth', __name__, template_folder='templates/auth')
 
-# Configuration
-SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
-SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'noreply@vynorob.com')
 USERS_FILE = os.path.join('data', 'users.json')
 
 # Initialize serializer (will be set by init_auth)
@@ -89,13 +88,25 @@ def verify_token(token, expiration=3600):
     except:
         return None
 
+def _sendgrid_error_detail(exc):
+    parts = [str(exc)]
+    for attr in ('body', 'message'):
+        chunk = getattr(exc, attr, None)
+        if chunk is not None:
+            if isinstance(chunk, bytes):
+                chunk = chunk.decode('utf-8', errors='replace')
+            parts.append(str(chunk))
+    return ' | '.join(parts)
+
+
 def send_verification_email(user_email, user_name):
     """Send verification email to user using SendGrid"""
+    load_sendgrid_env()
     token = generate_verification_token(user_email)
     verification_url = url_for('auth.verify_email', token=token, _external=True)
     
-    # Check if SendGrid is configured
-    if not SENDGRID_API_KEY:
+    key = sendgrid_api_key()
+    if not key:
         # Email not configured - print to console for testing
         print('\n' + '='*80)
         print('⚠️  SENDGRID NOT CONFIGURED - TESTING MODE')
@@ -143,20 +154,21 @@ def send_verification_email(user_email, user_name):
     '''
     
     try:
+        frm = sender_email()
         message = Mail(
-            from_email=Email(SENDER_EMAIL),
+            from_email=Email(frm),
             to_emails=To(user_email),
             subject='Підтвердження реєстрації - Vynorob',
             html_content=Content("text/html", html_content)
         )
         
-        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        sg = SendGridAPIClient(key)
         response = sg.send(message)
         
-        print(f'✓ Email sent to {user_email} - Status: {response.status_code}')
+        print(f'✓ Email sent to {user_email} - Status: {response.status_code}', flush=True)
         return True
     except Exception as e:
-        print(f'✗ Error sending email: {e}')
+        print(f'✗ SendGrid verification email: {_sendgrid_error_detail(e)}', flush=True)
         return False
 
 # ============================================================================
@@ -177,11 +189,12 @@ def verify_password_reset_token(token, expiration=3600):
 
 def send_password_reset_email(user_email, user_name):
     """Send password reset email to user using SendGrid"""
+    load_sendgrid_env()
     token = generate_password_reset_token(user_email)
     reset_url = url_for('auth.reset_password', token=token, _external=True)
     
-    # Check if SendGrid is configured
-    if not SENDGRID_API_KEY:
+    key = sendgrid_api_key()
+    if not key:
         # Email not configured - print to console for testing
         print('\n' + '='*80)
         print('⚠️  SENDGRID NOT CONFIGURED - TESTING MODE')
@@ -229,20 +242,21 @@ def send_password_reset_email(user_email, user_name):
     '''
     
     try:
+        frm = sender_email()
         message = Mail(
-            from_email=Email(SENDER_EMAIL),
+            from_email=Email(frm),
             to_emails=To(user_email),
             subject='Відновлення пароля - Vynorob',
             html_content=Content("text/html", html_content)
         )
         
-        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        sg = SendGridAPIClient(key)
         response = sg.send(message)
         
-        print(f'✓ Password reset email sent to {user_email} - Status: {response.status_code}')
+        print(f'✓ Password reset email sent to {user_email} - Status: {response.status_code}', flush=True)
         return True
     except Exception as e:
-        print(f'✗ Error sending password reset email: {e}')
+        print(f'✗ SendGrid password reset: {_sendgrid_error_detail(e)}', flush=True)
         return False
 
 # ============================================================================
@@ -357,23 +371,24 @@ def signup():
         # Send verification email
         email_sent = send_verification_email(email, name)
         
-        # Check if email is configured
-        email_configured = bool(SENDGRID_API_KEY)
-        
+        load_sendgrid_env()
+        email_configured = bool(sendgrid_api_key())
+        show_link = not email_configured or not email_sent
+
         if email_sent:
             return render_template('auth/verification_sent.html', 
                                  email=email, 
                                  name=name, 
                                  email_configured=email_configured,
-                                 verification_url=verification_url if not email_configured else None)
+                                 email_error=False,
+                                 verification_url=verification_url if show_link else None)
         else:
-            # If email failed, show error but still created user
             return render_template('auth/verification_sent.html', 
                                  email=email, 
                                  name=name, 
                                  email_error=True,
                                  email_configured=email_configured,
-                                 verification_url=verification_url if not email_configured else None)
+                                 verification_url=verification_url if show_link else None)
     
     return render_template('auth/signup.html')
 
