@@ -972,7 +972,7 @@ _CLAR_AGENT_NODE_IDS = {
 
 _CLAR_PROCESS_LABEL = {
     'CT_CLAR_BENT': 'Освітлення базового вина',
-    'CLAR_W_BENT':  'Освітлення',
+    'CLAR_W_BENT':  'видалення білків + освітлення виноматеріалу',
     'CLAR_W_PVPP':  'Освітлення',
     'CLAR_W_CAS':   'Освітлення',
     'CLAR_ROSE_BENT': 'Освітлення',
@@ -988,13 +988,22 @@ _FINING_AGENT_NAME_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Dose-unit patterns that mark a line as a side-input (what is physically added)
+_DOSE_UNIT_RE = re.compile(
+    r'\b(?:г/гл|мг/л|г/л|мл/л|шт/барік|%)\s*(?:\)|$)',
+    re.IGNORECASE,
+)
+
 
 def _split_clar_label(node_id, clean):
     """Separate fining agent dosage from clarification step label.
 
-    Returns (process_clean, agent_side) where agent_side is None when the node
-    has no additive to extract.  agent_side starts with 'Препарат освітлення'
-    so the frontend renders it as a side-input arrow from the left.
+    Only lines that contain a dose unit (г/гл, шт/барік …) are extracted as
+    the 'Препарат освітлення' side-input arrow.  Descriptive lines (видалення
+    білків, пом'якшення танінів …) are already captured in _CLAR_PROCESS_LABEL
+    and are silently dropped from further processing here.
+
+    Returns (process_clean, agent_side) or (clean, None) for skip nodes.
     """
     if node_id not in _CLAR_AGENT_NODE_IDS:
         return clean, None
@@ -1002,22 +1011,20 @@ def _split_clar_label(node_id, clean):
     process = _CLAR_PROCESS_LABEL.get(node_id, 'Освітлення')
     lines = [l for l in clean.split('\n') if l.strip()]
 
-    agent_parts = []
+    dose_parts = []
     for line in lines:
-        stripped = line.rstrip(':').strip()
-        # Skip the process name line
-        if stripped.lower().startswith('освітлення'):
-            continue
-        # Strip leading agent name from the line; keep dosage/description
+        # Strip leading agent name, keep the rest
         cleaned = _FINING_AGENT_NAME_RE.sub('', line).strip().lstrip(':').strip()
-        if cleaned:
-            agent_parts.append(cleaned)
-        # If the line was ONLY an agent name (e.g. "Бентоніт:") — skip silently
+        if not cleaned:
+            continue  # line was only an agent name header → skip
+        if _DOSE_UNIT_RE.search(cleaned):
+            dose_parts.append(cleaned)
+        # Other lines (descriptions, process qualifiers) stay in process box
 
-    if not agent_parts:
+    if not dose_parts:
         return process, None
 
-    agent_side = 'Препарат освітлення\n' + '\n'.join(agent_parts)
+    agent_side = 'Препарат освітлення\n' + '\n'.join(dose_parts)
     return process, agent_side
 
 
