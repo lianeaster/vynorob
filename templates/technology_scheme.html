@@ -20,10 +20,16 @@
         backdrop-filter: blur(10px);
     }
     
+    .canvas-scroll-wrapper {
+        overflow-x: auto;
+        display: flex;
+        justify-content: center;
+    }
+
     #schemeCanvas {
-        width: 100%;
-        height: auto;
         display: block;
+        max-width: 100%;
+        height: auto;
         border: 1px solid #d9cab8;
     }
     
@@ -88,7 +94,9 @@
         <span style="font-size: 12px; color: #999; font-weight: 500;">Крок 7 з 7</span>
     </div>
     <h1 class="scheme-title">Принципова технологічна схема</h1>
-    <canvas id="schemeCanvas"></canvas>
+    <div class="canvas-scroll-wrapper">
+        <canvas id="schemeCanvas"></canvas>
+    </div>
     
     <div style="display: flex; justify-content: space-between; margin-top: 30px; gap: 15px; align-items: center;">
         <button class="btn btn-secondary" onclick="window.location.href='/summary'" style="background: #e0e0e0; color: #666;">
