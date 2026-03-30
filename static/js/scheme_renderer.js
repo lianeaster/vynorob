@@ -1795,18 +1795,27 @@ class SchemeRenderer {
         const hasWasteOutputs = groups.some(g => g.sideOutputs && g.sideOutputs.length > 0);
         const wasteArrowLen = 60;
         const wasteTextW = 180;
-        const wasteExtraW = hasWasteOutputs ? wasteArrowLen + wasteTextW + 20 : 0;
+        // Right-side reserve: arrow + text label
+        const rightReserve = hasWasteOutputs ? wasteArrowLen + wasteTextW + 20 : 0;
+        // Left-side reserve: side input arrows + text
+        const leftReserve = sideInputEstimate;
+        // Balance both sides symmetrically so the box sits at the visual centre
+        const sideMargin = 40;
+        const maxReserve = Math.max(leftReserve, rightReserve);
 
         let canvasWidth, centerX;
         if (yeastBranch) {
-            const leftExtent = sideInputEstimate + boxWidth / 2;
-            const rightExtent = boxWidth / 2 + branchGap + branchBoxW;
+            const leftExtent = maxReserve + boxWidth / 2;
+            const rightExtent = Math.max(
+                boxWidth / 2 + branchGap + branchBoxW,
+                boxWidth / 2 + rightReserve
+            );
             const contentW = leftExtent + rightExtent;
-            canvasWidth = contentW + 100 + wasteExtraW;
-            centerX = 50 + leftExtent;
+            canvasWidth = contentW + 2 * sideMargin;
+            centerX = sideMargin + leftExtent;
         } else {
-            canvasWidth = 900 + wasteExtraW;
-            centerX = canvasWidth / 2 - wasteExtraW / 2;
+            canvasWidth = 2 * maxReserve + boxWidth + 2 * sideMargin;
+            centerX = sideMargin + maxReserve + boxWidth / 2;
         }
 
         this.canvas.width = canvasWidth;
