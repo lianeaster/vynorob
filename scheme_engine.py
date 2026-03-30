@@ -962,6 +962,65 @@ _BAT_MERGE_SUFFIX = {
 }
 
 
+_CLAR_AGENT_NODE_IDS = {
+    'CT_CLAR_BENT',
+    'CLAR_W_BENT', 'CLAR_W_PVPP', 'CLAR_W_CAS',
+    'CLAR_ROSE_BENT',
+    'CLAR_RED_EGG', 'CLAR_RED_GEL', 'CLAR_RED_PVPP',
+    'NS_CLAR_W', 'NS_CLAR_ROSE',
+}
+
+_CLAR_PROCESS_LABEL = {
+    'CT_CLAR_BENT': 'Освітлення базового вина',
+    'CLAR_W_BENT':  'Освітлення',
+    'CLAR_W_PVPP':  'Освітлення',
+    'CLAR_W_CAS':   'Освітлення',
+    'CLAR_ROSE_BENT': 'Освітлення',
+    'CLAR_RED_EGG': 'Освітлення',
+    'CLAR_RED_GEL': 'Освітлення',
+    'CLAR_RED_PVPP': 'Освітлення',
+    'NS_CLAR_W':    'Освітлення + білкова стабілізація',
+    'NS_CLAR_ROSE': 'Освітлення + білкова стабілізація',
+}
+
+_FINING_AGENT_NAME_RE = re.compile(
+    r'^(?:бентоніт|pvpp|казеїн|активоване вугілля|яєчний білок|желатин)\s*:?\s*',
+    re.IGNORECASE,
+)
+
+
+def _split_clar_label(node_id, clean):
+    """Separate fining agent dosage from clarification step label.
+
+    Returns (process_clean, agent_side) where agent_side is None when the node
+    has no additive to extract.  agent_side starts with 'Препарат освітлення'
+    so the frontend renders it as a side-input arrow from the left.
+    """
+    if node_id not in _CLAR_AGENT_NODE_IDS:
+        return clean, None
+
+    process = _CLAR_PROCESS_LABEL.get(node_id, 'Освітлення')
+    lines = [l for l in clean.split('\n') if l.strip()]
+
+    agent_parts = []
+    for line in lines:
+        stripped = line.rstrip(':').strip()
+        # Skip the process name line
+        if stripped.lower().startswith('освітлення'):
+            continue
+        # Strip leading agent name from the line; keep dosage/description
+        cleaned = _FINING_AGENT_NAME_RE.sub('', line).strip().lstrip(':').strip()
+        if cleaned:
+            agent_parts.append(cleaned)
+        # If the line was ONLY an agent name (e.g. "Бентоніт:") — skip silently
+
+    if not agent_parts:
+        return process, None
+
+    agent_side = 'Препарат освітлення\n' + '\n'.join(agent_parts)
+    return process, agent_side
+
+
 def _consolidate_aging_batonnage(steps):
     """Merge batonnage steps into the preceding aging step.
 
@@ -1332,6 +1391,17 @@ def get_technology_steps(wine_data):
                     'section': node.get('section'),
                     'label': so2_side,
                     'label_clean': so2_side,
+                    'type': 'side_input',
+                })
+
+        if current in _CLAR_AGENT_NODE_IDS:
+            clean, clar_side = _split_clar_label(current, clean)
+            if clar_side and not is_routing:
+                steps.append({
+                    'id': current + '_AGENT',
+                    'section': node.get('section'),
+                    'label': clar_side,
+                    'label_clean': clar_side,
                     'type': 'side_input',
                 })
 
