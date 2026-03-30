@@ -932,6 +932,41 @@ _MACERATION_LABEL_MAP = {'CHEMICAL', 'PURPLE', 'ANYWAY'}
 _PRESSING_PRE_ID = 'SO'
 _PRESSING_DETAIL_IDS = {'WORTH', 'FLOW'}
 
+_RACK_SO2_NODE_IDS = {
+    'RACK_W', 'RACK_W_EARLY', 'RACK_ROSE', 'RACK_RED', 'RACK_O',
+    'NS_RACK_SD', 'NS_RACK_SS', 'NS_RACK_SWEET',
+}
+
+_SO2_LINE_RE = re.compile(r'SO2?\s*[\d\u2013\-]', re.IGNORECASE)
+_SO2_NOBEZ_RE = re.compile(r'або без SO2?', re.IGNORECASE)
+
+
+def _split_rack_label(clean):
+    """Separate SO₂ addition from a racking step label.
+
+    Returns (rack_clean, so2_side) where so2_side is None when no SO₂ info
+    is present.  so2_side starts with 'Препарат SO₂' so the frontend renders
+    it as a side-input arrow coming in from the left.
+    """
+    lines = clean.split('\n')
+    rack_lines = []
+    so2_lines = []
+
+    for line in lines:
+        if _SO2_LINE_RE.search(line) or _SO2_NOBEZ_RE.search(line):
+            normalized = re.sub(r'\s*вільного\s*$', '', line, flags=re.IGNORECASE).strip()
+            normalized = re.sub(r'\bSO2\b', 'SO₂', normalized, flags=re.IGNORECASE)
+            so2_lines.append(normalized)
+        else:
+            rack_lines.append(line)
+
+    if not so2_lines:
+        return clean, None
+
+    so2_side = 'Препарат SO₂\n' + '\n'.join(so2_lines)
+    rack_clean = '\n'.join(rack_lines)
+    return rack_clean, so2_side
+
 
 def _format_pressing(node_id, clean, wine_data):
     """Combine pressing steps into a single informative label."""
@@ -1230,6 +1265,17 @@ def get_technology_steps(wine_data):
                     'section': node.get('section'),
                     'label': side,
                     'label_clean': side,
+                    'type': 'side_input',
+                })
+
+        if current in _RACK_SO2_NODE_IDS:
+            clean, so2_side = _split_rack_label(clean)
+            if so2_side and not is_routing:
+                steps.append({
+                    'id': current + '_SO2',
+                    'section': node.get('section'),
+                    'label': so2_side,
+                    'label_clean': so2_side,
                     'type': 'side_input',
                 })
 
