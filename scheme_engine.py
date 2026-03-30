@@ -940,6 +940,61 @@ _RACK_SO2_NODE_IDS = {
 _SO2_LINE_RE = re.compile(r'SO2?\s*[\d\u2013\-]', re.IGNORECASE)
 _SO2_NOBEZ_RE = re.compile(r'або без SO2?', re.IGNORECASE)
 
+# AGE_W_LARGE label override: clarify vessel format, exhausted wood, fallback
+_AGE_LABEL_OVERRIDES = {
+    'AGE_W_LARGE': (
+        'Витримка: великий дуб 500л+, б/в\n'
+        'або акація\n'
+        'τ = 4-8 місяців\n'
+        'Якщо немає 500л+ — сталь або інертне'
+    ),
+}
+
+# Batonnage node IDs that should be merged into the preceding aging step
+_BAT_MERGE_IDS = {'BAT_W_FULL', 'BAT_W_LIGHT', 'BAT_W_NO', 'BAT_ROSE', 'BAT_O'}
+
+_BAT_MERGE_SUFFIX = {
+    'BAT_W_FULL':  'Батонаж: 1-2 рази/тиждень\nпротягом перших 2-6 місяців витримки',
+    'BAT_W_LIGHT': 'Легкий батонаж: 1 раз/тиждень\nпротягом перших 1-2 місяців витримки',
+    'BAT_W_NO':    'Без батонажу: редуктивна витримка\nзберегти тіоли',
+    'BAT_ROSE':    'Без батонажу або мінімальний',
+    'BAT_O':       'Батонаж: за бажанням\n1 раз/тиждень або рідше',
+}
+
+
+def _consolidate_aging_batonnage(steps):
+    """Merge batonnage steps into the preceding aging step.
+
+    Batonnage is a sub-process performed on fine lees during aging (sur lies),
+    not a sequential stage after it.  This function appends batonnage info to
+    the aging step label and removes the standalone batonnage step so the
+    frontend shows a single unified block.
+    """
+    result = []
+    i = 0
+    while i < len(steps):
+        step = dict(steps[i])
+        sid = step.get('id', '')
+
+        if sid in _AGE_LABEL_OVERRIDES:
+            override = _AGE_LABEL_OVERRIDES[sid]
+            step['label_clean'] = override
+            step['label'] = override
+
+        if (i + 1 < len(steps) and steps[i + 1].get('id') in _BAT_MERGE_IDS):
+            bat_id = steps[i + 1]['id']
+            suffix = _BAT_MERGE_SUFFIX.get(bat_id, steps[i + 1].get('label_clean', ''))
+            step['label_clean'] = step.get('label_clean', '') + '\n' + suffix
+            step['label'] = step['label_clean']
+            result.append(step)
+            i += 2
+            continue
+
+        result.append(step)
+        i += 1
+
+    return result
+
 
 def _split_rack_label(clean):
     """Separate SO₂ addition from a racking step label.
@@ -965,6 +1020,7 @@ def _split_rack_label(clean):
 
     so2_side = 'Препарат SO₂\n' + '\n'.join(so2_lines)
     rack_clean = '\n'.join(rack_lines)
+    rack_clean = rack_clean.replace('Зняття з осаду', 'Зняття з грубого осаду')
     return rack_clean, so2_side
 
 
@@ -1302,6 +1358,7 @@ def get_technology_steps(wine_data):
 
     steps = _consolidate_correction(steps, wine_data)
     steps = _consolidate_fermentation(steps, wine_data)
+    steps = _consolidate_aging_batonnage(steps)
     steps = [s for s in steps if not _is_not_applicable(s.get('label_clean', ''))]
     steps = _clean_orphan_refs(steps)
     return steps
