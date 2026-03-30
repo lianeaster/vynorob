@@ -972,7 +972,7 @@ _CLAR_AGENT_NODE_IDS = {
 
 _CLAR_PROCESS_LABEL = {
     'CT_CLAR_BENT': 'Освітлення базового вина',
-    'CLAR_W_BENT':  'видалення білків + освітлення виноматеріалу',
+    'CLAR_W_BENT':  'Освітлення\nвидалення білків + освітлення виноматеріалу',
     'CLAR_W_PVPP':  'Освітлення',
     'CLAR_W_CAS':   'Освітлення',
     'CLAR_ROSE_BENT': 'Освітлення',
@@ -1026,6 +1026,40 @@ def _split_clar_label(node_id, clean):
 
     agent_side = 'Препарат освітлення\n' + '\n'.join(dose_parts)
     return process, agent_side
+
+
+_WASTE_OUTPUT_MAP = {
+    # Прийомка — бракована сировина
+    'AWARE': 'брак\nна утилізацію',
+    # Гребневідділення
+    'GAS': 'гребені\nна утилізацію',
+    # Пресування (біле — WORTH, червоне/помаранчеве — FLOW)
+    'WORTH': 'вичавки\nна утилізацію',
+    'FLOW':  'вичавки\nна утилізацію',
+    # Первинне бродіння
+    'AF':    'CO₂',
+    # Зняття з грубого осаду (сухе вино)
+    'RACK_W':       'осад\nна утилізацію',
+    'RACK_W_EARLY': 'осад\nна утилізацію',
+    'RACK_ROSE':    'осад\nна утилізацію',
+    'RACK_RED':     'осад\nна утилізацію',
+    'RACK_O':       'осад\nна утилізацію',
+    # Зняття з грубого осаду (не-сухе)
+    'NS_RACK_SD':    'осад\nна утилізацію',
+    'NS_RACK_SS':    'осад\nна утилізацію',
+    'NS_RACK_SWEET': 'осад\nна утилізацію',
+    # Фільтрація (сухе)
+    'FILT_W':       'використані матеріали\nна утилізацію',
+    'FILT_ROSE':    'використані матеріали\nна утилізацію',
+    'FILT_RED_YES': 'використані матеріали\nна утилізацію',
+    'FILT_O_YES':   'використані матеріали\nна утилізацію',
+    # Фільтрація (не-сухе)
+    'NS_FILT':          'використані матеріали\nна утилізацію',
+    'NS_FILT_RED':      'використані матеріали\nна утилізацію',
+    'NS_FILT_O_DONE':   'використані матеріали\nна утилізацію',
+    # Фільтрація (ігристе)
+    'CT_CLAR_FILT': 'використані матеріали\nна утилізацію',
+}
 
 
 def _consolidate_aging_batonnage(steps):
@@ -1420,6 +1454,15 @@ def get_technology_steps(wine_data):
                 'label_clean': clean,
                 'type': node['type'],
             })
+            if current in _WASTE_OUTPUT_MAP:
+                waste_text = _WASTE_OUTPUT_MAP[current]
+                steps.append({
+                    'id': current + '_WASTE',
+                    'section': node.get('section'),
+                    'label': waste_text,
+                    'label_clean': waste_text,
+                    'type': 'side_output',
+                })
 
         if not outgoing:
             break

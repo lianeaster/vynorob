@@ -1760,6 +1760,12 @@ class SchemeRenderer {
                 yeastBranch = step;
                 continue;
             }
+            if (step.type === 'side_output') {
+                if (groups.length > 0) {
+                    groups[groups.length - 1].sideOutputs.push(step);
+                }
+                continue;
+            }
             if (this._isStemLimitStep(step)) {
                 pendingStemLimit.push(step);
                 if (step.id === 'CHANGE' && groups.length > 0) {
@@ -1774,7 +1780,7 @@ class SchemeRenderer {
             } else if (this._isSideInput(step)) {
                 pendingSide.push(step);
             } else {
-                groups.push({ process: step, sideInputs: [...pendingSide] });
+                groups.push({ process: step, sideInputs: [...pendingSide], sideOutputs: [] });
                 pendingSide = [];
             }
         }
@@ -1786,16 +1792,21 @@ class SchemeRenderer {
         const branchGap = 60;
         const sideInputEstimate = 220;
 
+        const hasWasteOutputs = groups.some(g => g.sideOutputs && g.sideOutputs.length > 0);
+        const wasteArrowLen = 60;
+        const wasteTextW = 180;
+        const wasteExtraW = hasWasteOutputs ? wasteArrowLen + wasteTextW + 20 : 0;
+
         let canvasWidth, centerX;
         if (yeastBranch) {
             const leftExtent = sideInputEstimate + boxWidth / 2;
             const rightExtent = boxWidth / 2 + branchGap + branchBoxW;
             const contentW = leftExtent + rightExtent;
-            canvasWidth = contentW + 100;
+            canvasWidth = contentW + 100 + wasteExtraW;
             centerX = 50 + leftExtent;
         } else {
-            canvasWidth = 900;
-            centerX = canvasWidth / 2;
+            canvasWidth = 900 + wasteExtraW;
+            centerX = canvasWidth / 2 - wasteExtraW / 2;
         }
 
         this.canvas.width = canvasWidth;
@@ -1943,6 +1954,55 @@ class SchemeRenderer {
                         this.drawArrow(arrowStartX, arrowY, arrowEndX, arrowY);
                     }
                     ay += blockH + 6;
+                });
+            }
+
+            // Right-side waste outputs
+            if (group.sideOutputs && group.sideOutputs.length > 0) {
+                const outArrowStartX = centerX + boxWidth / 2;
+                const outArrowEndX = outArrowStartX + wasteArrowLen;
+                const outFontSize = 11;
+                const outLineH = 15;
+
+                group.sideOutputs.forEach((wo, wi) => {
+                    const outLines = (wo.label_clean || '').split('\n').filter(l => l.trim());
+                    const blockH = outLines.length * outLineH;
+                    const spacing = group.sideOutputs.length > 1
+                        ? (boxH - 20) / (group.sideOutputs.length - 1)
+                        : 0;
+                    const arrowY = group.sideOutputs.length > 1
+                        ? currentY + 10 + wi * spacing
+                        : currentY + boxH / 2;
+
+                    // Arrow line
+                    ctx.save();
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(outArrowStartX, arrowY);
+                    ctx.lineTo(outArrowEndX, arrowY);
+                    ctx.stroke();
+                    // Arrowhead
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.moveTo(outArrowEndX, arrowY);
+                    ctx.lineTo(outArrowEndX - 7, arrowY - 4);
+                    ctx.lineTo(outArrowEndX - 7, arrowY + 4);
+                    ctx.closePath();
+                    ctx.fill();
+                    // Text (first line above arrow, second line after arrowhead)
+                    ctx.font = `${outFontSize}px Arial`;
+                    ctx.fillStyle = '#000';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'bottom';
+                    if (outLines[0]) {
+                        ctx.fillText(outLines[0], outArrowStartX + 4, arrowY - 3);
+                    }
+                    if (outLines[1]) {
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(outLines[1], outArrowEndX + 6, arrowY);
+                    }
+                    ctx.restore();
                 });
             }
 
