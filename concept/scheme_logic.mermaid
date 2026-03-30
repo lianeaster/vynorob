@@ -874,13 +874,15 @@ flowchart TB
     CT_ASSEM -- "Купаж сортів" --> CT_ASSEM_BLEND["Купаж сортів<br>складність, баланс"]
 
     %% 17В. ОСВІТЛЕННЯ БАЗОВОГО ВИНА
-    CT_ASSEM_MONO --> CT_CLAR["Освітлення базового вина:<br>бентоніт 20-40 г/гл<br>холодна стабілізація -4°C<br>фільтрація 0.45-1.0 мкм"]
-    CT_ASSEM_MULTI --> CT_CLAR
-    CT_ASSEM_VAR --> CT_CLAR
-    CT_ASSEM_BLEND --> CT_CLAR
+    CT_ASSEM_MONO --> CT_CLAR_BENT["Освітлення базового вина:<br>бентоніт 20-40 г/гл"]
+    CT_ASSEM_MULTI --> CT_CLAR_BENT
+    CT_ASSEM_VAR --> CT_CLAR_BENT
+    CT_ASSEM_BLEND --> CT_CLAR_BENT
+    CT_CLAR_BENT --> CT_CLAR_COLD["Холодна стабілізація<br>базового вина:<br>-4°C<br>тартрати"]
+    CT_CLAR_COLD --> CT_CLAR_FILT["Фільтрація базового вина:<br>0.45-1.0 мкм"]
 
     %% 18В. ТИРАЖ
-    CT_CLAR --> CT_TIRAGE["Тираж #40;liqueur de tirage#41;:<br>цукор 20-24 г/л<br>дріжджі для вторинного бродіння<br>бентоніт #40;для ремюажу#41;<br>розлив у пляшки з кронен-пробкою"]
+    CT_CLAR_FILT --> CT_TIRAGE["Тираж #40;liqueur de tirage#41;:<br>цукор 20-24 г/л<br>дріжджі для вторинного бродіння<br>бентоніт #40;для ремюажу#41;<br>розлив у пляшки з кронен-пробкою"]
 
     %% 18В-2. ВТОРИННЕ БРОДІННЯ В ПЛЯШЦІ
     CT_TIRAGE --> CT_PRISE["Prise de mousse:<br>вторинне бродіння в пляшці<br>температура 12-14°C<br>тривалість 6-8 тижнів<br>цільовий тиск 5-6 атм"]

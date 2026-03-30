@@ -2121,11 +2121,7 @@ class SchemeRenderer {
         const abv = ((s0 - rs) / 16.83).toFixed(1);
         const taTarget = rm.TA_target || rm.ta_target || '—';
 
-        const coType = co2.CO2_level || co2.co2Type || 'still';
-        const isStill = coType === 'still' || coType === 'тихе';
-        const productName = isStill ? 'Виноматеріал' : 'Виноматеріал (ігристе)';
-
-        const lines = [`${productName} на оброблення та розлив:`];
+        const lines = ['Вино на розлив:'];
         lines.push(`Сц = ${rs} г/дм³`);
         lines.push(`Ссп = ${abv} % об.`);
         if (taTarget !== '—') lines.push(`Стк = ${taTarget} г/дм³`);
