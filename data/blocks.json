@@ -53,7 +53,7 @@
   },
   {
     "id": "block_4",
-    "name": "Зняття з осаду",
+    "name": "Зняття з грубого осаду",
     "params_schema": {
       "name_template": "Зняття з осаду"
     },
@@ -79,7 +79,7 @@
   },
   {
     "id": "block_6",
-    "name": "Освітлення\nвиноматервалу\nt=10...12°C",
+    "name": "Освітлення\nвиноматеріалу\nt=10...12°C",
     "params_schema": {
       "name_template": "Освітлення\nвиноматеріалу\nt = {cold_stab_temp}°C",
       "bindings": {
@@ -169,7 +169,7 @@
     "id": "block_12",
     "name": "Доброджування",
     "order": 12,
-    "arrow_out_label": "Виноматеріал",
+    "arrow_out_label": "Вино",
     "left_inputs": [
       {"type": "double", "text": "Холодоагент"}
     ]

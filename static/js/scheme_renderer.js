@@ -901,13 +901,13 @@ class SchemeRenderer {
         
         currentY += arrowLength;
         
-        // 4. Зняття з осаду (where both paths merge)
+        // 4. Зняття з грубого осаду (where both paths merge)
         const znyttiaY = currentY;
         currentY = this.drawProcessStage({
             x: centerX,
             y: currentY,
             width: boxWidth,
-            text: 'Зняття з осаду',
+            text: 'Зняття з грубого осаду',
             arrows: {}
         });
         
@@ -962,12 +962,12 @@ class SchemeRenderer {
         this.drawArrow(centerX, currentY, centerX, currentY + arrowLength);
         currentY += arrowLength;
         
-        // 7. Освітлення виноматервалу
+        // 7. Освітлення виноматеріалу
         currentY = this.drawProcessStage({
             x: centerX,
             y: currentY,
             width: boxWidth,
-            text: 'Освітлення\nвиноматервалу\nt=10...12°C',
+            text: 'Освітлення\nвиноматеріалу\nt=10...12°C',
             arrows: {
                 left: { type: 'double', text: 'Холодоагент' },
                 right: { text: 'Осад' }
@@ -1573,8 +1573,7 @@ class SchemeRenderer {
             const finalAcidity = Math.max(initialAcidity - acidityLoss, 4); // Minimum 4 g/dm³
             
             const lines = [
-                'Виноматервіал на',
-                'оброблення та розлив:',
+                'Вино на розлив:',
                 `Cц=${finalSugar} г/дм³`,
                 `Cт.к.=${finalAcidity.toFixed(1)} г/дм³`,
                 `Cсп = ${finalAlcohol}% об.`
