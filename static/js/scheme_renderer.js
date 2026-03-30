@@ -1660,7 +1660,7 @@ class SchemeRenderer {
         if (id.startsWith('REHY_')) return true;
         if (id.startsWith('INOC_')) return true;
         if (id.includes('FEED') || label.startsWith('підкормка')) return true;
-        if (id.startsWith('CLAR_') || id.startsWith('NS_CLAR')) return true;
+        // CLAR_* are full process boxes (fining/clarification), not side inputs
         if (id === 'NS_BOTH') return true;
         if (id === 'MLF_RED_IN') return true;
         if (id === 'CT_TIRAGE') return true;
