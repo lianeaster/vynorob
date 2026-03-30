@@ -35,6 +35,18 @@ class SchemeRenderer {
         
         // Centralized style configuration (BaseBox settings)
         this.config = {
+            watermark: {
+                enabled: true,           // ← toggle: true/false
+                text: 'vynorob.solutions',
+                opacity: 0.08,
+                fontSize: 48,
+                fontFamily: 'Arial',
+                color: '#000000',
+                repeat: true,            // tile across full canvas
+                repeatSpacingX: 320,
+                repeatSpacingY: 180,
+                angle: -25,
+            },
             colors: {
                 background: '#fff',
                 line: '#000',
@@ -1967,6 +1979,8 @@ class SchemeRenderer {
             ctx.font = i === 0 ? `bold ${headerFontSize}px Arial` : `${headerFontSize}px Arial`;
             ctx.fillText(line, centerX, currentY + i * headerLineH);
         });
+
+        this._drawWatermark();
     }
 
     _drawYeastBranch(ctx, branch, boxPositions, cfg) {
@@ -2116,6 +2130,54 @@ class SchemeRenderer {
         lines.push(`Ссп = ${abv} % об.`);
         if (taTarget !== '—') lines.push(`Стк = ${taTarget} г/дм³`);
         return lines;
+    }
+
+    /**
+     * Draw watermark over the canvas content
+     */
+    _drawWatermark() {
+        const wm = this.config.watermark;
+        if (!wm || !wm.enabled) return;
+
+        const ctx = this.ctx;
+        const W = this.canvas.width;
+        const H = this.canvas.height;
+
+        ctx.save();
+        ctx.globalAlpha = wm.opacity;
+        ctx.fillStyle = wm.color;
+        ctx.font = `bold ${wm.fontSize}px ${wm.fontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        if (wm.repeat) {
+            const dx = wm.repeatSpacingX;
+            const dy = wm.repeatSpacingY;
+            const angle = (wm.angle * Math.PI) / 180;
+            const cols = Math.ceil(W / dx) + 2;
+            const rows = Math.ceil(H / dy) + 2;
+
+            for (let row = -1; row < rows; row++) {
+                for (let col = -1; col < cols; col++) {
+                    const x = col * dx + (row % 2 === 0 ? 0 : dx / 2);
+                    const y = row * dy;
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(angle);
+                    ctx.fillText(wm.text, 0, 0);
+                    ctx.restore();
+                }
+            }
+        } else {
+            const angle = (wm.angle * Math.PI) / 180;
+            ctx.save();
+            ctx.translate(W / 2, H / 2);
+            ctx.rotate(angle);
+            ctx.fillText(wm.text, 0, 0);
+            ctx.restore();
+        }
+
+        ctx.restore();
     }
 
     /**
